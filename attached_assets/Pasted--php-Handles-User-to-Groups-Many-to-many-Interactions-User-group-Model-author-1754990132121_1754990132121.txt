@@ -1,0 +1,135 @@
+<?php
+/**
+ * Handles User to Groups Many-to-many Interactions
+ *
+ * User_group Model
+ * @author Martin Muriithi <martin@pporting.org>
+ * @date 03/19/2015
+ *
+ **/
+class Transaction extends pPort_model
+{
+    
+    static $enabled_for_time_range=true;
+    static $is_purgeable=true;
+    
+    static $table='transactions';
+    static $title="Audit Trail";
+    static $description="";
+    static $connection='smart_accounts';
+    static $form=false;
+    static $belongs_to=[
+        "credit_account"=>[
+            "credit_account","class_name"=>"Ledger_account","foreign_key"=>"credit_account_id"
+        ],
+        "debit_account"=>[
+            "debit_account","class_name"=>"Ledger_account","foreign_key"=>"debit_account_id"
+        ]
+    ];
+
+    
+
+    public function synch_transaction_entity()
+    {
+        $this->transaction_entity=$this->source;
+        $this->transaction_entity_reference=$this->source_id;
+    }
+
+    public static function cancel($transaction_entity,$transaction_reference)
+    {
+        Transaction::delete_all(['conditions'=>['source=? AND source_id=?',$transaction_entity,$transaction_reference]]);
+    }
+
+    public static function config($vars=[])
+    {
+        return array(
+            "fields"=>array(
+                
+                "created_at"=>array("label"=>"Date Recorded","width"=>"100px;","format"=>"date"),
+                //"updated_at"=>array("label"=>"Last Updated","format"=>"date"),
+                "transaction_date"=>array("label"=>"Transaction Date","width"=>"100px;","max"=>date('Y-m-d', strtotime(date('Y-m-d') . ' +2 day')),"format"=>"date"),
+                "amount"=>array("label"=>"Amount","format"=>"currency","width"=>"100px;"),
+                "debit_account_id"=>array("label"=>"Debit Account","width"=>"100px;","model"=>array('Ledger_account','id','title')),
+                "credit_account_id"=>array("label"=>"Credit Account","width"=>"100px;","model"=>array('Ledger_account','id','title')),
+                "description"=>array("label"=>"Description","format"=>"text"),
+                //"status"=>array("label"=>"Status","params"=>array("1"=>"Active","2"=>"Inactive")), 
+            ),
+
+            "conditions"=>array("account_id=? AND deleted=?",Session::user("account_id"),0),
+            "order"=>["transaction_date DESC"],
+            "grid_actions"=>[],
+            "form_actions"=>[],
+            "filters"=>true,
+            "limit"=>300,
+ 			"form"=>[],
+        );
+    }
+
+    public static function config_vat_control_report($vars=[])
+    {
+        $vat_control_account=Ledger_account::fetch_vat_control_account();
+        $vat_control_account_id=$vat_control_account->id;
+        return array(
+            "fields"=>array(
+               
+                "transaction_date"=>array("label"=>"Transaction Date","max"=>date('Y-m-d', strtotime(date('Y-m-d') . ' +2 day')),"format"=>"date"),
+                "debit_amount"=>array("label"=>"Debit Account","value"=>function($result)use($vat_control_account){
+                    $amount=$result->debit_account_id==$vat_control_account->id?$result->amount:0;
+                    return to_currency($amount);
+                }),
+                "credit_amount"=>array("label"=>"Credit Account","value"=>function($result)use($vat_control_account){
+                    $amount=$result->credit_account_id==$vat_control_account->id?$result->amount:0;
+                    return to_currency($amount);
+                }),
+                "vat_liability"=>array("label"=>"V.A.T Liability","value"=>function($result)use($vat_control_account){
+                    $_REQUEST['last_transaction_id']=$result->id;
+                    $vat_liability=$vat_control_account->get_balance($vat_control_account->id);
+                   
+                    return to_currency($vat_liability);
+                }),
+            ),
+            "filters"=>1,
+            "limit"=>500,
+           "conditions"=>array("credit_account_id=? OR debit_account_id=?",$vat_control_account_id,$vat_control_account_id),
+           "order"=>["transaction_date DESC"],
+            "grid_actions"=>[],
+            "form_actions"=>[],
+ 			"form"=>[],
+        );
+    }
+
+    
+
+    public static function as_of_date($account_type,$date,$account_id=NULL,$vars=[])
+    {
+        $remove_invoice_items_condition="";
+        if(isset($vars['exclude_account_receivables']))
+        {
+            $remove_invoice_items_condition=" AND transactions.source<>'Invoice_item' ";
+        }
+        if($account_type=='expense')
+        {
+            $account_id_filter=$account_id?" AND transactions.account_id=".$account_id:"";
+            $entity_results=Transaction::find_by_sql("SELECT SUM(amount) AS amount FROM ".Transaction::fetch_table()." 
+INNER JOIN ledger_accounts ON transactions.debit_account_id=ledger_accounts.id 
+INNER JOIN ledger_account_types ON ledger_accounts.ledger_account_type_id=ledger_account_types.id WHERE ledger_account_types.alias='expense' ".$remove_invoice_items_condition."
+ AND transactions.transaction_date <'".$date."' ".$account_id_filter);
+        }
+        elseif($account_type=='income')
+        {
+            $account_id_filter=$account_id?" AND transactions.account_id=".$account_id:"";
+            $entity_results=Transaction::find_by_sql("SELECT SUM(amount) AS amount FROM ".Transaction::fetch_table()." 
+            INNER JOIN ledger_accounts ON transactions.credit_account_id=ledger_accounts.id 
+            INNER JOIN ledger_account_types ON ledger_accounts.ledger_account_type_id=ledger_account_types.id WHERE (ledger_account_types.alias = 'income' OR transactions.source='Invoice_payment') 
+             ".$remove_invoice_items_condition."
+             AND transactions.transaction_date <'".$date."' ".$account_id_filter);
+             
+             
+        }
+        return $entity_results[0]->amount;
+        
+    }
+
+    
+    
+}

@@ -1,0 +1,89 @@
+Great point! Let’s integrate **event properties** into the design — similar to how PostHog structures them — so we can extract actionable insights and feed AI systems effectively.
+
+---
+
+### 🧠 Updated Events Logging Design (PostHog-style)
+
+#### 🔄 `events` Table (Core Event Log)
+
+This table stores the **raw events**. Example fields:
+
+| Field              | Type     | Description                                       |
+| ------------------ | -------- | ------------------------------------------------- |
+| `id`               | UUID     | Primary key                                       |
+| `event_name`       | String   | e.g. `user.login`, `page.view`, `report.download` |
+| `user_id`          | UUID     | Who triggered the event                           |
+| `workspace_id`     | UUID     | Context of the event                              |
+| `timestamp`        | DateTime | When the event happened                           |
+| `source`           | String   | e.g. `web`, `mobile`, `API`                       |
+| `url`              | String   | Full URL if applicable                            |
+| `event_properties` | JSONB    | Key-value metadata (see below)                    |
+
+---
+
+### 🧾 `event_properties` (Flexible JSON Structure)
+
+This will store extra metadata in a structured JSON format. Example payloads:
+
+#### Example: `page.view`
+
+```json
+{
+  "page": "/dashboard",
+  "referrer": "/login",
+  "duration": 12.5,
+  "device": "desktop",
+  "browser": "Chrome",
+  "os": "Windows"
+}
+```
+
+#### Example: `report.download`
+
+```json
+{
+  "report_id": "abc123",
+  "format": "PDF",
+  "filter_applied": {
+    "date_range": "last_30_days",
+    "region": "Nairobi"
+  }
+}
+```
+
+#### Example: `search.query`
+
+```json
+{
+  "query": "top customers",
+  "results_count": 5,
+  "filters": {
+    "workspace": "HQ",
+    "user_role": "agent"
+  }
+}
+```
+
+---
+
+### 📊 Benefits of Event Properties
+
+* Power **dashboards, funnels, heatmaps**
+* Enable **AI agents** to infer context from user behavior
+* Fuel **behavioral personalization** (e.g. smart defaults, nudges)
+* Support **auditing and analytics**
+
+---
+
+### ✅ Summary of What to Build
+
+* [ ] `events` table with core metadata
+* [ ] JSON-based `event_properties` column for custom context
+* [ ] Global middleware to capture events system-wide
+* [ ] Role-based access logic to protect logs
+* [ ] Workspace-aware data isolation
+* [ ] Admin dashboard for filtering/searching events
+
+---
+
+Let me know if you want me to write this out as a proper **database schema**, **ERD**, or even a **PostHog-inspired event tracking plan** for your CRM.

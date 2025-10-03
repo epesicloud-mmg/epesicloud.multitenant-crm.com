@@ -1,0 +1,27 @@
+roles-management has blank screen
+https://5d8e9987-2585-4c87-8d0f-460548725259-00-39egfsy2c77io.janeway.replit.dev/crm/products
+https://5d8e9987-2585-4c87-8d0f-460548725259-00-39egfsy2c77io.janeway.replit.dev/crm/products/types -404
+https://5d8e9987-2585-4c87-8d0f-460548725259-00-39egfsy2c77io.janeway.replit.dev/crm/products/categories -404
+https://5d8e9987-2585-4c87-8d0f-460548725259-00-39egfsy2c77io.janeway.replit.dev/crm/products/offers -404
+https://5d8e9987-2585-4c87-8d0f-460548725259-00-39egfsy2c77io.janeway.replit.dev/crm/setup/activity-types -404
+https://5d8e9987-2585-4c87-8d0f-460548725259-00-39egfsy2c77io.janeway.replit.dev/crm/setup/customer-types -404
+https://5d8e9987-2585-4c87-8d0f-460548725259-00-39egfsy2c77io.janeway.replit.dev/crm/setup/lead-sources -404
+https://5d8e9987-2585-4c87-8d0f-460548725259-00-39egfsy2c77io.janeway.replit.dev/crm/assistants -blank screen
+https://5d8e9987-2585-4c87-8d0f-460548725259-00-39egfsy2c77io.janeway.replit.dev/crm/instant-search -blank screen
+
+https://5d8e9987-2585-4c87-8d0f-460548725259-00-39egfsy2c77io.janeway.replit.dev/crm/reports/sales -404
+https://5d8e9987-2585-4c87-8d0f-460548725259-00-39egfsy2c77io.janeway.replit.dev/crm/reports/pipeline -404
+https://5d8e9987-2585-4c87-8d0f-460548725259-00-39egfsy2c77io.janeway.replit.dev/crm/reports/activities -404
+https://5d8e9987-2585-4c87-8d0f-460548725259-00-39egfsy2c77io.janeway.replit.dev/crm/reports/revenue -404
+https://5d8e9987-2585-4c87-8d0f-460548725259-00-39egfsy2c77io.janeway.replit.dev/crm/reports/custom -404
+https://5d8e9987-2585-4c87-8d0f-460548725259-00-39egfsy2c77io.janeway.replit.dev/finance/reports -blank screen
+https://5d8e9987-2585-4c87-8d0f-460548725259-00-39egfsy2c77io.janeway.replit.dev/finance/transaction-trail -blank screen
+https://5d8e9987-2585-4c87-8d0f-460548725259-00-39egfsy2c77io.janeway.replit.dev/finance/reports -BLANK SCREEN
+https://5d8e9987-2585-4c87-8d0f-460548725259-00-39egfsy2c77io.janeway.replit.dev/finance/reports -blank screen
+https://5d8e9987-2585-4c87-8d0f-460548725259-00-39egfsy2c77io.janeway.replit.dev/finance/chart-of-accounts -blank screen
+https://5d8e9987-2585-4c87-8d0f-460548725259-00-39egfsy2c77io.janeway.replit.dev/finance/bank-accounts -blank screen
+https://5d8e9987-2585-4c87-8d0f-460548725259-00-39egfsy2c77io.janeway.replit.dev/finance/credit-notes -blank screen
+https://5d8e9987-2585-4c87-8d0f-460548725259-00-39egfsy2c77io.janeway.replit.dev/finance/bills -blank screen
+https://5d8e9987-2585-4c87-8d0f-460548725259-00-39egfsy2c77io.janeway.replit.dev/finance/transactions -blank screen
+
+From the image a

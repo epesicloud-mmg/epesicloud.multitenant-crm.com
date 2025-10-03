@@ -1,0 +1,90 @@
+Here's a clear, structured, and business-friendly **summary of the modules** you need to build based on the customer requests. This version is optimized for planning, documentation, and briefing your technical or product teams.
+
+---
+
+## 🔧 MODULE SUMMARY FOR CUSTOMERS’ REQUESTS
+
+### 1. 🤖 **Assistants Module (AI Widget for Customer Support)**
+
+#### ✅ **Description:**
+
+The **Assistants Module** allows customers to create **AI-powered, embeddable chat widgets** that can be deployed on their websites. Each assistant can interact with visitors in real-time, answer product- and project-related inquiries, collect lead data, and improve customer service.
+
+#### 🧩 **Key Features:**
+
+* Create multiple assistants, each with:
+
+  * A unique embeddable widget code
+  * Scope definition: **Tenant-wide** or **Workspace-specific**
+  * Access control to **Products** and **Projects** within scope
+  * Ability to ingest and use **custom data** per assistant
+* Conversational lead capture:
+
+  * Assistant asks visitors for contact details
+  * Stores them in a dedicated `assistant_prospects` table to avoid CRM pollution
+* Natural AI-like responses using project and product context (PostHog-style event learning to improve over time)
+
+#### 📌 Use Case Example:
+
+> A supermarket embeds an assistant on their website. It answers questions like “What’s on offer today?” or “Do you have sugar in stock?” using live product data from their workspace.
+
+---
+
+### 2. 🛍️ **Products Module (Cross-Industry Product Management)**
+
+#### ✅ **Description:**
+
+The **Products Module** allows businesses to manage and showcase products or services that they offer. It is **generic enough to work across industries**, supporting real estate, legal, retail, etc.
+
+#### 🧩 **Key Features:**
+
+* Manage all product-related data:
+
+  * `products` table – with support for different fields including:
+
+    * `is_featured` – highlight specific products
+    * `workspace_id` – support multi-branch management
+  * `product_types` – classify products by type (e.g. physical, digital, service)
+  * `product_categories` – support filtering and organizing products
+  * `product_offers` – define time-limited or conditional offers per product
+* Integrated directly with **Assistant Module** as a data source
+* Products menu will be separate from “Setup” and only accessible by **Inventory Manager** role
+* Optionally support future inventory tracking extensions
+
+#### 📌 Use Case Example:
+
+> A legal firm lists their services as “products” – e.g., “Contract Drafting,” “Litigation Support.” A real estate firm lists plots and houses as products. Offers can be applied like “10% off on legal consultation this week.”
+
+---
+
+### 🗂️ Database Tables (Summary)
+
+| Table Name            | Purpose                                                          |
+| --------------------- | ---------------------------------------------------------------- |
+| `assistants`          | Stores assistant configs (scope, data access, widget code, etc.) |
+| `assistant_prospects` | Stores captured leads from assistant chats                       |
+| `products`            | Stores generic product/service info                              |
+| `product_types`       | Defines product nature/type                                      |
+| `product_categories`  | Organizes products into categories                               |
+| `product_offers`      | Tracks promotions, discounts, or featured deals                  |
+
+---
+
+### 🔐 Access Control
+
+| Role                  | Access                                               |
+| --------------------- | ---------------------------------------------------- |
+| **Admin**             | Full control across tenants & workspaces             |
+| **Workspace Admin**   | Manage assistants/products within their workspace    |
+| **Inventory Manager** | Manage products & offers                             |
+| **Sales Manager**     | View & assign product leads                          |
+| **Regular Users**     | No access to assistants or products unless permitted |
+| **Visitors**          | Interact with assistants only via website widget     |
+
+---
+
+Let me know if you'd like me to:
+
+* Convert this into a **BRD or PRD**
+* Draft the **API endpoints** and **widget embed logic**
+* Provide a **visual flow diagram** for assistant-lead capture and product recommendation

@@ -1,0 +1,7 @@
+firstName,lastName,email,phone,company,jobTitle,source,notes
+John,Smith,john.smith@example.com,+1-555-0123,Acme Corp,Sales Manager,Website,Interested in enterprise package
+Sarah,Johnson,sarah.j@techstart.com,+1-555-0124,TechStart Inc,CTO,Referral,Looking for API integration
+Michael,Brown,m.brown@globalco.com,+1-555-0125,Global Co,Director,Trade Show,Needs scalable solution
+Emily,Davis,emily@startup.io,+1-555-0126,Startup IO,Founder,LinkedIn,Early stage but high potential
+Robert,Wilson,r.wilson@enterprise.com,+1-555-0127,Enterprise Ltd,VP Sales,Cold Call,Budget approved for Q4
+Jennifer,Taylor,jen.taylor@innovate.com,+1-555-0128,Innovate Corp,Marketing Director,Partner,Ready to sign soon

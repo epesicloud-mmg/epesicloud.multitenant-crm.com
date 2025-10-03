@@ -1,0 +1,56 @@
+Core Modules
+3.1. Invoicing Module
+Invoice Management: Create, edit, and track invoices
+Invoice Types: Support for different invoice types
+Status Tracking: Monitor invoice status (draft, sent, paid, overdue)
+Multi-currency Support: Handle transactions in multiple currencies
+Tax Calculation: Automatic tax computation
+PDF Generation: Generate professional invoice documents
+3.2. Billing Module
+Bill Creation: Record and manage vendor bills
+Bill Payments: Track payments against bills
+Status Management: Monitor bill status
+Recurring Billing: Support for recurring bills
+3.3. Banking Module
+Bank Accounts: Manage multiple bank accounts
+Bank Reconciliation: Reconcile bank statements
+Transfers: Handle inter-account transfers
+Deposits: Record and track bank deposits
+Bank Statement Processing: Import and process bank statements
+3.4. Payment Processing
+Customer Payments: Record and track customer payments
+Supplier Payments: Manage payments to vendors
+Payment Methods: Support various payment methods
+Payment Allocation: Allocate payments to specific invoices/bills
+Credit Notes: Handle refunds and credits
+3.5. General Ledger
+Chart of Accounts: Manage accounting structure
+Journal Entries: Record financial transactions
+Account Reconciliation: Reconcile ledger accounts
+Financial Reporting: Generate balance sheets, profit & loss statements
+Trial Balance: View trial balance for any period
+3.6. Tax Management
+Tax Configuration: Set up tax rates and rules
+Tax Reporting: Generate tax reports
+Tax Remittance: Track tax payments
+Tax Documents: Generate tax-related documents
+3.7. Customer Management
+Customer Records: Maintain customer information
+Credit Management: Track customer credit limits
+Payment Terms: Define and apply payment terms
+Statement Generation: Generate customer statements
+3.8. Supplier Management
+Supplier Records: Maintain vendor information
+Payment Terms: Define payment terms
+Purchase Tracking: Monitor supplier transactions
+3.9. Inventory Management
+Item Catalog: Manage product/service catalog
+Stock Tracking: Track inventory levels
+Item Categories: Categorize items
+Costing: Track item costs
+3.10. Reporting Module
+Financial Reports: Generate standard financial statements
+Aging Reports: Track receivables and payables
+Sales Reports: Analyze sales data
+Tax Reports: Generate tax-related reports
+Custom Reports: Create custom financial reports
