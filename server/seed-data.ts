@@ -1,6 +1,51 @@
 import { db } from "./db";
 import { activityTypes, interestLevels, salesPipelines, salesStages, products } from "@shared/schema";
 
+// Default sales stages configuration
+export const DEFAULT_SALES_STAGES = [
+  { title: "Research/Discovery", description: "Prospect Identification", order: 1 },
+  { title: "Initial Contact: Book Appointment", description: "Initial Contact Made: Call, Email or Walk-ins", order: 2 },
+  { title: "Qualification: Opportunity Assessed", description: "Opportunity Assessed After Appointment", order: 3 },
+  { title: "Initial Presentation of Solution", description: "Product Demonstrations and Presentations", order: 4 },
+  { title: "Negotiation", description: "Negotiate & Pending Decision", order: 5 },
+  { title: "Contract/Offer Accepted", description: "Offer accepted, pending final closing procedures", order: 6 },
+  { title: "Closed Won", description: "Closed Won", order: 7 },
+  { title: "Closed Lost", description: "Closed Lost: Lost Deal", order: 8 },
+];
+
+/**
+ * Creates a default sales pipeline with stages for a specific workspace
+ * This function should be called whenever a new workspace is created
+ */
+export async function createDefaultPipelineForWorkspace(workspaceId: number, tenantId: number) {
+  try {
+    // Create the default pipeline
+    const [pipeline] = await db.insert(salesPipelines).values({
+      title: "Default Sales Pipeline",
+      description: "Standard sales pipeline for all products",
+      isDefault: true,
+      workspaceId,
+      tenantId,
+    }).returning();
+
+    // Create the stages for this pipeline
+    const stagesData = DEFAULT_SALES_STAGES.map(stage => ({
+      ...stage,
+      salePipelineId: pipeline.id,
+      workspaceId,
+      tenantId,
+    }));
+
+    await db.insert(salesStages).values(stagesData);
+
+    console.log(`✅ Created default pipeline and stages for workspace ${workspaceId}`);
+    return pipeline;
+  } catch (error) {
+    console.error(`❌ Error creating default pipeline for workspace ${workspaceId}:`, error);
+    throw error;
+  }
+}
+
 export async function seedSampleData() {
   try {
     console.log("Seeding sample data...");
@@ -28,25 +73,21 @@ export async function seedSampleData() {
       { level: "Qualifying", description: "Determining fit and requirements", color: "#8b5cf6", tenantId: 1 },
     ];
 
-    // Sales Pipelines for different business types
+    // Sales Pipelines - Default pipeline
     const salesPipelinesData = [
-      { title: "Manufacturing Sales", description: "Pipeline for industrial products, equipment, and bulk materials", isDefault: true, tenantId: 1 },
-      { title: "Service Sales", description: "Pipeline for consulting, maintenance, and service offerings", isDefault: false, tenantId: 1 },
-      { title: "Retail Sales", description: "Pipeline for direct consumer sales and small orders", isDefault: false, tenantId: 1 },
-      { title: "Distribution Sales", description: "Pipeline for distributor and wholesale partnerships", isDefault: false, tenantId: 1 },
+      { title: "Default Sales Pipeline", description: "Standard sales pipeline for all products", isDefault: true, tenantId: 1 },
     ];
 
-    // Sales Stages for Manufacturing Pipeline
+    // Sales Stages for Default Pipeline
     const salesStagesData = [
-      { title: "Lead Generation", description: "Identifying potential customers", order: 1, probability: 10, salePipelineId: 1, tenantId: 1 },
-      { title: "Initial Contact", description: "First interaction and needs assessment", order: 2, probability: 20, salePipelineId: 1, tenantId: 1 },
-      { title: "Qualification", description: "Qualifying budget, authority, need, timeline", order: 3, probability: 30, salePipelineId: 1, tenantId: 1 },
-      { title: "Technical Review", description: "Product specification and technical requirements", order: 4, probability: 45, salePipelineId: 1, tenantId: 1 },
-      { title: "Proposal", description: "Formal proposal and quotation submitted", order: 5, probability: 60, salePipelineId: 1, tenantId: 1 },
-      { title: "Negotiation", description: "Price and terms negotiation", order: 6, probability: 75, salePipelineId: 1, tenantId: 1 },
-      { title: "Contract Review", description: "Legal review and contract finalization", order: 7, probability: 90, salePipelineId: 1, tenantId: 1 },
-      { title: "Closed Won", description: "Deal successfully closed", order: 8, probability: 100, salePipelineId: 1, tenantId: 1 },
-      { title: "Closed Lost", description: "Deal lost to competitor or cancelled", order: 9, probability: 0, salePipelineId: 1, tenantId: 1 },
+      { title: "Research/Discovery", description: "Prospect Identification", order: 1, salePipelineId: 1, tenantId: 1 },
+      { title: "Initial Contact: Book Appointment", description: "Initial Contact Made: Call, Email or Walk-ins", order: 2, salePipelineId: 1, tenantId: 1 },
+      { title: "Qualification: Opportunity Assessed", description: "Opportunity Assessed After Appointment", order: 3, salePipelineId: 1, tenantId: 1 },
+      { title: "Initial Presentation of Solution", description: "Product Demonstrations and Presentations", order: 4, salePipelineId: 1, tenantId: 1 },
+      { title: "Negotiation", description: "Negotiate & Pending Decision", order: 5, salePipelineId: 1, tenantId: 1 },
+      { title: "Contract/Offer Accepted", description: "Offer accepted, pending final closing procedures", order: 6, salePipelineId: 1, tenantId: 1 },
+      { title: "Closed Won", description: "Closed Won", order: 7, salePipelineId: 1, tenantId: 1 },
+      { title: "Closed Lost", description: "Closed Lost: Lost Deal", order: 8, salePipelineId: 1, tenantId: 1 },
     ];
 
     // Products suitable for manufacturing company like Unga

@@ -3,7 +3,11 @@ import { drizzle } from 'drizzle-orm/neon-serverless';
 import ws from "ws";
 import * as schema from "@shared/schema";
 
+// Configure WebSocket with SSL certificate validation disabled
 neonConfig.webSocketConstructor = ws;
+neonConfig.wsProxy = () => undefined;
+neonConfig.useSecureWebSocket = false;
+neonConfig.pipelineConnect = false;
 
 if (!process.env.DATABASE_URL) {
   throw new Error(
@@ -11,5 +15,7 @@ if (!process.env.DATABASE_URL) {
   );
 }
 
-export const pool = new Pool({ connectionString: process.env.DATABASE_URL });
+export const pool = new Pool({ 
+  connectionString: process.env.DATABASE_URL
+});
 export const db = drizzle({ client: pool, schema });
