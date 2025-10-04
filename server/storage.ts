@@ -1,1165 +1,796 @@
 import { 
-  tenants, users, roles, companies, products, leads, contacts, salesStages, deals, activities,
-  activityTypes, salesPipelines, interestLevels, eventLogs, chatConversations, chatMessages, agentConversations, agentMessages,
-  type Tenant, type User, type Role, type Company, type Product, type Lead, type Contact, type SalesStage, type Deal, type Activity,
-  type ActivityType, type SalesPipeline, type InterestLevel, type EventLog, type ChatConversation, type ChatMessage, type AgentConversation, type AgentMessage,
-  type UserWithRole, type UserWithManager,
-  type InsertTenant, type InsertUser, type InsertRole, type InsertCompany, type InsertProduct, type InsertLead, type InsertContact, 
+  tenants, users, roles, permissions, rolePermissions, tenantUsers, refreshTokens,
+  companies, products, leads, contacts, salesStages, deals, activities,
+  activityTypes, salesPipelines, interestLevels, productTypes, productCategories, customers,
+  type Tenant, type User, type Role, type Permission, type TenantUser, type RefreshToken,
+  type Company, type Product, type Lead, type Contact, type SalesStage, type Deal, type Activity,
+  type ActivityType, type SalesPipeline, type InterestLevel, type ProductType, type ProductCategory, type Customer,
+  type InsertTenant, type InsertUser, type InsertRole, type InsertPermission, type InsertTenantUser, type InsertRefreshToken,
+  type InsertCompany, type InsertProduct, type InsertLead, type InsertContact, 
   type InsertSalesStage, type InsertDeal, type InsertActivity, type InsertActivityType, type InsertSalesPipeline, type InsertInterestLevel,
-  type InsertEventLog, type InsertChatConversation, type InsertChatMessage, type InsertAgentConversation, type InsertAgentMessage,
-  PERMISSIONS, ROLE_LEVELS
+  type InsertProductType, type InsertProductCategory, type InsertCustomer
 } from "@shared/schema";
 import { db } from "./db";
-import { eq, and, desc, count, or, ilike, sql, isNull, inArray } from "drizzle-orm";
+import { eq, and, desc, count, or, ilike, sql } from "drizzle-orm";
 
 export interface IStorage {
-  // Tenants
+  // ==================== AUTH & USERS ====================
+  createUser(user: InsertUser): Promise<User>;
+  getUserByEmail(email: string): Promise<User | undefined>;
+  getUserByUsername(username: string): Promise<User | undefined>;
+  getUser(id: number): Promise<User | undefined>;
+  updateUser(id: number, user: Partial<InsertUser>): Promise<User | undefined>;
+  updateUserLastTenant(userId: number, tenantId: number): Promise<User | undefined>;
+  updateUserLastLogin(userId: number): Promise<User | undefined>;
+  
+  // Refresh Tokens
+  createRefreshToken(token: InsertRefreshToken): Promise<RefreshToken>;
+  getRefreshToken(tokenHash: string): Promise<RefreshToken | undefined>;
+  revokeRefreshToken(tokenHash: string): Promise<boolean>;
+  deleteExpiredTokens(): Promise<number>;
+  
+  // ==================== TENANTS ====================
+  createTenant(tenant: InsertTenant): Promise<Tenant>;
   getTenant(id: number): Promise<Tenant | undefined>;
   getTenantBySubdomain(subdomain: string): Promise<Tenant | undefined>;
-  createTenant(tenant: InsertTenant): Promise<Tenant>;
-
-  // Roles
-  getRoles(tenantId: number, workspaceId?: number): Promise<Role[]>;
-  getRole(id: number, tenantId: number): Promise<Role | undefined>;
-  createRole(role: InsertRole): Promise<Role>;
-  updateRole(id: number, role: Partial<InsertRole>, tenantId: number): Promise<Role | undefined>;
-  deleteRole(id: number, tenantId: number): Promise<boolean>;
-
-  // Users with hierarchy and RBAC
-  getUser(id: number): Promise<UserWithRole | undefined>;
-  getUserWithPermissions(id: number, tenantId: number): Promise<UserWithRole | undefined>;
-  getUserByUsername(username: string, tenantId: number): Promise<UserWithRole | undefined>;
-  getUsers(tenantId: number, workspaceId?: number, managerId?: number): Promise<UserWithRole[]>;
-  getUserHierarchy(userId: number, tenantId: number): Promise<UserWithManager | undefined>;
-  getUserSubordinates(managerId: number, tenantId: number): Promise<UserWithRole[]>;
-  createUser(user: InsertUser): Promise<User>;
-  updateUser(id: number, user: Partial<InsertUser>, tenantId: number): Promise<User | undefined>;
-  updateUserContext(id: number, workspaceId?: number, projectId?: number, tenantId?: number): Promise<User | undefined>;
-  deleteUser(id: number, tenantId: number): Promise<boolean>;
+  getUserTenants(userId: number): Promise<Array<Tenant & { role: string }>>;
   
-  // Permission checks
-  userHasPermission(userId: number, permission: string, tenantId: number): Promise<boolean>;
-  getUserDataScope(userId: number, tenantId: number): Promise<'own' | 'team' | 'all'>;
-
-  // Companies
+  // ==================== TENANT MEMBERSHIP ====================
+  addUserToTenant(tenantUser: InsertTenantUser): Promise<TenantUser>;
+  getUserTenantMembership(userId: number, tenantId: number): Promise<TenantUser | undefined>;
+  removeUserFromTenant(userId: number, tenantId: number): Promise<boolean>;
+  getTenantUsers(tenantId: number): Promise<Array<TenantUser & { user: User }>>;
+  
+  // ==================== ROLES & PERMISSIONS ====================
+  createRole(role: InsertRole): Promise<Role>;
+  getRole(id: number): Promise<Role | undefined>;
+  getRoles(tenantId?: number): Promise<Role[]>;
+  updateRole(id: number, role: Partial<InsertRole>): Promise<Role | undefined>;
+  deleteRole(id: number): Promise<boolean>;
+  
+  createPermission(permission: InsertPermission): Promise<Permission>;
+  getPermissions(): Promise<Permission[]>;
+  getPermissionsByModule(module: string): Promise<Permission[]>;
+  
+  addPermissionToRole(roleId: number, permissionId: number): Promise<void>;
+  removePermissionFromRole(roleId: number, permissionId: number): Promise<void>;
+  getRolePermissions(roleId: number): Promise<Permission[]>;
+  getUserPermissions(userId: number, tenantId: number): Promise<Permission[]>;
+  
+  // ==================== CRM - COMPANIES ====================
   getCompanies(tenantId: number): Promise<Company[]>;
   getCompany(id: number, tenantId: number): Promise<Company | undefined>;
   createCompany(company: InsertCompany): Promise<Company>;
   updateCompany(id: number, company: Partial<InsertCompany>, tenantId: number): Promise<Company | undefined>;
   deleteCompany(id: number, tenantId: number): Promise<boolean>;
-
-  // Products
-  getProducts(tenantId: number): Promise<Product[]>;
-  getProduct(id: number, tenantId: number): Promise<Product | undefined>;
-  createProduct(product: InsertProduct): Promise<Product>;
-  updateProduct(id: number, product: Partial<InsertProduct>, tenantId: number): Promise<Product | undefined>;
-  deleteProduct(id: number, tenantId: number): Promise<boolean>;
-
-  // Leads
-  getLeads(tenantId: number): Promise<Lead[]>;
-  getLead(id: number, tenantId: number): Promise<Lead | undefined>;
-  createLead(lead: InsertLead): Promise<Lead>;
-  updateLead(id: number, lead: Partial<InsertLead>, tenantId: number): Promise<Lead | undefined>;
-  deleteLead(id: number, tenantId: number): Promise<boolean>;
-  convertLead(id: number, tenantId: number): Promise<Contact>;
-
-  // Contacts
+  
+  // ==================== CRM - CONTACTS ====================
   getContacts(tenantId: number, limit?: number): Promise<(Contact & { company?: Company })[]>;
   getContact(id: number, tenantId: number): Promise<Contact | undefined>;
   createContact(contact: InsertContact): Promise<Contact>;
   updateContact(id: number, contact: Partial<InsertContact>, tenantId: number): Promise<Contact | undefined>;
   deleteContact(id: number, tenantId: number): Promise<boolean>;
   searchContacts(query: string, tenantId: number): Promise<Contact[]>;
-
-  // Sales Pipelines
-  getSalesPipelines(tenantId: number): Promise<SalesPipeline[]>;
-  getSalesPipeline(id: number, tenantId: number): Promise<SalesPipeline | undefined>;
-  createSalesPipeline(pipeline: InsertSalesPipeline): Promise<SalesPipeline>;
-  updateSalesPipeline(id: number, pipeline: Partial<InsertSalesPipeline>, tenantId: number): Promise<SalesPipeline | undefined>;
-  deleteSalesPipeline(id: number, tenantId: number): Promise<boolean>;
-
-  // Sales Stages
-  getSalesStages(tenantId: number, pipelineId?: number): Promise<SalesStage[]>;
-  getSalesStage(id: number, tenantId: number): Promise<SalesStage | undefined>;
-  createSalesStage(stage: InsertSalesStage): Promise<SalesStage>;
-  updateSalesStage(id: number, stage: Partial<InsertSalesStage>, tenantId: number): Promise<SalesStage | undefined>;
-  deleteSalesStage(id: number, tenantId: number): Promise<boolean>;
-  getDealStages(tenantId: number): Promise<SalesStage[]>;
-
-  // Activity Types
-  getActivityTypes(tenantId: number): Promise<ActivityType[]>;
-  getActivityType(id: number, tenantId: number): Promise<ActivityType | undefined>;
-  createActivityType(activityType: InsertActivityType): Promise<ActivityType>;
-  updateActivityType(id: number, activityType: Partial<InsertActivityType>, tenantId: number): Promise<ActivityType | undefined>;
-  deleteActivityType(id: number, tenantId: number): Promise<boolean>;
-
-  // Deals
+  
+  // ==================== CRM - LEADS ====================
+  getLeads(tenantId: number): Promise<Lead[]>;
+  getLead(id: number, tenantId: number): Promise<Lead | undefined>;
+  createLead(lead: InsertLead): Promise<Lead>;
+  updateLead(id: number, lead: Partial<InsertLead>, tenantId: number): Promise<Lead | undefined>;
+  deleteLead(id: number, tenantId: number): Promise<boolean>;
+  assignLead(id: number, assignedToId: number, assignedById: number, tenantId: number): Promise<Lead | undefined>;
+  getMyLeads(userId: number, tenantId: number): Promise<Lead[]>;
+  
+  // ==================== CRM - DEALS ====================
   getDeals(tenantId: number): Promise<Deal[]>;
   getDeal(id: number, tenantId: number): Promise<Deal | undefined>;
   createDeal(deal: InsertDeal): Promise<Deal>;
   updateDeal(id: number, deal: Partial<InsertDeal>, tenantId: number): Promise<Deal | undefined>;
   deleteDeal(id: number, tenantId: number): Promise<boolean>;
-  getDealStages(tenantId: number): Promise<SalesStage[]>;
-
-  // Lead assignment methods
-  assignLead(id: number, assignedToId: number, assignedById: number, tenantId: number): Promise<Lead | undefined>;
-  unassignLead(id: number, tenantId: number): Promise<Lead | undefined>;
-  getMyLeads(userId: number, tenantId: number): Promise<Lead[]>;
-  getTeamLeads(managerId: number, tenantId: number): Promise<Lead[]>;
-
-  // Activities
+  
+  // ==================== CRM - ACTIVITIES ====================
   getActivities(tenantId: number, limit?: number): Promise<Activity[]>;
   getActivitiesForContact(contactId: number, tenantId: number): Promise<Activity[]>;
+  getActivitiesForDeal(dealId: number, tenantId: number): Promise<Activity[]>;
   createActivity(activity: InsertActivity): Promise<Activity>;
   updateActivity(id: number, activity: Partial<InsertActivity>, tenantId: number): Promise<Activity | undefined>;
   deleteActivity(id: number, tenantId: number): Promise<boolean>;
-
-  // Dashboard metrics
+  
+  // ==================== CRM - SALES PIPELINES ====================
+  getSalesPipelines(tenantId: number): Promise<SalesPipeline[]>;
+  getSalesPipeline(id: number, tenantId: number): Promise<SalesPipeline | undefined>;
+  createSalesPipeline(pipeline: InsertSalesPipeline): Promise<SalesPipeline>;
+  updateSalesPipeline(id: number, pipeline: Partial<InsertSalesPipeline>, tenantId: number): Promise<SalesPipeline | undefined>;
+  deleteSalesPipeline(id: number, tenantId: number): Promise<boolean>;
+  
+  // ==================== CRM - SALES STAGES ====================
+  getSalesStages(tenantId: number, pipelineId?: number): Promise<SalesStage[]>;
+  getSalesStage(id: number, tenantId: number): Promise<SalesStage | undefined>;
+  createSalesStage(stage: InsertSalesStage): Promise<SalesStage>;
+  updateSalesStage(id: number, stage: Partial<InsertSalesStage>, tenantId: number): Promise<SalesStage | undefined>;
+  deleteSalesStage(id: number, tenantId: number): Promise<boolean>;
+  
+  // ==================== CRM - PRODUCTS ====================
+  getProducts(tenantId: number): Promise<Product[]>;
+  getProduct(id: number, tenantId: number): Promise<Product | undefined>;
+  createProduct(product: InsertProduct): Promise<Product>;
+  updateProduct(id: number, product: Partial<InsertProduct>, tenantId: number): Promise<Product | undefined>;
+  deleteProduct(id: number, tenantId: number): Promise<boolean>;
+  
+  // ==================== CRM - PRODUCT TYPES & CATEGORIES ====================
+  getProductTypes(tenantId: number): Promise<ProductType[]>;
+  createProductType(productType: InsertProductType): Promise<ProductType>;
+  
+  getProductCategories(tenantId: number): Promise<ProductCategory[]>;
+  createProductCategory(category: InsertProductCategory): Promise<ProductCategory>;
+  
+  // ==================== CRM - ACTIVITY TYPES ====================
+  getActivityTypes(tenantId: number): Promise<ActivityType[]>;
+  createActivityType(activityType: InsertActivityType): Promise<ActivityType>;
+  
+  // ==================== CRM - INTEREST LEVELS ====================
+  getInterestLevels(tenantId: number): Promise<InterestLevel[]>;
+  createInterestLevel(interestLevel: InsertInterestLevel): Promise<InterestLevel>;
+  
+  // ==================== DASHBOARD ====================
   getDashboardMetrics(tenantId: number): Promise<{
     totalContacts: number;
     activeDeals: number;
     pipelineRevenue: number;
     conversionRate: number;
   }>;
-
-  // AI Conversations
-  getUserConversations(userId: number, tenantId: number): Promise<AgentConversation[]>;
-  getConversation(id: number, userId: number, tenantId: number): Promise<AgentConversation | undefined>;
-  createConversation(conversation: InsertAgentConversation): Promise<AgentConversation>;
-  updateConversation(id: number, conversation: Partial<InsertAgentConversation>, userId: number, tenantId: number): Promise<AgentConversation | undefined>;
-  deleteConversation(id: number, userId: number, tenantId: number): Promise<boolean>;
-
-  // AI Messages
-  getConversationMessages(conversationId: number, userId: number, tenantId: number): Promise<AgentMessage[]>;
-  addMessage(message: InsertAgentMessage): Promise<AgentMessage>;
-  deleteMessage(id: number, userId: number, tenantId: number): Promise<boolean>;
 }
 
-export class DatabaseStorage implements IStorage {
-  async getTenant(id: number): Promise<Tenant | undefined> {
-    const [tenant] = await db.select().from(tenants).where(eq(tenants.id, id));
-    return tenant || undefined;
-  }
-
-  async getTenantBySubdomain(subdomain: string): Promise<Tenant | undefined> {
-    const [tenant] = await db.select().from(tenants).where(eq(tenants.subdomain, subdomain));
-    return tenant || undefined;
-  }
-
-  async createTenant(tenant: InsertTenant): Promise<Tenant> {
-    const [newTenant] = await db.insert(tenants).values(tenant).returning();
-    return newTenant;
-  }
-
-  async getUser(id: number): Promise<UserWithRole | undefined> {
-    const [user] = await db
-      .select()
-      .from(users)
-      .leftJoin(roles, eq(users.roleId, roles.id))
-      .where(eq(users.id, id));
-    
-    if (!user) return undefined;
-    
-    return {
-      ...user.users,
-      role: user.roles!
-    };
-  }
-
-  async getUserByUsername(username: string, tenantId: number): Promise<UserWithRole | undefined> {
-    const [user] = await db
-      .select()
-      .from(users)
-      .leftJoin(roles, eq(users.roleId, roles.id))
-      .where(and(eq(users.username, username), eq(users.tenantId, tenantId)));
-    
-    if (!user) return undefined;
-    
-    return {
-      ...user.users,
-      role: user.roles!
-    };
-  }
-
-  async getUserWithPermissions(id: number, tenantId: number): Promise<UserWithRole | undefined> {
-    const [user] = await db
-      .select()
-      .from(users)
-      .leftJoin(roles, eq(users.roleId, roles.id))
-      .where(and(eq(users.id, id), eq(users.tenantId, tenantId)));
-    
-    if (!user) return undefined;
-    
-    return {
-      ...user.users,
-      role: user.roles!
-    };
-  }
-
-  async getRoles(tenantId: number, workspaceId?: number): Promise<Role[]> {
-    let query = db
-      .select()
-      .from(roles)
-      .where(eq(roles.tenantId, tenantId));
-
-    if (workspaceId) {
-      query = query.where(or(eq(roles.workspaceId, workspaceId), isNull(roles.workspaceId))) as any;
-    }
-
-    return await query;
-  }
-
-  async getUsers(tenantId: number, workspaceId?: number, managerId?: number): Promise<UserWithRole[]> {
-    let conditions = [eq(users.tenantId, tenantId)];
-
-    if (workspaceId) {
-      conditions.push(eq(users.currentWorkspaceId, workspaceId));
-    }
-
-    if (managerId) {
-      conditions.push(eq(users.managerId, managerId));
-    }
-
-    const result = await db
-      .select()
-      .from(users)
-      .leftJoin(roles, eq(users.roleId, roles.id))
-      .where(and(...conditions));
-
-    return result.map(row => ({
-      ...row.users,
-      role: row.roles!
-    }));
-  }
-
-  async getUserHierarchy(userId: number, tenantId: number): Promise<UserWithManager | undefined> {
-    const [user] = await db
-      .select()
-      .from(users)
-      .leftJoin(roles, eq(users.roleId, roles.id))
-      .where(eq(users.id, userId));
-
-    if (!user) return undefined;
-
-    let manager = undefined;
-    if (user.users.managerId) {
-      const [managerData] = await db
-        .select()
-        .from(users)
-        .leftJoin(roles, eq(users.roleId, roles.id))
-        .where(eq(users.id, user.users.managerId));
-
-      if (managerData) {
-        manager = {
-          ...managerData.users,
-          role: managerData.roles!
-        };
-      }
-    }
-
-    const subordinates = await db
-      .select()
-      .from(users)
-      .where(eq(users.managerId, userId));
-
-    return {
-      ...user.users,
-      role: user.roles!,
-      manager,
-      subordinates
-    };
-  }
-
-  async getUserSubordinates(managerId: number, tenantId: number): Promise<UserWithRole[]> {
-    const result = await db
-      .select()
-      .from(users)
-      .leftJoin(roles, eq(users.roleId, roles.id))
-      .where(eq(users.managerId, managerId));
-
-    return result.map(row => ({
-      ...row.users,
-      role: row.roles!
-    }));
-  }
-
+export class DbStorage implements IStorage {
+  // ==================== AUTH & USERS ====================
+  
   async createUser(user: InsertUser): Promise<User> {
     const [newUser] = await db.insert(users).values(user).returning();
     return newUser;
   }
-
+  
+  async getUserByEmail(email: string): Promise<User | undefined> {
+    const [user] = await db.select().from(users).where(eq(users.email, email)).limit(1);
+    return user;
+  }
+  
+  async getUserByUsername(username: string): Promise<User | undefined> {
+    const [user] = await db.select().from(users).where(eq(users.username, username)).limit(1);
+    return user;
+  }
+  
+  async getUser(id: number): Promise<User | undefined> {
+    const [user] = await db.select().from(users).where(eq(users.id, id)).limit(1);
+    return user;
+  }
+  
+  async updateUser(id: number, user: Partial<InsertUser>): Promise<User | undefined> {
+    const [updated] = await db.update(users)
+      .set({ ...user, updatedAt: new Date() })
+      .where(eq(users.id, id))
+      .returning();
+    return updated;
+  }
+  
+  async updateUserLastTenant(userId: number, tenantId: number): Promise<User | undefined> {
+    const [updated] = await db.update(users)
+      .set({ lastTenantId: tenantId, updatedAt: new Date() })
+      .where(eq(users.id, userId))
+      .returning();
+    return updated;
+  }
+  
+  async updateUserLastLogin(userId: number): Promise<User | undefined> {
+    const [updated] = await db.update(users)
+      .set({ lastLoginAt: new Date(), updatedAt: new Date() })
+      .where(eq(users.id, userId))
+      .returning();
+    return updated;
+  }
+  
+  // ==================== REFRESH TOKENS ====================
+  
+  async createRefreshToken(token: InsertRefreshToken): Promise<RefreshToken> {
+    const [newToken] = await db.insert(refreshTokens).values(token).returning();
+    return newToken;
+  }
+  
+  async getRefreshToken(tokenHash: string): Promise<RefreshToken | undefined> {
+    const [token] = await db.select().from(refreshTokens)
+      .where(and(
+        eq(refreshTokens.tokenHash, tokenHash),
+        eq(refreshTokens.revoked, false)
+      ))
+      .limit(1);
+    return token;
+  }
+  
+  async revokeRefreshToken(tokenHash: string): Promise<boolean> {
+    const result = await db.update(refreshTokens)
+      .set({ revoked: true })
+      .where(eq(refreshTokens.tokenHash, tokenHash));
+    return result.rowCount ? result.rowCount > 0 : false;
+  }
+  
+  async deleteExpiredTokens(): Promise<number> {
+    const result = await db.delete(refreshTokens)
+      .where(sql`${refreshTokens.expiresAt} < NOW()`);
+    return result.rowCount || 0;
+  }
+  
+  // ==================== TENANTS ====================
+  
+  async createTenant(tenant: InsertTenant): Promise<Tenant> {
+    const [newTenant] = await db.insert(tenants).values(tenant).returning();
+    return newTenant;
+  }
+  
+  async getTenant(id: number): Promise<Tenant | undefined> {
+    const [tenant] = await db.select().from(tenants).where(eq(tenants.id, id)).limit(1);
+    return tenant;
+  }
+  
+  async getTenantBySubdomain(subdomain: string): Promise<Tenant | undefined> {
+    const [tenant] = await db.select().from(tenants).where(eq(tenants.subdomain, subdomain)).limit(1);
+    return tenant;
+  }
+  
+  async getUserTenants(userId: number): Promise<Array<Tenant & { role: string }>> {
+    const results = await db
+      .select({
+        id: tenants.id,
+        name: tenants.name,
+        subdomain: tenants.subdomain,
+        createdAt: tenants.createdAt,
+        updatedAt: tenants.updatedAt,
+        role: roles.name,
+      })
+      .from(tenantUsers)
+      .innerJoin(tenants, eq(tenantUsers.tenantId, tenants.id))
+      .innerJoin(roles, eq(tenantUsers.roleId, roles.id))
+      .where(eq(tenantUsers.userId, userId));
+    
+    return results.map(r => ({ ...r, role: r.role || 'member' }));
+  }
+  
+  // ==================== TENANT MEMBERSHIP ====================
+  
+  async addUserToTenant(tenantUser: InsertTenantUser): Promise<TenantUser> {
+    const [membership] = await db.insert(tenantUsers).values(tenantUser).returning();
+    return membership;
+  }
+  
+  async getUserTenantMembership(userId: number, tenantId: number): Promise<TenantUser | undefined> {
+    const [membership] = await db.select().from(tenantUsers)
+      .where(and(
+        eq(tenantUsers.userId, userId),
+        eq(tenantUsers.tenantId, tenantId)
+      ))
+      .limit(1);
+    return membership;
+  }
+  
+  async removeUserFromTenant(userId: number, tenantId: number): Promise<boolean> {
+    const result = await db.delete(tenantUsers)
+      .where(and(
+        eq(tenantUsers.userId, userId),
+        eq(tenantUsers.tenantId, tenantId)
+      ));
+    return result.rowCount ? result.rowCount > 0 : false;
+  }
+  
+  async getTenantUsers(tenantId: number): Promise<Array<TenantUser & { user: User }>> {
+    const results = await db
+      .select()
+      .from(tenantUsers)
+      .innerJoin(users, eq(tenantUsers.userId, users.id))
+      .where(eq(tenantUsers.tenantId, tenantId));
+    
+    return results.map(r => ({
+      ...r.tenant_users,
+      user: r.users,
+    }));
+  }
+  
+  // ==================== ROLES & PERMISSIONS ====================
+  
   async createRole(role: InsertRole): Promise<Role> {
     const [newRole] = await db.insert(roles).values(role).returning();
     return newRole;
   }
-
-  async updateUserContext(id: number, workspaceId?: number, projectId?: number, tenantId?: number): Promise<User | undefined> {
-    const updateData: any = {};
-    if (workspaceId !== undefined) updateData.currentWorkspaceId = workspaceId;
-    if (projectId !== undefined) updateData.currentProjectId = projectId;
-    
-    let conditions = [eq(users.id, id)];
+  
+  async getRole(id: number): Promise<Role | undefined> {
+    const [role] = await db.select().from(roles).where(eq(roles.id, id)).limit(1);
+    return role;
+  }
+  
+  async getRoles(tenantId?: number): Promise<Role[]> {
     if (tenantId) {
-      conditions.push(eq(users.tenantId, tenantId));
+      return await db.select().from(roles)
+        .where(or(eq(roles.tenantId, tenantId), sql`${roles.tenantId} IS NULL`));
     }
-
-    const [updatedUser] = await db
-      .update(users)
-      .set(updateData)
-      .where(and(...conditions))
+    return await db.select().from(roles).where(sql`${roles.tenantId} IS NULL`);
+  }
+  
+  async updateRole(id: number, role: Partial<InsertRole>): Promise<Role | undefined> {
+    const [updated] = await db.update(roles)
+      .set({ ...role, updatedAt: new Date() })
+      .where(eq(roles.id, id))
       .returning();
-    
-    return updatedUser || undefined;
+    return updated;
   }
-
-  async updateUser(id: number, user: Partial<InsertUser>, tenantId: number): Promise<User | undefined> {
-    const [updatedUser] = await db
-      .update(users)
-      .set(user)
-      .where(and(eq(users.id, id), eq(users.tenantId, tenantId)))
-      .returning();
-    
-    return updatedUser || undefined;
+  
+  async deleteRole(id: number): Promise<boolean> {
+    const result = await db.delete(roles).where(eq(roles.id, id));
+    return result.rowCount ? result.rowCount > 0 : false;
   }
-
-  async getUserDataScope(userId: number, tenantId: number): Promise<'own' | 'team' | 'all'> {
-    const user = await this.getUserWithPermissions(userId, tenantId);
-    if (!user) return 'own';
-    
-    // Admin and Sales Manager see all data (level 4-5)
-    if (user.role.level >= 4) return 'all';
-    
-    // Supervisors see team data (level 3)
-    if (user.role.level >= 3) return 'team';
-    
-    // Agents see only their own data (level 1-2)
-    return 'own';
+  
+  async createPermission(permission: InsertPermission): Promise<Permission> {
+    const [newPermission] = await db.insert(permissions).values(permission).returning();
+    return newPermission;
   }
-
-  async userHasPermission(userId: number, permission: string, tenantId: number): Promise<boolean> {
-    const user = await this.getUserWithPermissions(userId, tenantId);
-    if (!user) return false;
-    
-    return user.role.permissions.includes(permission);
+  
+  async getPermissions(): Promise<Permission[]> {
+    return await db.select().from(permissions);
   }
-
-  async getRole(id: number, tenantId: number): Promise<Role | undefined> {
-    const [role] = await db
-      .select()
-      .from(roles)
-      .where(and(eq(roles.id, id), eq(roles.tenantId, tenantId)));
-    
-    return role || undefined;
+  
+  async getPermissionsByModule(module: string): Promise<Permission[]> {
+    return await db.select().from(permissions).where(eq(permissions.module, module));
   }
-
-  async updateRole(id: number, role: Partial<InsertRole>, tenantId: number): Promise<Role | undefined> {
-    const [updatedRole] = await db
-      .update(roles)
-      .set(role)
-      .where(and(eq(roles.id, id), eq(roles.tenantId, tenantId)))
-      .returning();
-    
-    return updatedRole || undefined;
+  
+  async addPermissionToRole(roleId: number, permissionId: number): Promise<void> {
+    await db.insert(rolePermissions).values({ roleId, permissionId });
   }
-
-  async deleteRole(id: number, tenantId: number): Promise<boolean> {
-    const result = await db
-      .delete(roles)
-      .where(and(eq(roles.id, id), eq(roles.tenantId, tenantId)));
-    
-    return result.rowCount > 0;
+  
+  async removePermissionFromRole(roleId: number, permissionId: number): Promise<void> {
+    await db.delete(rolePermissions)
+      .where(and(
+        eq(rolePermissions.roleId, roleId),
+        eq(rolePermissions.permissionId, permissionId)
+      ));
   }
-
-  async deleteUser(id: number, tenantId: number): Promise<boolean> {
-    const result = await db
-      .delete(users)
-      .where(and(eq(users.id, id), eq(users.tenantId, tenantId)));
+  
+  async getRolePermissions(roleId: number): Promise<Permission[]> {
+    const results = await db
+      .select({
+        id: permissions.id,
+        name: permissions.name,
+        description: permissions.description,
+        module: permissions.module,
+        createdAt: permissions.createdAt,
+      })
+      .from(rolePermissions)
+      .innerJoin(permissions, eq(rolePermissions.permissionId, permissions.id))
+      .where(eq(rolePermissions.roleId, roleId));
     
-    return result.rowCount > 0;
+    return results;
   }
-
+  
+  async getUserPermissions(userId: number, tenantId: number): Promise<Permission[]> {
+    const results = await db
+      .select({
+        id: permissions.id,
+        name: permissions.name,
+        description: permissions.description,
+        module: permissions.module,
+        createdAt: permissions.createdAt,
+      })
+      .from(tenantUsers)
+      .innerJoin(rolePermissions, eq(tenantUsers.roleId, rolePermissions.roleId))
+      .innerJoin(permissions, eq(rolePermissions.permissionId, permissions.id))
+      .where(and(
+        eq(tenantUsers.userId, userId),
+        eq(tenantUsers.tenantId, tenantId)
+      ));
+    
+    return results;
+  }
+  
+  // ==================== CRM - COMPANIES ====================
+  
   async getCompanies(tenantId: number): Promise<Company[]> {
-    return await db.select().from(companies)
-      .where(eq(companies.tenantId, tenantId))
-      .orderBy(desc(companies.createdAt));
+    return await db.select().from(companies).where(eq(companies.tenantId, tenantId));
   }
-
+  
   async getCompany(id: number, tenantId: number): Promise<Company | undefined> {
     const [company] = await db.select().from(companies)
-      .where(and(eq(companies.id, id), eq(companies.tenantId, tenantId)));
-    return company || undefined;
+      .where(and(eq(companies.id, id), eq(companies.tenantId, tenantId)))
+      .limit(1);
+    return company;
   }
-
+  
   async createCompany(company: InsertCompany): Promise<Company> {
     const [newCompany] = await db.insert(companies).values(company).returning();
     return newCompany;
   }
-
+  
   async updateCompany(id: number, company: Partial<InsertCompany>, tenantId: number): Promise<Company | undefined> {
-    const [updatedCompany] = await db.update(companies)
-      .set(company)
+    const [updated] = await db.update(companies)
+      .set({ ...company, updatedAt: new Date() })
       .where(and(eq(companies.id, id), eq(companies.tenantId, tenantId)))
       .returning();
-    return updatedCompany || undefined;
+    return updated;
   }
-
+  
   async deleteCompany(id: number, tenantId: number): Promise<boolean> {
     const result = await db.delete(companies)
       .where(and(eq(companies.id, id), eq(companies.tenantId, tenantId)));
-    return (result.rowCount || 0) > 0;
+    return result.rowCount ? result.rowCount > 0 : false;
   }
-
-  // Products methods
-  async getProducts(tenantId: number): Promise<Product[]> {
-    return await db.select().from(products)
-      .where(eq(products.tenantId, tenantId))
-      .orderBy(desc(products.createdAt));
-  }
-
-  async getProduct(id: number, tenantId: number): Promise<Product | undefined> {
-    const [product] = await db.select().from(products)
-      .where(and(eq(products.id, id), eq(products.tenantId, tenantId)));
-    return product || undefined;
-  }
-
-  async createProduct(product: InsertProduct): Promise<Product> {
-    const [newProduct] = await db.insert(products).values(product).returning();
-    return newProduct;
-  }
-
-  async updateProduct(id: number, product: Partial<InsertProduct>, tenantId: number): Promise<Product | undefined> {
-    const [updatedProduct] = await db.update(products)
-      .set(product)
-      .where(and(eq(products.id, id), eq(products.tenantId, tenantId)))
-      .returning();
-    return updatedProduct || undefined;
-  }
-
-  async deleteProduct(id: number, tenantId: number): Promise<boolean> {
-    const result = await db.delete(products)
-      .where(and(eq(products.id, id), eq(products.tenantId, tenantId)));
-    return (result.rowCount || 0) > 0;
-  }
-
-  // Leads methods
-  async getLeads(tenantId: number, userId?: number, userRole?: string): Promise<Lead[]> {
-    // Role-based filtering
-    if (userId && userRole) {
-      if (userRole === 'agent') {
-        // Agents only see their assigned leads
-        return await db.select().from(leads)
-          .where(and(eq(leads.assignedToId, userId), eq(leads.tenantId, tenantId)))
-          .orderBy(desc(leads.createdAt));
-      } else if (userRole === 'supervisor') {
-        // Supervisors see leads assigned to their agents (team members)
-        const teamMembers = await this.getUserSubordinates(userId, tenantId);
-        const teamIds = teamMembers.map(member => member.id);
-        teamIds.push(userId); // Include supervisor's own leads
-        
-        return await db.select().from(leads)
-          .leftJoin(users, eq(leads.assignedToId, users.id))
-          .where(
-            and(
-              eq(leads.tenantId, tenantId),
-              or(
-                inArray(leads.assignedToId, teamIds),
-                isNull(leads.assignedToId) // Also show unassigned leads
-              )
-            )
-          )
-          .orderBy(desc(leads.createdAt))
-          .then(result => result.map(row => ({
-            ...row.leads,
-            assignedTo: row.users
-          })) as any[]);
-      } else if (userRole === 'sales manager') {
-        // Sales managers see unassigned leads and leads assigned to their entire team hierarchy
-        const teamMembers = await this.getUserSubordinates(userId, tenantId);
-        const teamIds = teamMembers.map(member => member.id);
-        teamIds.push(userId);
-        
-        return await db.select().from(leads)
-          .leftJoin(users, eq(leads.assignedToId, users.id))
-          .where(
-            and(
-              eq(leads.tenantId, tenantId),
-              or(
-                isNull(leads.assignedToId),
-                inArray(leads.assignedToId, teamIds)
-              )
-            )
-          )
-          .orderBy(desc(leads.createdAt))
-          .then(result => result.map(row => ({
-            ...row.leads,
-            assignedTo: row.users
-          })) as any[]);
-      }
-    }
-
-    // Default: show all leads for super admin/director
-    const result = await db.select().from(leads)
-      .leftJoin(users, eq(leads.assignedToId, users.id))
-      .where(eq(leads.tenantId, tenantId))
-      .orderBy(desc(leads.createdAt));
-    
-    return result.map(row => ({
-      ...row.leads,
-      assignedTo: row.users
-    })) as any[];
-  }
-
-  async assignLead(id: number, assignedToId: number, assignedById: number, tenantId: number): Promise<Lead | undefined> {
-    const [updatedLead] = await db.update(leads)
-      .set({ 
-        assignedToId, 
-        assignedById,
-        assignedAt: new Date()
-      })
-      .where(and(eq(leads.id, id), eq(leads.tenantId, tenantId)))
-      .returning();
-    return updatedLead || undefined;
-  }
-
-  async unassignLead(id: number, tenantId: number): Promise<Lead | undefined> {
-    const [updatedLead] = await db.update(leads)
-      .set({ 
-        assignedToId: null, 
-        assignedById: null,
-        assignedAt: null
-      })
-      .where(and(eq(leads.id, id), eq(leads.tenantId, tenantId)))
-      .returning();
-    return updatedLead || undefined;
-  }
-
-  async getMyLeads(userId: number, tenantId: number): Promise<Lead[]> {
-    return await db.select().from(leads)
-      .where(and(eq(leads.assignedToId, userId), eq(leads.tenantId, tenantId)))
-      .orderBy(desc(leads.createdAt));
-  }
-
-  async getTeamLeads(managerId: number, tenantId: number): Promise<Lead[]> {
-    const teamMembers = await this.getUserSubordinates(managerId, tenantId);
-    const teamIds = teamMembers.map(member => member.id);
-    teamIds.push(managerId);
-    
-    return await db.select().from(leads)
-      .where(and(
-        inArray(leads.assignedToId, teamIds),
-        eq(leads.tenantId, tenantId)
-      ))
-      .orderBy(desc(leads.createdAt));
-  }
-
-  async getLead(id: number, tenantId: number): Promise<Lead | undefined> {
-    const [lead] = await db.select().from(leads)
-      .where(and(eq(leads.id, id), eq(leads.tenantId, tenantId)));
-    return lead || undefined;
-  }
-
-  async createLead(lead: InsertLead): Promise<Lead> {
-    const [newLead] = await db.insert(leads).values(lead).returning();
-    return newLead;
-  }
-
-  async updateLead(id: number, lead: Partial<InsertLead>, tenantId: number): Promise<Lead | undefined> {
-    const [updatedLead] = await db.update(leads)
-      .set(lead)
-      .where(and(eq(leads.id, id), eq(leads.tenantId, tenantId)))
-      .returning();
-    return updatedLead || undefined;
-  }
-
-  async deleteLead(id: number, tenantId: number): Promise<boolean> {
-    const result = await db.delete(leads)
-      .where(and(eq(leads.id, id), eq(leads.tenantId, tenantId)));
-    return (result.rowCount || 0) > 0;
-  }
-
-  async convertLead(id: number, tenantId: number): Promise<Contact> {
-    const lead = await this.getLead(id, tenantId);
-    if (!lead) {
-      throw new Error("Lead not found");
-    }
-
-    // Create contact from lead
-    const newContact = await this.createContact({
-      firstName: lead.firstName,
-      lastName: lead.lastName,
-      email: lead.email,
-      phone: lead.phone,
-      jobTitle: lead.jobTitle,
-      status: "prospect",
-      tenantId: lead.tenantId,
-      notes: lead.notes,
-    });
-
-    // Mark lead as converted
-    await this.updateLead(id, { status: "converted" }, tenantId);
-
-    return newContact;
-  }
-
-  async getContacts(tenantId: number, limit: number = 50): Promise<(Contact & { company?: Company })[]> {
-    const result = await db.select({
-      id: contacts.id,
-      firstName: contacts.firstName,
-      lastName: contacts.lastName,
-      email: contacts.email,
-      phone: contacts.phone,
-      jobTitle: contacts.jobTitle,
-      status: contacts.status,
-      companyId: contacts.companyId,
-      tenantId: contacts.tenantId,
-      notes: contacts.notes,
-      createdAt: contacts.createdAt,
-      lastContactDate: contacts.lastContactDate,
-      companyName: companies.name,
-      companyIndustry: companies.industry
+  
+  // ==================== CRM - CONTACTS ====================
+  
+  async getContacts(tenantId: number, limit?: number): Promise<(Contact & { company?: Company })[]> {
+    const query = db.select({
+      contact: contacts,
+      company: companies,
     })
     .from(contacts)
     .leftJoin(companies, eq(contacts.companyId, companies.id))
     .where(eq(contacts.tenantId, tenantId))
-    .orderBy(desc(contacts.createdAt))
-    .limit(limit);
-
-    return result.map(row => ({
-      id: row.id,
-      firstName: row.firstName,
-      lastName: row.lastName,
-      email: row.email,
-      phone: row.phone,
-      jobTitle: row.jobTitle,
-      status: row.status,
-      companyId: row.companyId,
-      tenantId: row.tenantId,
-      notes: row.notes,
-      createdAt: row.createdAt,
-      lastContactDate: row.lastContactDate,
-      company: row.companyName ? {
-        id: row.companyId!,
-        name: row.companyName,
-        industry: row.companyIndustry,
-        website: null,
-        phone: null,
-        address: null,
-        tenantId: row.tenantId,
-        createdAt: row.createdAt
-      } : undefined
+    .orderBy(desc(contacts.createdAt));
+    
+    const results = limit ? await query.limit(limit) : await query;
+    
+    return results.map(r => ({
+      ...r.contact,
+      company: r.company || undefined,
     }));
   }
-
+  
   async getContact(id: number, tenantId: number): Promise<Contact | undefined> {
     const [contact] = await db.select().from(contacts)
-      .where(and(eq(contacts.id, id), eq(contacts.tenantId, tenantId)));
-    return contact || undefined;
+      .where(and(eq(contacts.id, id), eq(contacts.tenantId, tenantId)))
+      .limit(1);
+    return contact;
   }
-
+  
   async createContact(contact: InsertContact): Promise<Contact> {
     const [newContact] = await db.insert(contacts).values(contact).returning();
     return newContact;
   }
-
+  
   async updateContact(id: number, contact: Partial<InsertContact>, tenantId: number): Promise<Contact | undefined> {
-    const [updatedContact] = await db.update(contacts)
-      .set(contact)
+    const [updated] = await db.update(contacts)
+      .set({ ...contact, updatedAt: new Date() })
       .where(and(eq(contacts.id, id), eq(contacts.tenantId, tenantId)))
       .returning();
-    return updatedContact || undefined;
+    return updated;
   }
-
+  
   async deleteContact(id: number, tenantId: number): Promise<boolean> {
     const result = await db.delete(contacts)
       .where(and(eq(contacts.id, id), eq(contacts.tenantId, tenantId)));
-    return (result.rowCount || 0) > 0;
+    return result.rowCount ? result.rowCount > 0 : false;
   }
-
+  
   async searchContacts(query: string, tenantId: number): Promise<Contact[]> {
     return await db.select().from(contacts)
       .where(and(
         eq(contacts.tenantId, tenantId),
-        // Note: This is a simple search implementation. In production, you might want to use full-text search
+        or(
+          ilike(contacts.firstName, `%${query}%`),
+          ilike(contacts.lastName, `%${query}%`),
+          ilike(contacts.email, `%${query}%`)
+        )
       ))
-      .orderBy(desc(contacts.createdAt));
+      .limit(20);
   }
-
-  // Activity Types Implementation
-  async getActivityTypes(tenantId: number): Promise<ActivityType[]> {
-    return await db.select().from(activityTypes)
-      .where(eq(activityTypes.tenantId, tenantId))
-      .orderBy(activityTypes.typeName);
+  
+  // ==================== CRM - LEADS ====================
+  
+  async getLeads(tenantId: number): Promise<Lead[]> {
+    return await db.select().from(leads)
+      .where(eq(leads.tenantId, tenantId))
+      .orderBy(desc(leads.createdAt));
   }
-
-  async getActivityType(id: number, tenantId: number): Promise<ActivityType | undefined> {
-    const [activityType] = await db.select().from(activityTypes)
-      .where(and(eq(activityTypes.id, id), eq(activityTypes.tenantId, tenantId)));
-    return activityType || undefined;
+  
+  async getLead(id: number, tenantId: number): Promise<Lead | undefined> {
+    const [lead] = await db.select().from(leads)
+      .where(and(eq(leads.id, id), eq(leads.tenantId, tenantId)))
+      .limit(1);
+    return lead;
   }
-
-  async createActivityType(activityType: InsertActivityType): Promise<ActivityType> {
-    const [newActivityType] = await db.insert(activityTypes).values(activityType).returning();
-    return newActivityType;
+  
+  async createLead(lead: InsertLead): Promise<Lead> {
+    const [newLead] = await db.insert(leads).values(lead).returning();
+    return newLead;
   }
-
-  async updateActivityType(id: number, activityType: Partial<InsertActivityType>, tenantId: number): Promise<ActivityType | undefined> {
-    const [updatedActivityType] = await db.update(activityTypes)
-      .set(activityType)
-      .where(and(eq(activityTypes.id, id), eq(activityTypes.tenantId, tenantId)))
+  
+  async updateLead(id: number, lead: Partial<InsertLead>, tenantId: number): Promise<Lead | undefined> {
+    const [updated] = await db.update(leads)
+      .set({ ...lead, updatedAt: new Date() })
+      .where(and(eq(leads.id, id), eq(leads.tenantId, tenantId)))
       .returning();
-    return updatedActivityType || undefined;
+    return updated;
   }
-
-  async deleteActivityType(id: number, tenantId: number): Promise<boolean> {
-    const result = await db.delete(activityTypes)
-      .where(and(eq(activityTypes.id, id), eq(activityTypes.tenantId, tenantId)));
-    return (result.rowCount || 0) > 0;
+  
+  async deleteLead(id: number, tenantId: number): Promise<boolean> {
+    const result = await db.delete(leads)
+      .where(and(eq(leads.id, id), eq(leads.tenantId, tenantId)));
+    return result.rowCount ? result.rowCount > 0 : false;
   }
-
-  // Sales Pipelines Implementation
-  async getSalesPipelines(tenantId: number): Promise<SalesPipeline[]> {
-    const pipelines = await db.select().from(salesPipelines)
-      .where(eq(salesPipelines.tenantId, tenantId))
-      .orderBy(salesPipelines.title);
-
-    // Get stages for each pipeline
-    const pipelinesWithStages = await Promise.all(
-      pipelines.map(async (pipeline) => {
-        const stages = await this.getSalesStages(tenantId, pipeline.id);
-        return { ...pipeline, stages };
+  
+  async assignLead(id: number, assignedToId: number, assignedById: number, tenantId: number): Promise<Lead | undefined> {
+    const [updated] = await db.update(leads)
+      .set({ 
+        assignedToId, 
+        assignedById, 
+        assignedAt: new Date(),
+        updatedAt: new Date()
       })
-    );
-
-    return pipelinesWithStages as any[];
-  }
-
-  async getSalesPipeline(id: number, tenantId: number): Promise<SalesPipeline | undefined> {
-    const [pipeline] = await db.select().from(salesPipelines)
-      .where(and(eq(salesPipelines.id, id), eq(salesPipelines.tenantId, tenantId)));
-    
-    if (!pipeline) return undefined;
-
-    const stages = await this.getSalesStages(tenantId, pipeline.id);
-    return { ...pipeline, stages } as any;
-  }
-
-  async createSalesPipeline(pipeline: InsertSalesPipeline): Promise<SalesPipeline> {
-    const [newPipeline] = await db.insert(salesPipelines).values(pipeline).returning();
-    return newPipeline;
-  }
-
-  async updateSalesPipeline(id: number, pipeline: Partial<InsertSalesPipeline>, tenantId: number): Promise<SalesPipeline | undefined> {
-    const [updatedPipeline] = await db.update(salesPipelines)
-      .set(pipeline)
-      .where(and(eq(salesPipelines.id, id), eq(salesPipelines.tenantId, tenantId)))
+      .where(and(eq(leads.id, id), eq(leads.tenantId, tenantId)))
       .returning();
-    return updatedPipeline || undefined;
+    return updated;
   }
-
-  async deleteSalesPipeline(id: number, tenantId: number): Promise<boolean> {
-    // First delete all stages for this pipeline
-    await db.delete(salesStages)
-      .where(and(eq(salesStages.salePipelineId, id), eq(salesStages.tenantId, tenantId)));
-    
-    // Then delete the pipeline
-    const result = await db.delete(salesPipelines)
-      .where(and(eq(salesPipelines.id, id), eq(salesPipelines.tenantId, tenantId)));
-    return (result.rowCount || 0) > 0;
+  
+  async getMyLeads(userId: number, tenantId: number): Promise<Lead[]> {
+    return await db.select().from(leads)
+      .where(and(
+        eq(leads.assignedToId, userId),
+        eq(leads.tenantId, tenantId)
+      ))
+      .orderBy(desc(leads.createdAt));
   }
-
-  // Sales Stages Implementation
-  async getSalesStages(tenantId: number, pipelineId?: number): Promise<SalesStage[]> {
-    const conditions = [eq(salesStages.tenantId, tenantId)];
-    if (pipelineId) {
-      conditions.push(eq(salesStages.salePipelineId, pipelineId));
-    }
-
-    return await db.select().from(salesStages)
-      .where(and(...conditions))
-      .orderBy(salesStages.order);
-  }
-
-  async getSalesStage(id: number, tenantId: number): Promise<SalesStage | undefined> {
-    const [stage] = await db.select().from(salesStages)
-      .where(and(eq(salesStages.id, id), eq(salesStages.tenantId, tenantId)));
-    return stage || undefined;
-  }
-
-  async createSalesStage(stage: InsertSalesStage): Promise<SalesStage> {
-    const [newStage] = await db.insert(salesStages).values(stage).returning();
-    return newStage;
-  }
-
-  async updateSalesStage(id: number, stage: Partial<InsertSalesStage>, tenantId: number): Promise<SalesStage | undefined> {
-    const [updatedStage] = await db.update(salesStages)
-      .set(stage)
-      .where(and(eq(salesStages.id, id), eq(salesStages.tenantId, tenantId)))
-      .returning();
-    return updatedStage || undefined;
-  }
-
-  async deleteSalesStage(id: number, tenantId: number): Promise<boolean> {
-    const result = await db.delete(salesStages)
-      .where(and(eq(salesStages.id, id), eq(salesStages.tenantId, tenantId)));
-    return (result.rowCount || 0) > 0;
-  }
-
+  
+  // ==================== CRM - DEALS ====================
+  
   async getDeals(tenantId: number): Promise<Deal[]> {
     return await db.select().from(deals)
       .where(eq(deals.tenantId, tenantId))
       .orderBy(desc(deals.createdAt));
   }
-
+  
   async getDeal(id: number, tenantId: number): Promise<Deal | undefined> {
     const [deal] = await db.select().from(deals)
-      .where(and(eq(deals.id, id), eq(deals.tenantId, tenantId)));
-    return deal || undefined;
+      .where(and(eq(deals.id, id), eq(deals.tenantId, tenantId)))
+      .limit(1);
+    return deal;
   }
-
+  
   async createDeal(deal: InsertDeal): Promise<Deal> {
     const [newDeal] = await db.insert(deals).values(deal).returning();
     return newDeal;
   }
-
+  
   async updateDeal(id: number, deal: Partial<InsertDeal>, tenantId: number): Promise<Deal | undefined> {
-    const [updatedDeal] = await db.update(deals)
-      .set(deal)
+    const [updated] = await db.update(deals)
+      .set({ ...deal, updatedAt: new Date() })
       .where(and(eq(deals.id, id), eq(deals.tenantId, tenantId)))
       .returning();
-    return updatedDeal || undefined;
+    return updated;
   }
-
+  
   async deleteDeal(id: number, tenantId: number): Promise<boolean> {
     const result = await db.delete(deals)
       .where(and(eq(deals.id, id), eq(deals.tenantId, tenantId)));
-    return (result.rowCount || 0) > 0;
+    return result.rowCount ? result.rowCount > 0 : false;
   }
-
-  // Deal stages method - alias for sales stages for API compatibility
-  async getDealStages(tenantId: number): Promise<SalesStage[]> {
-    return await this.getSalesStages(tenantId);
-  }
-
-  async getActivities(tenantId: number, limit: number = 20): Promise<Activity[]> {
-    return await db.select().from(activities)
+  
+  // ==================== CRM - ACTIVITIES ====================
+  
+  async getActivities(tenantId: number, limit?: number): Promise<Activity[]> {
+    const query = db.select().from(activities)
       .where(eq(activities.tenantId, tenantId))
-      .orderBy(desc(activities.createdAt))
-      .limit(limit);
+      .orderBy(desc(activities.createdAt));
+    
+    return limit ? await query.limit(limit) : await query;
   }
-
+  
   async getActivitiesForContact(contactId: number, tenantId: number): Promise<Activity[]> {
     return await db.select().from(activities)
-      .where(and(eq(activities.contactId, contactId), eq(activities.tenantId, tenantId)))
+      .where(and(
+        eq(activities.contactId, contactId),
+        eq(activities.tenantId, tenantId)
+      ))
       .orderBy(desc(activities.createdAt));
   }
-
+  
+  async getActivitiesForDeal(dealId: number, tenantId: number): Promise<Activity[]> {
+    return await db.select().from(activities)
+      .where(and(
+        eq(activities.dealId, dealId),
+        eq(activities.tenantId, tenantId)
+      ))
+      .orderBy(desc(activities.createdAt));
+  }
+  
   async createActivity(activity: InsertActivity): Promise<Activity> {
     const [newActivity] = await db.insert(activities).values(activity).returning();
     return newActivity;
   }
-
+  
   async updateActivity(id: number, activity: Partial<InsertActivity>, tenantId: number): Promise<Activity | undefined> {
-    const [updatedActivity] = await db.update(activities)
-      .set(activity)
+    const [updated] = await db.update(activities)
+      .set({ ...activity, updatedAt: new Date() })
       .where(and(eq(activities.id, id), eq(activities.tenantId, tenantId)))
       .returning();
-    return updatedActivity || undefined;
+    return updated;
   }
-
+  
   async deleteActivity(id: number, tenantId: number): Promise<boolean> {
     const result = await db.delete(activities)
       .where(and(eq(activities.id, id), eq(activities.tenantId, tenantId)));
-    return (result.rowCount || 0) > 0;
+    return result.rowCount ? result.rowCount > 0 : false;
   }
-
+  
+  // ==================== CRM - SALES PIPELINES ====================
+  
+  async getSalesPipelines(tenantId: number): Promise<SalesPipeline[]> {
+    return await db.select().from(salesPipelines).where(eq(salesPipelines.tenantId, tenantId));
+  }
+  
+  async getSalesPipeline(id: number, tenantId: number): Promise<SalesPipeline | undefined> {
+    const [pipeline] = await db.select().from(salesPipelines)
+      .where(and(eq(salesPipelines.id, id), eq(salesPipelines.tenantId, tenantId)))
+      .limit(1);
+    return pipeline;
+  }
+  
+  async createSalesPipeline(pipeline: InsertSalesPipeline): Promise<SalesPipeline> {
+    const [newPipeline] = await db.insert(salesPipelines).values(pipeline).returning();
+    return newPipeline;
+  }
+  
+  async updateSalesPipeline(id: number, pipeline: Partial<InsertSalesPipeline>, tenantId: number): Promise<SalesPipeline | undefined> {
+    const [updated] = await db.update(salesPipelines)
+      .set({ ...pipeline, updatedAt: new Date() })
+      .where(and(eq(salesPipelines.id, id), eq(salesPipelines.tenantId, tenantId)))
+      .returning();
+    return updated;
+  }
+  
+  async deleteSalesPipeline(id: number, tenantId: number): Promise<boolean> {
+    const result = await db.delete(salesPipelines)
+      .where(and(eq(salesPipelines.id, id), eq(salesPipelines.tenantId, tenantId)));
+    return result.rowCount ? result.rowCount > 0 : false;
+  }
+  
+  // ==================== CRM - SALES STAGES ====================
+  
+  async getSalesStages(tenantId: number, pipelineId?: number): Promise<SalesStage[]> {
+    if (pipelineId) {
+      return await db.select().from(salesStages)
+        .where(and(
+          eq(salesStages.tenantId, tenantId),
+          eq(salesStages.salePipelineId, pipelineId)
+        ))
+        .orderBy(salesStages.order);
+    }
+    return await db.select().from(salesStages)
+      .where(eq(salesStages.tenantId, tenantId))
+      .orderBy(salesStages.order);
+  }
+  
+  async getSalesStage(id: number, tenantId: number): Promise<SalesStage | undefined> {
+    const [stage] = await db.select().from(salesStages)
+      .where(and(eq(salesStages.id, id), eq(salesStages.tenantId, tenantId)))
+      .limit(1);
+    return stage;
+  }
+  
+  async createSalesStage(stage: InsertSalesStage): Promise<SalesStage> {
+    const [newStage] = await db.insert(salesStages).values(stage).returning();
+    return newStage;
+  }
+  
+  async updateSalesStage(id: number, stage: Partial<InsertSalesStage>, tenantId: number): Promise<SalesStage | undefined> {
+    const [updated] = await db.update(salesStages)
+      .set({ ...stage, updatedAt: new Date() })
+      .where(and(eq(salesStages.id, id), eq(salesStages.tenantId, tenantId)))
+      .returning();
+    return updated;
+  }
+  
+  async deleteSalesStage(id: number, tenantId: number): Promise<boolean> {
+    const result = await db.delete(salesStages)
+      .where(and(eq(salesStages.id, id), eq(salesStages.tenantId, tenantId)));
+    return result.rowCount ? result.rowCount > 0 : false;
+  }
+  
+  // ==================== CRM - PRODUCTS ====================
+  
+  async getProducts(tenantId: number): Promise<Product[]> {
+    return await db.select().from(products).where(eq(products.tenantId, tenantId));
+  }
+  
+  async getProduct(id: number, tenantId: number): Promise<Product | undefined> {
+    const [product] = await db.select().from(products)
+      .where(and(eq(products.id, id), eq(products.tenantId, tenantId)))
+      .limit(1);
+    return product;
+  }
+  
+  async createProduct(product: InsertProduct): Promise<Product> {
+    const [newProduct] = await db.insert(products).values(product).returning();
+    return newProduct;
+  }
+  
+  async updateProduct(id: number, product: Partial<InsertProduct>, tenantId: number): Promise<Product | undefined> {
+    const [updated] = await db.update(products)
+      .set({ ...product, updatedAt: new Date() })
+      .where(and(eq(products.id, id), eq(products.tenantId, tenantId)))
+      .returning();
+    return updated;
+  }
+  
+  async deleteProduct(id: number, tenantId: number): Promise<boolean> {
+    const result = await db.delete(products)
+      .where(and(eq(products.id, id), eq(products.tenantId, tenantId)));
+    return result.rowCount ? result.rowCount > 0 : false;
+  }
+  
+  // ==================== CRM - PRODUCT TYPES & CATEGORIES ====================
+  
+  async getProductTypes(tenantId: number): Promise<ProductType[]> {
+    return await db.select().from(productTypes).where(eq(productTypes.tenantId, tenantId));
+  }
+  
+  async createProductType(productType: InsertProductType): Promise<ProductType> {
+    const [newType] = await db.insert(productTypes).values(productType).returning();
+    return newType;
+  }
+  
+  async getProductCategories(tenantId: number): Promise<ProductCategory[]> {
+    return await db.select().from(productCategories).where(eq(productCategories.tenantId, tenantId));
+  }
+  
+  async createProductCategory(category: InsertProductCategory): Promise<ProductCategory> {
+    const [newCategory] = await db.insert(productCategories).values(category).returning();
+    return newCategory;
+  }
+  
+  // ==================== CRM - ACTIVITY TYPES ====================
+  
+  async getActivityTypes(tenantId: number): Promise<ActivityType[]> {
+    return await db.select().from(activityTypes).where(eq(activityTypes.tenantId, tenantId));
+  }
+  
+  async createActivityType(activityType: InsertActivityType): Promise<ActivityType> {
+    const [newType] = await db.insert(activityTypes).values(activityType).returning();
+    return newType;
+  }
+  
+  // ==================== CRM - INTEREST LEVELS ====================
+  
+  async getInterestLevels(tenantId: number): Promise<InterestLevel[]> {
+    return await db.select().from(interestLevels).where(eq(interestLevels.tenantId, tenantId));
+  }
+  
+  async createInterestLevel(interestLevel: InsertInterestLevel): Promise<InterestLevel> {
+    const [newLevel] = await db.insert(interestLevels).values(interestLevel).returning();
+    return newLevel;
+  }
+  
+  // ==================== DASHBOARD ====================
+  
   async getDashboardMetrics(tenantId: number): Promise<{
     totalContacts: number;
     activeDeals: number;
     pipelineRevenue: number;
     conversionRate: number;
   }> {
-    // Get total contacts
-    const [contactsCount] = await db.select({ count: count() }).from(contacts)
+    const [contactCount] = await db.select({ count: count() })
+      .from(contacts)
       .where(eq(contacts.tenantId, tenantId));
-
-    // Get active deals
-    const [dealsCount] = await db.select({ count: count() }).from(deals)
-      .where(eq(deals.tenantId, tenantId));
-
-    // Calculate pipeline revenue (sum of all active deals)
-    const dealsData = await db.select().from(deals)
+    
+    const [dealCount] = await db.select({ count: count() })
+      .from(deals)
       .where(eq(deals.tenantId, tenantId));
     
-    const pipelineRevenue = dealsData.reduce((sum, deal) => sum + parseFloat(deal.value), 0);
-
-    // Simple conversion rate calculation (this is a placeholder - in real apps you'd have more sophisticated metrics)
-    const conversionRate = contactsCount.count > 0 ? (dealsCount.count / contactsCount.count) * 100 : 0;
-
+    const dealsData = await db.select({ value: deals.value })
+      .from(deals)
+      .where(eq(deals.tenantId, tenantId));
+    
+    const pipelineRevenue = dealsData.reduce((sum, d) => sum + Number(d.value || 0), 0);
+    
     return {
-      totalContacts: contactsCount.count,
-      activeDeals: dealsCount.count,
+      totalContacts: contactCount.count,
+      activeDeals: dealCount.count,
       pipelineRevenue,
-      conversionRate: Math.round(conversionRate * 10) / 10,
+      conversionRate: 0,
     };
-  }
-
-  // Interest Levels methods
-  async getInterestLevels(tenantId: number): Promise<InterestLevel[]> {
-    return await db.select().from(interestLevels).where(eq(interestLevels.tenantId, tenantId));
-  }
-
-  async createInterestLevel(level: InsertInterestLevel): Promise<InterestLevel> {
-    const [newLevel] = await db.insert(interestLevels).values(level).returning();
-    return newLevel;
-  }
-
-  async updateInterestLevel(id: number, updates: Partial<InsertInterestLevel>, tenantId: number): Promise<InterestLevel | null> {
-    const [updated] = await db
-      .update(interestLevels)
-      .set(updates)
-      .where(and(eq(interestLevels.id, id), eq(interestLevels.tenantId, tenantId)))
-      .returning();
-    return updated || null;
-  }
-
-  async deleteInterestLevel(id: number, tenantId: number): Promise<boolean> {
-    const result = await db
-      .delete(interestLevels)
-      .where(and(eq(interestLevels.id, id), eq(interestLevels.tenantId, tenantId)));
-    return (result.rowCount || 0) > 0;
-  }
-
-  // Event Logs methods (for auditing and AI context)
-  async getUserRecentEvents(userId: number, tenantId: number, limit: number = 10): Promise<EventLog[]> {
-    return await db
-      .select()
-      .from(eventLogs)
-      .where(and(eq(eventLogs.userId, userId), eq(eventLogs.tenantId, tenantId)))
-      .orderBy(desc(eventLogs.createdAt))
-      .limit(limit);
-  }
-
-  async createEventLog(eventLog: InsertEventLog): Promise<EventLog> {
-    const [newEvent] = await db.insert(eventLogs).values(eventLog).returning();
-    return newEvent;
-  }
-
-  async getEntityEventLogs(
-    sourceEntity: string,
-    sourceEntityReference: number,
-    tenantId: number,
-    limit: number = 50
-  ): Promise<EventLog[]> {
-    return await db
-      .select()
-      .from(eventLogs)
-      .where(
-        and(
-          eq(eventLogs.sourceEntity, sourceEntity),
-          eq(eventLogs.sourceEntityReference, sourceEntityReference),
-          eq(eventLogs.tenantId, tenantId)
-        )
-      )
-      .orderBy(desc(eventLogs.createdAt))
-      .limit(limit);
-  }
-
-  // AI Conversations methods
-  async getUserConversations(userId: number, tenantId: number): Promise<AgentConversation[]> {
-    return await db
-      .select()
-      .from(agentConversations)
-      .where(and(eq(agentConversations.userId, userId), eq(agentConversations.tenantId, tenantId)))
-      .orderBy(desc(agentConversations.updatedAt));
-  }
-
-  async getConversation(id: number, userId: number, tenantId: number): Promise<AgentConversation | undefined> {
-    const [conversation] = await db
-      .select()
-      .from(agentConversations)
-      .where(and(
-        eq(agentConversations.id, id),
-        eq(agentConversations.userId, userId),
-        eq(agentConversations.tenantId, tenantId)
-      ));
-    return conversation || undefined;
-  }
-
-  async createConversation(conversation: InsertAgentConversation): Promise<AgentConversation> {
-    const [newConversation] = await db
-      .insert(agentConversations)
-      .values(conversation)
-      .returning();
-    return newConversation;
-  }
-
-  async updateConversation(
-    id: number,
-    conversation: Partial<InsertAgentConversation>,
-    userId: number,
-    tenantId: number
-  ): Promise<AgentConversation | undefined> {
-    const [updated] = await db
-      .update(agentConversations)
-      .set({
-        ...conversation,
-        updatedAt: new Date(),
-      })
-      .where(and(
-        eq(agentConversations.id, id),
-        eq(agentConversations.userId, userId),
-        eq(agentConversations.tenantId, tenantId)
-      ))
-      .returning();
-    return updated || undefined;
-  }
-
-  async deleteConversation(id: number, userId: number, tenantId: number): Promise<boolean> {
-    const result = await db
-      .delete(agentConversations)
-      .where(and(
-        eq(agentConversations.id, id),
-        eq(agentConversations.userId, userId),
-        eq(agentConversations.tenantId, tenantId)
-      ));
-    return (result.rowCount || 0) > 0;
-  }
-
-  // Chat Conversations methods
-  async getUserChatConversations(userId: number, tenantId: number): Promise<ChatConversation[]> {
-    return await db
-      .select()
-      .from(chatConversations)
-      .where(and(eq(chatConversations.userId, userId), eq(chatConversations.tenantId, tenantId)))
-      .orderBy(desc(chatConversations.lastMessageAt));
-  }
-
-  async getChatConversation(id: number, userId: number, tenantId: number): Promise<ChatConversation | undefined> {
-    const [conversation] = await db
-      .select()
-      .from(chatConversations)
-      .where(and(
-        eq(chatConversations.id, id),
-        eq(chatConversations.userId, userId),
-        eq(chatConversations.tenantId, tenantId)
-      ));
-    return conversation || undefined;
-  }
-
-  async createChatConversation(conversation: InsertChatConversation): Promise<ChatConversation> {
-    const [newConversation] = await db
-      .insert(chatConversations)
-      .values(conversation)
-      .returning();
-    return newConversation;
-  }
-
-  async updateChatConversation(
-    id: number,
-    conversation: Partial<InsertChatConversation>,
-    userId: number,
-    tenantId: number
-  ): Promise<ChatConversation | undefined> {
-    const [updated] = await db
-      .update(chatConversations)
-      .set({
-        ...conversation,
-        updatedAt: new Date(),
-      })
-      .where(and(
-        eq(chatConversations.id, id),
-        eq(chatConversations.userId, userId),
-        eq(chatConversations.tenantId, tenantId)
-      ))
-      .returning();
-    return updated || undefined;
-  }
-
-  async deleteChatConversation(id: number, userId: number, tenantId: number): Promise<boolean> {
-    const result = await db
-      .delete(chatConversations)
-      .where(and(
-        eq(chatConversations.id, id),
-        eq(chatConversations.userId, userId),
-        eq(chatConversations.tenantId, tenantId)
-      ));
-    return (result.rowCount || 0) > 0;
-  }
-
-  // Chat Messages methods
-  async getChatMessages(conversationId: number, userId: number, tenantId: number): Promise<ChatMessage[]> {
-    return await db
-      .select()
-      .from(chatMessages)
-      .where(and(
-        eq(chatMessages.conversationId, conversationId),
-        eq(chatMessages.userId, userId),
-        eq(chatMessages.tenantId, tenantId)
-      ))
-      .orderBy(chatMessages.createdAt);
-  }
-
-  async addChatMessage(message: InsertChatMessage): Promise<ChatMessage> {
-    const [newMessage] = await db
-      .insert(chatMessages)
-      .values(message)
-      .returning();
-    
-    // Update conversation's lastMessageAt and messageCount
-    await db
-      .update(chatConversations)
-      .set({
-        lastMessageAt: new Date(),
-        messageCount: sql`${chatConversations.messageCount} + 1`,
-        updatedAt: new Date(),
-      })
-      .where(eq(chatConversations.id, message.conversationId));
-    
-    return newMessage;
-  }
-
-  async deleteChatMessage(id: number, userId: number, tenantId: number): Promise<boolean> {
-    const result = await db
-      .delete(chatMessages)
-      .where(and(
-        eq(chatMessages.id, id),
-        eq(chatMessages.userId, userId),
-        eq(chatMessages.tenantId, tenantId)
-      ));
-    return (result.rowCount || 0) > 0;
-  }
-
-  // AI Messages methods
-  async getConversationMessages(conversationId: number, userId: number, tenantId: number): Promise<AgentMessage[]> {
-    return await db
-      .select()
-      .from(agentMessages)
-      .where(and(
-        eq(agentMessages.conversationId, conversationId),
-        eq(agentMessages.userId, userId),
-        eq(agentMessages.tenantId, tenantId)
-      ))
-      .orderBy(agentMessages.createdAt);
-  }
-
-  async addMessage(message: InsertAgentMessage): Promise<AgentMessage> {
-    const [newMessage] = await db
-      .insert(agentMessages)
-      .values(message)
-      .returning();
-    return newMessage;
-  }
-
-  async deleteMessage(id: number, userId: number, tenantId: number): Promise<boolean> {
-    const result = await db
-      .delete(agentMessages)
-      .where(and(
-        eq(agentMessages.id, id),
-        eq(agentMessages.userId, userId),
-        eq(agentMessages.tenantId, tenantId)
-      ));
-    return (result.rowCount || 0) > 0;
   }
 }
 
-export const storage = new DatabaseStorage();
+export const storage = new DbStorage();
