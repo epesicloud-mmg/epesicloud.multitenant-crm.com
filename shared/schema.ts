@@ -214,6 +214,21 @@ export const products = pgTable("products", {
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
 
+// Product Variations table
+export const productVariations = pgTable("product_variations", {
+  id: serial("id").primaryKey(),
+  productId: integer("product_id").notNull().references(() => products.id, { onDelete: 'cascade' }),
+  name: text("name").notNull(),
+  sku: text("sku"),
+  price: decimal("price", { precision: 10, scale: 2 }),
+  stock: integer("stock").default(0),
+  attributes: text("attributes"),
+  isActive: boolean("is_active").default(true),
+  tenantId: integer("tenant_id").notNull().references(() => tenants.id),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
 // Product Offers table
 export const productOffers = pgTable("product_offers", {
   id: serial("id").primaryKey(),
@@ -238,6 +253,7 @@ export const deals = pgTable("deals", {
   stageId: integer("stage_id").references(() => salesStages.id),
   contactId: integer("contact_id").references(() => contacts.id),
   productId: integer("product_id").references(() => products.id),
+  productVariationId: integer("product_variation_id").references(() => productVariations.id),
   interestLevelId: integer("interest_level_id").references(() => interestLevels.id),
   probability: integer("probability").default(50),
   expectedCloseDate: timestamp("expected_close_date"),
@@ -411,6 +427,10 @@ export const dealsRelations = relations(deals, ({ one, many }) => ({
     fields: [deals.productId],
     references: [products.id],
   }),
+  productVariation: one(productVariations, {
+    fields: [deals.productVariationId],
+    references: [productVariations.id],
+  }),
   interestLevel: one(interestLevels, {
     fields: [deals.interestLevelId],
     references: [interestLevels.id],
@@ -470,8 +490,20 @@ export const productsRelations = relations(products, ({ one, many }) => ({
     fields: [products.salesPipelineId],
     references: [salesPipelines.id],
   }),
+  variations: many(productVariations),
   offers: many(productOffers),
   deals: many(deals),
+}));
+
+export const productVariationsRelations = relations(productVariations, ({ one }) => ({
+  tenant: one(tenants, {
+    fields: [productVariations.tenantId],
+    references: [tenants.id],
+  }),
+  product: one(products, {
+    fields: [productVariations.productId],
+    references: [products.id],
+  }),
 }));
 
 export const salesPipelinesRelations = relations(salesPipelines, ({ one, many }) => ({
@@ -518,6 +550,7 @@ export const insertSalesStageSchema = createInsertSchema(salesStages).omit({ id:
 export const insertProductTypeSchema = createInsertSchema(productTypes).omit({ id: true, createdAt: true });
 export const insertProductCategorySchema = createInsertSchema(productCategories).omit({ id: true, createdAt: true });
 export const insertProductSchema = createInsertSchema(products).omit({ id: true, createdAt: true, updatedAt: true });
+export const insertProductVariationSchema = createInsertSchema(productVariations).omit({ id: true, createdAt: true, updatedAt: true });
 export const insertProductOfferSchema = createInsertSchema(productOffers).omit({ id: true, createdAt: true, updatedAt: true });
 export const insertCustomerSchema = createInsertSchema(customers).omit({ id: true, createdAt: true, updatedAt: true });
 
@@ -544,6 +577,7 @@ export type SalesStage = typeof salesStages.$inferSelect;
 export type ProductType = typeof productTypes.$inferSelect;
 export type ProductCategory = typeof productCategories.$inferSelect;
 export type Product = typeof products.$inferSelect;
+export type ProductVariation = typeof productVariations.$inferSelect;
 export type ProductOffer = typeof productOffers.$inferSelect;
 export type Customer = typeof customers.$inferSelect;
 
@@ -570,5 +604,6 @@ export type InsertSalesStage = z.infer<typeof insertSalesStageSchema>;
 export type InsertProductType = z.infer<typeof insertProductTypeSchema>;
 export type InsertProductCategory = z.infer<typeof insertProductCategorySchema>;
 export type InsertProduct = z.infer<typeof insertProductSchema>;
+export type InsertProductVariation = z.infer<typeof insertProductVariationSchema>;
 export type InsertProductOffer = z.infer<typeof insertProductOfferSchema>;
 export type InsertCustomer = z.infer<typeof insertCustomerSchema>;

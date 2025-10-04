@@ -124,16 +124,8 @@ export function CRMSidebar() {
 
   return (
     <div className="w-64 bg-white dark:bg-slate-800 border-r border-slate-200 dark:border-slate-700 flex flex-col">
-      {/* CRM Header */}
-      <div className="p-4 border-b border-slate-200 dark:border-slate-700">
-        <h2 className="text-lg font-semibold text-blue-600 flex items-center">
-          <Users className="w-5 h-5 mr-2" />
-          CRM Module
-        </h2>
-      </div>
-
       {/* Navigation */}
-      <nav className="flex-1 px-4 py-4 space-y-1 overflow-y-auto">
+      <nav className="flex-1 px-4 py-6 space-y-1 overflow-y-auto">
         {/* Main Navigation */}
         <div className="mb-6">
           {filteredNavigation.map(renderNavItem)}

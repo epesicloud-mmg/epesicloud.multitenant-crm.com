@@ -1,10 +1,6 @@
 import { CRMLayout } from "../components/crm-layout";
 import { Switch, Route } from "wouter";
 import { lazy, Suspense } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { ArrowLeft } from "lucide-react";
-import { useLocation } from "wouter";
 
 // Lazy load CRM pages for better performance
 const Dashboard = lazy(() => import("@/pages/dashboard"));
@@ -42,34 +38,9 @@ function LoadingSpinner() {
   );
 }
 
-function CRMHeader() {
-  const [, setLocation] = useLocation();
-  
-  return (
-    <div className="border-b bg-white dark:bg-slate-900 px-6 py-4">
-      <div className="flex items-center justify-between">
-        <div className="flex items-center space-x-4">
-          <Button 
-            variant="ghost" 
-            size="sm"
-            onClick={() => setLocation("/")}
-            className="text-slate-600 hover:text-slate-900"
-          >
-            <ArrowLeft className="w-4 h-4 mr-2" />
-            Back to Modules
-          </Button>
-          <div className="h-6 w-px bg-slate-200"></div>
-          <h1 className="text-2xl font-bold text-blue-600">CRM Module</h1>
-        </div>
-      </div>
-    </div>
-  );
-}
-
 export default function CRMDashboard() {
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-slate-900">
-      <CRMHeader />
       
       <Suspense fallback={<LoadingSpinner />}>
         <Switch>
