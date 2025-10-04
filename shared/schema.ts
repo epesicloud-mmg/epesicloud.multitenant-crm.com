@@ -135,6 +135,8 @@ export const salesPipelines = pgTable("sales_pipelines", {
   id: serial("id").primaryKey(),
   title: text("title").notNull(),
   description: text("description"),
+  offerDetails: text("offer_details"),
+  valueProposition: text("value_proposition"),
   isDefault: boolean("is_default").notNull().default(false),
   tenantId: integer("tenant_id").notNull().references(() => tenants.id),
   createdAt: timestamp("created_at").defaultNow().notNull(),

@@ -22,7 +22,7 @@ const RevenueReports = lazy(() => import("@/pages/reports/revenue"));
 // Setup pages
 const SetupProducts = lazy(() => import("@/pages/setup/products"));
 const ActivityTypes = lazy(() => import("@/pages/setup/activity-types"));
-const SalesPipelines = lazy(() => import("@/pages/setup/sales-pipelines"));
+const SalesPipelines = lazy(() => import("./setup/sales-pipelines"));
 
 // Tools pages
 const CRMAssistants = lazy(() => import("./crm-assistants"));
