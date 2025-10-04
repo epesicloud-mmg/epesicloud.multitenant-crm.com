@@ -1,6 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
 import { db } from '../db';
-import { eventLogs, type InsertEventLog } from '@shared/schema';
+import { events, type InsertEvent } from '@shared/schema';
 
 interface AuditRequest extends Request {
   user?: {
@@ -118,7 +118,7 @@ async function logAuditEvent(req: AuditRequest, res: Response, responseBody: any
     }
 
     // Create audit log entry
-    const auditEntry: InsertEventLog = {
+    const auditEntry: InsertEvent = {
       userId,
       sourceEntity,
       sourceEntityReference,
@@ -134,7 +134,7 @@ async function logAuditEvent(req: AuditRequest, res: Response, responseBody: any
       tenantId
     };
 
-    await db.insert(eventLogs).values(auditEntry);
+    await db.insert(events).values(auditEntry);
     
   } catch (error) {
     console.error('Failed to log audit event:', error);
@@ -145,7 +145,7 @@ async function logAuditEvent(req: AuditRequest, res: Response, responseBody: any
 // Helper function to manually log page navigation events
 export async function logPageView(userId: number | null, tenantId: number, pageName: string, path: string) {
   try {
-    const auditEntry: InsertEventLog = {
+    const auditEntry: InsertEvent = {
       userId,
       sourceEntity: 'navigation',
       sourceEntityReference: null,
@@ -159,7 +159,7 @@ export async function logPageView(userId: number | null, tenantId: number, pageN
       tenantId
     };
 
-    await db.insert(eventLogs).values(auditEntry);
+    await db.insert(events).values(auditEntry);
   } catch (error) {
     console.error('Failed to log page view:', error);
   }

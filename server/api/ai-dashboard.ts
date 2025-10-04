@@ -1,7 +1,7 @@
 import { Router } from "express";
 import { db } from "../db";
 import { eq, count, sum, avg, desc } from "drizzle-orm";
-import { deals, contacts, activities, workspaces, projects, companies } from "@shared/schema";
+import { deals, contacts, activities, companies } from "@shared/schema";
 
 const router = Router();
 
@@ -29,31 +29,29 @@ router.get("/metrics", async (req, res) => {
       .from(activities)
       .where(eq(activities.tenantId, tenantId));
 
-    // Get workspaces with project counts
-    const workspaceData = await db
+    // Get companies with deal counts
+    const companyData = await db
       .select({
-        id: workspaces.id,
-        name: workspaces.name,
-        color: workspaces.color,
-        projectsCount: count(projects.id)
+        id: companies.id,
+        name: companies.name,
+        dealsCount: count(deals.id)
       })
-      .from(workspaces)
-      .leftJoin(projects, eq(projects.workspaceId, workspaces.id))
-      .where(eq(workspaces.tenantId, tenantId))
-      .groupBy(workspaces.id, workspaces.name, workspaces.color);
+      .from(companies)
+      .leftJoin(deals, eq(deals.companyId, companies.id))
+      .where(eq(companies.tenantId, tenantId))
+      .groupBy(companies.id, companies.name)
+      .limit(10);
 
-    // Get active projects with mock progress data
-    const projectData = await db
+    // Get active deals
+    const dealsData = await db
       .select({
-        id: projects.id,
-        name: projects.name,
-        workspaceName: workspaces.name,
-        color: projects.color,
-        status: projects.status
+        id: deals.id,
+        title: deals.title,
+        value: deals.value,
+        status: deals.status
       })
-      .from(projects)
-      .leftJoin(workspaces, eq(workspaces.id, projects.workspaceId))
-      .where(eq(projects.tenantId, tenantId))
+      .from(deals)
+      .where(eq(deals.tenantId, tenantId))
       .limit(6);
 
     // Get recent activities

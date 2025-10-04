@@ -7,7 +7,6 @@ export class EventTracker {
   static async track(eventData: {
     eventName: string;
     userId?: number;
-    workspaceId?: number;
     tenantId: number;
     req?: Request;
     properties?: Record<string, any>;
@@ -16,7 +15,6 @@ export class EventTracker {
       const {
         eventName,
         userId,
-        workspaceId,
         tenantId,
         req,
         properties = {}
@@ -53,7 +51,6 @@ export class EventTracker {
       const event: InsertEvent = {
         eventName,
         userId,
-        workspaceId,
         tenantId,
         source,
         url,
