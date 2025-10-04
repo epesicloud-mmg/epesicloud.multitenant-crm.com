@@ -43,9 +43,9 @@ export function ProfessionalHeader({ onToggleSidebar, isSidebarCollapsed }: Prof
   };
 
   return (
-    <header className="bg-white border-b border-slate-200 h-16 flex items-center justify-between px-4 sm:px-6 z-50">
+    <header className="bg-white border-b border-slate-200 h-16 flex items-center px-4 sm:px-6 z-50 relative">
       {/* Left Section - Hamburger + Workspace Selector */}
-      <div className="flex items-center space-x-3 sm:space-x-4">
+      <div className="flex items-center space-x-3 sm:space-x-4 flex-shrink-0">
         {/* Hamburger Menu */}
         <button
           onClick={onToggleSidebar}
@@ -115,8 +115,8 @@ export function ProfessionalHeader({ onToggleSidebar, isSidebarCollapsed }: Prof
         </div>
       </div>
 
-      {/* Center Section - Global Search */}
-      <div className="flex-1 max-w-2xl mx-4 sm:mx-8">
+      {/* Center Section - Global Search (Absolutely Centered) */}
+      <div className="absolute left-1/2 transform -translate-x-1/2 w-full max-w-md px-4">
         <div className="relative hidden md:block">
           <button
             onClick={() => setSearchOpen(true)}
@@ -125,12 +125,17 @@ export function ProfessionalHeader({ onToggleSidebar, isSidebarCollapsed }: Prof
           >
             <Search className="w-5 h-5 mr-3 text-slate-400" />
             <span className="flex-1 text-left">Search contacts, deals, companies...</span>
-            <kbd className="hidden sm:inline-flex px-2 py-1 text-xs bg-white border border-slate-200 rounded font-mono text-slate-600">
+            <kbd className="hidden lg:inline-flex px-2 py-1 text-xs bg-white border border-slate-200 rounded font-mono text-slate-600">
               ⌘K
             </kbd>
           </button>
         </div>
+        
+        <GlobalSearch open={searchOpen} onOpenChange={setSearchOpen} />
+      </div>
 
+      {/* Right Section - Mobile Search + Notifications + User Menu */}
+      <div className="flex items-center space-x-2 sm:space-x-4 ml-auto flex-shrink-0">
         {/* Mobile Search Icon */}
         <button
           onClick={() => setSearchOpen(true)}
@@ -139,12 +144,7 @@ export function ProfessionalHeader({ onToggleSidebar, isSidebarCollapsed }: Prof
         >
           <Search className="w-5 h-5" />
         </button>
-        
-        <GlobalSearch open={searchOpen} onOpenChange={setSearchOpen} />
-      </div>
 
-      {/* Right Section - Notifications + User Menu */}
-      <div className="flex items-center space-x-2 sm:space-x-4">
         {/* Notifications */}
         <button
           className="relative flex items-center justify-center w-10 h-10 rounded-full text-slate-600 hover:bg-slate-100 transition-all duration-200"
