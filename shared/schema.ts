@@ -296,6 +296,22 @@ export const customers = pgTable("customers", {
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
 
+// Events table - PostHog-style event tracking
+export const events = pgTable("events", {
+  id: serial("id").primaryKey(),
+  eventName: text("event_name").notNull(),
+  userId: integer("user_id").references(() => users.id),
+  timestamp: timestamp("timestamp").defaultNow().notNull(),
+  source: text("source"),
+  url: text("url"),
+  userAgent: text("user_agent"),
+  ipAddress: text("ip_address"),
+  sessionId: text("session_id"),
+  eventProperties: text("event_properties"),
+  tenantId: integer("tenant_id").notNull().references(() => tenants.id),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
 // ====================
 // RELATIONS
 // ====================
@@ -553,6 +569,7 @@ export const insertProductSchema = createInsertSchema(products).omit({ id: true,
 export const insertProductVariationSchema = createInsertSchema(productVariations).omit({ id: true, createdAt: true, updatedAt: true });
 export const insertProductOfferSchema = createInsertSchema(productOffers).omit({ id: true, createdAt: true, updatedAt: true });
 export const insertCustomerSchema = createInsertSchema(customers).omit({ id: true, createdAt: true, updatedAt: true });
+export const insertEventSchema = createInsertSchema(events).omit({ id: true, createdAt: true });
 
 // ====================
 // SELECT TYPES
@@ -580,6 +597,7 @@ export type Product = typeof products.$inferSelect;
 export type ProductVariation = typeof productVariations.$inferSelect;
 export type ProductOffer = typeof productOffers.$inferSelect;
 export type Customer = typeof customers.$inferSelect;
+export type Event = typeof events.$inferSelect;
 
 // ====================
 // INSERT TYPES
@@ -607,3 +625,4 @@ export type InsertProduct = z.infer<typeof insertProductSchema>;
 export type InsertProductVariation = z.infer<typeof insertProductVariationSchema>;
 export type InsertProductOffer = z.infer<typeof insertProductOfferSchema>;
 export type InsertCustomer = z.infer<typeof insertCustomerSchema>;
+export type InsertEvent = z.infer<typeof insertEventSchema>;

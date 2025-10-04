@@ -1,0 +1,348 @@
+# Professional CRM Header Bar Specification (Revised)
+
+Here's the updated detailed specification with the brand section moved to the sidebar and workspace selector in the header:
+
+## Overall Layout & Structure
+
+**Container**: Full-width header bar with a height of 64-72px, using a clean white background with a subtle bottom border (1px solid #E5E7EB or similar light gray) to separate it from the main content area.
+
+**Layout Grid**: Three-column flex layout
+- Left section (hamburger + workspace selector): Auto width
+- Center section (search): Flexible, takes remaining space with max-width constraint
+- Right section (actions): Fixed width, auto-sizing based on content
+
+---
+
+## Left Section - Navigation Controls & Workspace
+
+### Hamburger Menu Icon
+**Position**: Absolute leftmost element
+
+**Design**:
+- Three horizontal lines icon (20-24px size)
+- Contained in a 44x44px clickable area with 16-20px left margin
+- Icon color: #4B5563 (medium gray)
+
+**Interaction**:
+- Hover: Circular background (#F3F4F6) appears, 200ms transition
+- Active/pressed: Slightly darker background (#E5E7EB)
+- Click: Toggles sidebar open/closed state
+- Smooth animation: Sidebar slides in/out over 250-300ms with ease-in-out
+
+**Collapsed State Indicator**:
+- When sidebar is collapsed, icon might rotate slightly or transform to a "close" X icon
+- Maintains same position and size
+
+---
+
+### Workspace/Tenant Selector
+**Position**: Immediately to the right of hamburger icon, 12-16px spacing
+
+**Container**:
+- Height: 40-44px
+- Padding: 0 12px
+- Border-radius: 6-8px
+- Background: Transparent, changes to #F9FAFB on hover
+- Border: 1px solid transparent (becomes #E5E7EB on hover)
+- Minimum width: 180-220px
+
+**Content Layout** (horizontal flex):
+
+1. **Status Indicators** (optional, leftmost):
+   - Two small colored dots (8px diameter each)
+   - Spacing: 4px between dots, 8px margin-right
+   - Colors can indicate system status, environment (blue for production, amber for staging)
+   - Example: Blue (#3B82F6) and green (#10B981) dots
+
+2. **Workspace Name**:
+   - Text: "Sales Operations" (or current workspace name)
+   - Font: 15-16px, medium weight (500)
+   - Color: #111827 (dark gray/black)
+   - Text truncation: Ellipsis if too long
+   - Max-width: Flexible based on container
+
+3. **Dropdown Chevron**:
+   - Down-facing chevron icon (16px)
+   - Margin-left: 8px
+   - Color: #6B7280 (medium gray)
+   - Rotates 180° when dropdown is open (200ms transition)
+
+**Interaction States**:
+- Default: Subtle, integrated into header
+- Hover: Background changes to #F9FAFB, border becomes visible, cursor: pointer
+- Active/Open: Background stays highlighted, chevron rotated
+- Focus: Border changes to primary color (#3B82F6) with subtle shadow
+
+---
+
+**Workspace Dropdown Panel**:
+Appears below the selector with 4px top margin
+
+**Panel Specifications**:
+- Width: 280-320px
+- Background: White
+- Border-radius: 8-10px
+- Shadow: 0 10px 25px rgba(0,0,0,0.1), 0 4px 10px rgba(0,0,0,0.05)
+- Padding: 8px
+- Max-height: 400px with scroll if needed
+
+**Panel Structure**:
+
+1. **Header Section**:
+   - Text: "Workspaces" or "Switch Workspace" (12px, uppercase, #6B7280, 700 weight)
+   - Padding: 12px 12px 8px
+   - Optional search input if many workspaces
+
+2. **Workspace List**:
+   Each workspace item:
+   - Height: 44px
+   - Padding: 8px 12px
+   - Border-radius: 6px
+   - Display: Flex with gap of 12px
+   - Hover: Background #F3F4F6
+   
+   **Item Contents**:
+   - Avatar/Icon (32x32px): Workspace logo or colored circle with initial
+   - Text column:
+     * Workspace name (14px, semibold, #111827)
+     * Subtitle: "12 active deals" or "3 members" (12px, #6B7280)
+   - Checkmark icon (16px, primary color) on right if currently selected
+
+3. **Footer Actions** (optional):
+   - Divider line (1px, #E5E7EB, margin: 8px 0)
+   - "+ Create Workspace" button or "Manage Workspaces" link
+   - Padding: 8px 12px
+   - Hover: Background #F3F4F6
+
+**Last Updated Indicator** (optional):
+- Position: To the right of workspace selector, 16px spacing
+- Text: "Last updated: 2 minutes ago"
+- Font: 13px, regular weight
+- Color: #9CA3AF (light gray)
+- Can be hidden on smaller screens (<1200px)
+
+---
+
+## Center Section - Global Search
+
+**Search Bar**:
+- Width: 400-600px (responsive, maximum 640px)
+- Height: 40-44px
+- Background: #F9FAFB or white with border
+- Border-radius: 8px
+- Border: 1px solid #E5E7EB
+- Margin: 0 auto (centered in available space)
+
+**Search Input Elements**:
+- Magnifying glass icon (20px) positioned 12px from left edge inside input
+- Placeholder text: "Search contacts, deals, companies..." in #9CA3AF
+- Text input with 40px left padding (for icon clearance)
+- Right side: Keyboard shortcut badge "⌘K" or "Ctrl+K"
+  * Background: #F3F4F6
+  * Padding: 2px 6px
+  * Border-radius: 4px
+  * Font: 12px, monospace
+  * Color: #6B7280
+  * Position: 8px from right edge
+
+**Interaction States**:
+- Hover: Border color intensifies to #D1D5DB
+- Focus: Border changes to primary brand color (#3B82F6)
+- Focus shadow: 0 0 0 3px rgba(59, 130, 246, 0.1)
+- Active typing: Full opacity, clear visual feedback
+
+**Search Results Dropdown** (when typing):
+- Appears below input, full width of search bar
+- Max-height: 400px with scroll
+- Grouped results: Contacts, Deals, Companies sections
+- Each result: 48px height with avatar, name, metadata
+- Keyboard navigation support (up/down arrows, enter to select)
+
+---
+
+## Right Section - Action Items
+
+**Layout**: Horizontal flex container with 16px spacing between items, 24px padding on right edge
+
+### Quick Actions (Optional)
+Before notifications, you might include:
+- "+ Add" button or "+ New Deal" (40px height, primary or ghost style)
+- Settings gear icon (quick access to preferences)
+- Help/documentation icon
+- Spacing: 8-12px between these and notification bell
+
+---
+
+### Notifications Icon
+**Design**:
+- Bell icon, 20-22px size in #4B5563 color
+- Contained in a 40x40px circular clickable area
+- Hover: Circular background (#F3F4F6) appears with 200ms transition
+- Active: Background remains visible
+
+**Notification Badge**:
+- Position: Top-right corner of icon (-6px top, -6px right)
+- Size: 18px circle for single digit, pill shape for "9+"
+- Background: #EF4444 (bright red)
+- Text: White, 11px, bold
+- Border: 2px solid white (for contrast against header background)
+
+**Dropdown Panel** (320-360px wide):
+- Right-aligned below icon, 8px margin-top
+- Sections: New (unread), Earlier
+- Each notification: 72px min-height with icon, title, time, read/unread state
+- "Mark all as read" button at top
+- "View all notifications" link at bottom
+
+---
+
+### User Menu
+**Avatar Button**:
+- Size: 36-40px circular
+- Contains: User profile image or initials on colored background
+- Border: 2px solid white with subtle shadow (0 1px 3px rgba(0,0,0,0.1))
+- Optional: Small online status indicator (8px green dot at bottom-right)
+
+**Hover State**:
+- Subtle lift effect: transform: translateY(-1px)
+- Shadow intensifies: 0 2px 4px rgba(0,0,0,0.15)
+- Transition: 150ms ease
+
+**Dropdown Menu**:
+- Width: 240px
+- Position: Right-aligned, 8px below avatar
+- Background: White
+- Border-radius: 10px
+- Shadow: 0 10px 25px rgba(0,0,0,0.1)
+- Padding: 8px
+
+**Menu Structure**:
+
+1. **User Profile Header**:
+   - Padding: 12px
+   - Display: Flex column
+   - Background: Slight gradient or solid color (#F9FAFB)
+   - Border-radius: 6px (inner)
+   - Content:
+     * User full name: 15px, semibold, #111827
+     * Email or role: 13px, regular, #6B7280
+     * Optional small "View profile" link (12px, primary color)
+   - Bottom margin: 8px
+
+2. **Navigation Items**:
+   Each item 40px height:
+   
+   **Manage Profile**:
+   - Icon: User/person outline (18px)
+   - Text: "Manage Profile"
+   - Hover: Background #F3F4F6
+   
+   **Account Settings** (optional):
+   - Icon: Settings gear (18px)
+   - Text: "Account Settings"
+   - Hover: Background #F3F4F6
+   
+   **Preferences** (optional):
+   - Icon: Sliders (18px)
+   - Text: "Preferences"
+   - Hover: Background #F3F4F6
+   
+   **Help & Support** (optional):
+   - Icon: Question mark circle (18px)
+   - Text: "Help & Support"
+   - Hover: Background #F3F4F6
+
+3. **Divider**:
+   - 1px solid #E5E7EB
+   - Margin: 8px 0
+
+4. **Logout**:
+   - Icon: Log-out/exit arrow (18px)
+   - Text: "Log Out" in #DC2626 (red)
+   - Hover: Background #FEE2E2 (light red)
+   - Full item height: 40px
+   - Visual separation from other items
+
+---
+
+## Sidebar Integration
+
+**Sidebar Specifications** (referenced for context):
+- Width when open: 240-260px
+- Background: White or #F9FAFB
+- Border-right: 1px solid #E5E7EB
+- Transition: 250-300ms ease-in-out for collapse/expand
+
+**Brand Section** (top of sidebar):
+- Height: 64-72px (matches header)
+- Padding: 16px
+- Border-bottom: 1px solid #E5E7EB
+- Content:
+  * Logo icon (36-40px) top-left
+  * "EpesiCRM" text (16px, semibold) below or beside logo
+  * "Acme Corp" (13px, #6B7280) as subtitle
+  * This section remains visible when sidebar is open
+
+**Collapsed State**:
+- Sidebar width: 64-72px
+- Only icons visible for menu items
+- Brand section shows only logo icon (centered)
+- Tooltips appear on hover for collapsed menu items
+
+---
+
+## Responsive Behavior
+
+**Below 1024px**:
+- Search bar width reduces to 300-400px
+- "Last updated" text hides
+- Spacing between elements reduces slightly
+
+**Below 768px (Tablet)**:
+- Search bar collapses to magnifying glass icon only
+- Click opens full-screen or modal search overlay
+- Workspace selector text might abbreviate
+- Sidebar becomes overlay (slides over content, not pushes)
+
+**Below 640px (Mobile)**:
+- Hamburger always visible
+- Workspace selector shows abbreviated name or icon only
+- User avatar might reduce to 32px
+- Right section items might reduce spacing to 12px
+
+---
+
+## Technical Specifications
+
+**Z-index Hierarchy**:
+- Header: z-index: 1000
+- Dropdowns: z-index: 1010
+- Mobile sidebar overlay: z-index: 999
+- Backdrop (when sidebar open): z-index: 998
+
+**Accessibility**:
+- All interactive elements: minimum 40x40px touch targets
+- Proper ARIA labels: aria-label, aria-expanded for dropdowns
+- Keyboard navigation: Tab order, Enter/Space activation, Escape to close
+- Focus indicators: 2-3px outline in primary color with offset
+- Screen reader announcements for workspace changes
+
+**Animation Performance**:
+- Use CSS transforms (translateX for sidebar) for GPU acceleration
+- Transition durations: 150-300ms depending on element
+- Easing: ease-in-out for natural feel
+- Avoid animating width/height (use transform/opacity instead)
+
+**Color Tokens** (customize to your brand):
+- Primary: #3B82F6 (blue) or your brand color
+- Text primary: #111827
+- Text secondary: #6B7280
+- Text tertiary: #9CA3AF
+- Background: #FFFFFF
+- Background secondary: #F9FAFB
+- Background hover: #F3F4F6
+- Border: #E5E7EB
+- Error/notification: #EF4444
+- Success: #10B981
+
+This creates a professional, scalable header that integrates seamlessly with a collapsible sidebar navigation system.
