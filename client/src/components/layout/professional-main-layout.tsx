@@ -1,12 +1,12 @@
 import { useState } from "react";
-import { ProfessionalSidebar } from "@/components/layout/professional-sidebar";
-import { ProfessionalHeader } from "@/components/layout/professional-header";
+import { ProfessionalSidebar } from "./professional-sidebar";
+import { ProfessionalHeader } from "./professional-header";
 
-interface CRMLayoutProps {
+interface ProfessionalMainLayoutProps {
   children: React.ReactNode;
 }
 
-export function CRMLayout({ children }: CRMLayoutProps) {
+export function ProfessionalMainLayout({ children }: ProfessionalMainLayoutProps) {
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
 
   const handleToggleSidebar = () => {
@@ -14,7 +14,7 @@ export function CRMLayout({ children }: CRMLayoutProps) {
   };
 
   return (
-    <div className="flex h-screen bg-slate-50 dark:bg-slate-900">
+    <div className="flex h-screen bg-slate-50">
       <ProfessionalSidebar isCollapsed={isSidebarCollapsed} />
       <div className="flex-1 flex flex-col overflow-hidden">
         <ProfessionalHeader 
