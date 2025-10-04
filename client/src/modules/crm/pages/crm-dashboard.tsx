@@ -23,6 +23,8 @@ const RevenueReports = lazy(() => import("@/pages/reports/revenue"));
 const SetupProducts = lazy(() => import("@/pages/setup/products"));
 const ActivityTypes = lazy(() => import("@/pages/setup/activity-types"));
 const SalesPipelines = lazy(() => import("./setup/sales-pipelines"));
+const SalesStages = lazy(() => import("@/pages/setup/sales-stages"));
+const InterestLevels = lazy(() => import("@/pages/setup/interest-levels"));
 
 // Tools pages
 const CRMAssistants = lazy(() => import("./crm-assistants"));
@@ -47,7 +49,7 @@ export default function CRMDashboard() {
           {/* CRM Dashboard Routes */}
           <Route path="/crm" component={AIDashboard} />
           <Route path="/crm/dashboard">
-            <CRMLayout title="Dashboard">
+            <CRMLayout>
               <Dashboard />
             </CRMLayout>
           </Route>
@@ -61,36 +63,36 @@ export default function CRMDashboard() {
           
           {/* User Management */}
           <Route path="/crm/user-management">
-            <CRMLayout title="User Management">
+            <CRMLayout>
               <UserManagement />
             </CRMLayout>
           </Route>
           
           {/* Tools */}
           <Route path="/crm/import-export">
-            <CRMLayout title="Import/Export">
+            <CRMLayout>
               <ImportExport />
             </CRMLayout>
           </Route>
           
           {/* Reports */}
           <Route path="/crm/reports/sales">
-            <CRMLayout title="Sales Reports">
+            <CRMLayout>
               <SalesPerformance />
             </CRMLayout>
           </Route>
           <Route path="/crm/reports/pipeline">
-            <CRMLayout title="Pipeline Analysis">
+            <CRMLayout>
               <PipelineAnalysis />
             </CRMLayout>
           </Route>
           <Route path="/crm/reports/activities">
-            <CRMLayout title="Activity Reports">
+            <CRMLayout>
               <ActivityReports />
             </CRMLayout>
           </Route>
           <Route path="/crm/reports/revenue">
-            <CRMLayout title="Revenue Reports">
+            <CRMLayout>
               <RevenueReports />
             </CRMLayout>
           </Route>
@@ -98,19 +100,29 @@ export default function CRMDashboard() {
           {/* Setup */}
           <Route path="/crm/setup/products" component={() => <SetupProducts />} />
           <Route path="/crm/setup/activity-types">
-            <CRMLayout title="Activity Types">
+            <CRMLayout>
               <ActivityTypes />
             </CRMLayout>
           </Route>
           <Route path="/crm/setup/sales-pipelines">
-            <CRMLayout title="Sales Pipelines">
+            <CRMLayout>
               <SalesPipelines />
+            </CRMLayout>
+          </Route>
+          <Route path="/crm/setup/sales-stages">
+            <CRMLayout>
+              <SalesStages />
+            </CRMLayout>
+          </Route>
+          <Route path="/crm/setup/interest-levels">
+            <CRMLayout>
+              <InterestLevels />
             </CRMLayout>
           </Route>
           
           {/* Additional Reports */}
           <Route path="/crm/reports/custom">
-            <CRMLayout title="Custom Reports">
+            <CRMLayout>
               <div className="p-6">
                 <h2 className="text-2xl font-bold mb-4">Custom Reports</h2>
                 <p>Build and customize reports to meet your specific needs.</p>
@@ -120,7 +132,7 @@ export default function CRMDashboard() {
           
           {/* Additional Setup Pages */}
           <Route path="/crm/setup/customer-types">
-            <CRMLayout title="Customer Types">
+            <CRMLayout>
               <div className="p-6">
                 <h2 className="text-2xl font-bold mb-4">Customer Types</h2>
                 <p>Manage different customer categories and types.</p>
@@ -128,7 +140,7 @@ export default function CRMDashboard() {
             </CRMLayout>
           </Route>
           <Route path="/crm/setup/lead-sources">
-            <CRMLayout title="Lead Sources">
+            <CRMLayout>
               <div className="p-6">
                 <h2 className="text-2xl font-bold mb-4">Lead Sources</h2>
                 <p>Configure where your leads come from.</p>
@@ -138,24 +150,24 @@ export default function CRMDashboard() {
           
           {/* Tools */}
           <Route path="/crm/assistants">
-            <CRMLayout title="AI Assistants">
+            <CRMLayout>
               <CRMAssistants />
             </CRMLayout>
           </Route>
           <Route path="/crm/instant-search">
-            <CRMLayout title="Instant Search">
+            <CRMLayout>
               <CRMInstantSearch />
             </CRMLayout>
           </Route>
           
           {/* Products pages */}
           <Route path="/crm/products/types">
-            <CRMLayout title="Product Types">
+            <CRMLayout>
               <ProductTypes />
             </CRMLayout>
           </Route>
           <Route path="/crm/products/categories">
-            <CRMLayout title="Product Categories">
+            <CRMLayout>
               <div className="p-6">
                 <h2 className="text-2xl font-bold mb-4">Product Categories</h2>
                 <p>Organize products into categories.</p>
@@ -163,7 +175,7 @@ export default function CRMDashboard() {
             </CRMLayout>
           </Route>
           <Route path="/crm/products/offers">
-            <CRMLayout title="Product Offers">
+            <CRMLayout>
               <div className="p-6">
                 <h2 className="text-2xl font-bold mb-4">Product Offers</h2>
                 <p>Manage special offers and promotions.</p>
