@@ -1,0 +1,140 @@
+# Authentication & Authorization System
+
+---
+
+# Instructions: Add Authentication & Authorization System
+
+### 1. Core Concepts
+
+- **JWT Authentication**
+    - Use **access tokens (short-lived)** for API requests.
+    - Use **refresh tokens (long-lived)** to issue new access tokens.
+    - Tokens are signed with a server secret (HS256 or RS256).
+- **RBAC (Role-Based Access Control)**
+    - Roles define collections of permissions.
+    - Permissions represent actions (`read_users`, `manage_billing`, etc.).
+    - Users are assigned roles, optionally scoped to a tenant.
+- **Tenant-Aware Auth**
+    - A user can belong to multiple tenants.
+    - Each membership defines the user’s role(s) inside that tenant.
+    - Active tenant is determined by `last_tenant_id` (stored on `users` table).
+
+---
+
+### 2. Database Schema
+
+**`users`**
+
+- `id` (PK)
+- `email` (unique)
+- `password_hash`
+- `last_tenant_id` (FK → tenants.id)
+- `created_at`
+
+**`tenants`**
+
+- `id` (PK)
+- `name`
+- `created_at`
+
+**`tenant_users`** (junction table)
+
+- `id` (PK)
+- `tenant_id`
+- `user_id`
+- `role_id`
+- `created_at`
+
+**`roles`**
+
+- `id` (PK)
+- `name` (e.g., Admin, Member, Viewer)
+- `tenant_id` (nullable → global or tenant-specific role)
+
+**`permissions`**
+
+- `id` (PK)
+- `name` (string, e.g., `manage_users`, `view_reports`)
+
+**`role_permissions`**
+
+- `id` (PK)
+- `role_id`
+- `permission_id`
+
+**`refresh_tokens`**
+
+- `id` (PK)
+- `user_id`
+- `token_hash` (store securely, never plain text)
+- `expires_at`
+- `revoked` (bool)
+
+---
+
+### 3. Logic & Flow
+
+### Registration / Login
+
+1. User registers → password hashed with bcrypt/argon2.
+2. On login:
+    - Verify credentials.
+    - Issue **access token** (short TTL, e.g., 15m).
+    - Issue **refresh token** (long TTL, e.g., 30d) and store hashed value in `refresh_tokens`.
+
+### Token Refresh
+
+- User calls `/auth/refresh` with refresh token.
+- Validate stored refresh token.
+- Issue new access token.
+- Optionally rotate refresh tokens (invalidate old one).
+
+### Tenant Switching
+
+- When user switches tenant:
+    - Update `last_tenant_id` on `users` table.
+    - All subsequent API calls are scoped to that tenant.
+
+### RBAC Enforcement
+
+- Middleware decodes JWT → extracts `user_id` + `tenant_id`.
+- Load role(s) from `tenant_users`.
+- Check permissions by joining `role_permissions`.
+- Deny request if permission missing.
+
+---
+
+### 4. API Endpoints
+
+- **POST /auth/register** → create new user.
+- **POST /auth/login** → login, returns access + refresh tokens.
+- **POST /auth/refresh** → refresh access token.
+- **POST /auth/logout** → revoke refresh token.
+- **GET /auth/me** → get current user profile + active tenant.
+- **POST /tenants** → create tenant (auto-add user as admin).
+- **POST /tenants/switch** → switch active tenant.
+- **POST /roles** → create role.
+- **POST /roles/:id/permissions** → assign permissions.
+- **POST /tenants/:id/users** → add user to tenant with role.
+
+---
+
+### 5. Best Practices
+
+- **Hash passwords** with bcrypt/argon2.
+- **Never store refresh tokens in plain text** → hash and compare.
+- **Expire access tokens quickly** (15–30 mins).
+- **Rotate refresh tokens** on use.
+- **Tenant isolation** → always filter queries by `tenant_id`.
+- **Granular permissions** → keep `permissions` table generic so roles are flexible.
+- **Audit logging** → log login attempts, token refresh, role changes.
+
+---
+
+### 6. Example Flow
+
+1. User signs up → default tenant `"Martin’s Tenant"` created.
+2. User logs in → gets access token (15m) + refresh token (30d).
+3. User makes API request with access token → system checks tenant role → validates permissions.
+4. User switches to another tenant → updates `last_tenant_id`.
+5. Permissions are always enforced based on active tenant + role.
