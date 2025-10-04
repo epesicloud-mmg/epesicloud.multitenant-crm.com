@@ -27,28 +27,22 @@ function Router() {
       <Route path="/" component={ModuleSelector} />
       
       {/* CRM Module Routes */}
-      <Route path="/crm" component={CRMDashboard} />
-      <Route path="/crm/:rest*" component={CRMDashboard} />
+      <Route path="/crm" component={CRMDashboard} nest />
       
       {/* Finance Module Routes */}
-      <Route path="/finance" component={FinanceModule} />
-      <Route path="/finance/:rest*" component={FinanceModule} />
+      <Route path="/finance" component={FinanceModule} nest />
       
       {/* Workflows Module Routes */}
-      <Route path="/workflows" component={WorkflowsModule} />
-      <Route path="/workflows/:rest*" component={WorkflowsModule} />
+      <Route path="/workflows" component={WorkflowsModule} nest />
       
       {/* HR Module Routes */}
-      <Route path="/hr" component={HRModule} />
-      <Route path="/hr/:rest*" component={HRModule} />
+      <Route path="/hr" component={HRModule} nest />
       
       {/* Analytics Module Routes */}
-      <Route path="/analytics" component={AnalyticsModule} />
-      <Route path="/analytics/:rest*" component={AnalyticsModule} />
+      <Route path="/analytics" component={AnalyticsModule} nest />
       
       {/* AAM Module Routes */}
-      <Route path="/aam" component={AAMModule} />
-      <Route path="/aam/:rest*" component={AAMModule} />
+      <Route path="/aam" component={AAMModule} nest />
       
       {/* Data Manager */}
       <Route path="/data-manager" component={DataManager} />

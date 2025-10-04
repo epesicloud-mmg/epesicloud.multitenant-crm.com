@@ -56,10 +56,7 @@ export default function InterestLevels() {
 
   const createMutation = useMutation({
     mutationFn: async (data: InterestLevelFormData) => {
-      return apiRequest("/api/interest-levels", {
-        method: "POST",
-        body: JSON.stringify(data),
-      });
+      return apiRequest("POST", "/api/interest-levels", data);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/interest-levels"] });
@@ -81,10 +78,7 @@ export default function InterestLevels() {
 
   const updateMutation = useMutation({
     mutationFn: async (data: InterestLevelFormData & { id: number }) => {
-      return apiRequest(`/api/interest-levels/${data.id}`, {
-        method: "PATCH",
-        body: JSON.stringify(data),
-      });
+      return apiRequest("PATCH", `/api/interest-levels/${data.id}`, data);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/interest-levels"] });
@@ -107,9 +101,7 @@ export default function InterestLevels() {
 
   const deleteMutation = useMutation({
     mutationFn: async (id: number) => {
-      return apiRequest(`/api/interest-levels/${id}`, {
-        method: "DELETE",
-      });
+      return apiRequest("DELETE", `/api/interest-levels/${id}`);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/interest-levels"] });

@@ -68,10 +68,7 @@ export default function SalesStages() {
 
   const createMutation = useMutation({
     mutationFn: async (data: SalesStageFormData) => {
-      return apiRequest("/api/deal-stages", {
-        method: "POST",
-        body: JSON.stringify(data),
-      });
+      return apiRequest("POST", "/api/deal-stages", data);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/deal-stages"] });
@@ -93,10 +90,7 @@ export default function SalesStages() {
 
   const updateMutation = useMutation({
     mutationFn: async (data: SalesStageFormData & { id: number }) => {
-      return apiRequest(`/api/deal-stages/${data.id}`, {
-        method: "PATCH",
-        body: JSON.stringify(data),
-      });
+      return apiRequest("PATCH", `/api/deal-stages/${data.id}`, data);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/deal-stages"] });
@@ -119,9 +113,7 @@ export default function SalesStages() {
 
   const deleteMutation = useMutation({
     mutationFn: async (id: number) => {
-      return apiRequest(`/api/deal-stages/${id}`, {
-        method: "DELETE",
-      });
+      return apiRequest("DELETE", `/api/deal-stages/${id}`);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/deal-stages"] });
