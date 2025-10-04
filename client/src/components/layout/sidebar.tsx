@@ -121,7 +121,7 @@ export function Sidebar() {
       </div>
 
       {/* Navigation */}
-      <nav className="flex-1 py-6">
+      <nav className="flex-1 py-6 bg-white overflow-y-auto">
         <div className="px-3 space-y-1">
           {filteredNavigation.map((item) => {
             const isActive = location === item.href;
