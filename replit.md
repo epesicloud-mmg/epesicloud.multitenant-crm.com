@@ -163,6 +163,12 @@ Preferred communication style: Simple, everyday language.
   - CRM: Contacts, Companies, Deals, Activities with comprehensive forms
   - Setup: Sales Stages, Interest Levels, Pipelines, Activity Types, Products
   - Advanced filtering and search capabilities
+- **Unified Professional Sidebar**: All CRM pages now use ProfessionalSidebar component
+  - Consistent navigation across all pages
+  - Products menu with submenu: All Products, Product Types, Categories, Offers & Deals
+  - Setup menu with submenu: Activity Types, Sales Pipelines, Sales Stages, Interest Levels
+  - Collapsible sidebar with persistent state
+  - MainLayout and CRMLayout both use ProfessionalSidebar for consistency
 
 ### Key Architectural Decisions
 
