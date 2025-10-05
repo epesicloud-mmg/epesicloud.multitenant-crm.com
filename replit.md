@@ -2,7 +2,7 @@
 
 ## Overview
 
-EpesiCRM is a comprehensive multi-tenant Customer Relationship Management (CRM) platform built with modern web technologies. The application provides role-based access control, sales pipeline management, and AI-powered insights for businesses to manage their customer relationships effectively.
+EpesiCRM is a dedicated multi-tenant Customer Relationship Management (CRM) platform built with modern web technologies. The application provides JWT-based authentication, role-based access control, sales pipeline management with 8 predefined stages, and AI-powered insights for businesses to manage their customer relationships effectively.
 
 ## User Preferences
 
@@ -12,46 +12,40 @@ Preferred communication style: Simple, everyday language.
 
 ### Frontend Architecture
 - **Framework**: React 18 with TypeScript
-- **Routing**: Multi-module routing with Wouter
-  - Module Selector: `/` (landing page for module selection)
-  - CRM Module: `/crm/*` (complete CRM functionality)
-  - Finance Module: `/finance/*` (financial management)
-- **Module Structure**: Self-contained modules with lazy loading
+- **Routing**: Wouter with nested routing
+  - Landing Page: `/` (CRM marketing landing page)
+  - Authentication: `/login`, `/register` (JWT-based authentication)
+  - CRM Application: `/crm/*` (complete CRM functionality, protected routes)
+- **Application Structure**: 
+  - `client/src/pages/` - Public pages (landing, login, register)
   - `client/src/modules/crm/` - CRM module components and pages
-  - `client/src/modules/finance/` - Finance module components and pages
 - **State Management**: TanStack Query (React Query) for server state management
 - **UI Components**: Radix UI primitives with shadcn/ui component library
 - **Styling**: Tailwind CSS with CSS variables for theming
 - **Build Tool**: Vite for development and production builds
 
-### Backend Architecture - Multi-Module Microservices
+### Backend Architecture
 - **Runtime**: Node.js with Express.js server
 - **Language**: TypeScript with ES modules
-- **Architecture**: Multi-module microservice architecture
-  - Module-level APIs: `/api/crm`, `/api/finance` with organized sub-routes
-  - Individual microservices: Backward-compatible direct API access
-  - Module isolation: Each module can scale independently
-- **Module Structure**: 
-  - `server/modules/crm/` - CRM module APIs and services
-  - `server/modules/finance/` - Finance module APIs and services
+- **Authentication**: JWT-based authentication with access and refresh tokens
+- **Authorization**: Role-based access control (RBAC) with permission middleware
+- **API Structure**: RESTful APIs for CRM entities
 - **Database ORM**: Drizzle ORM for type-safe database operations
 - **Database**: PostgreSQL via Neon serverless database
 - **AI Integration**: Google Gemini AI for intelligent insights and recommendations
 
-### Multi-Module Microservice Architecture
-#### Module API Structure
-- **CRM Module API**: `/api/crm` - Aggregated CRM services and health checks
-- **Finance Module API**: `/api/finance` - Financial services and reporting endpoints
-- **Module Health**: Each module provides `/health` and `/stats` endpoints
+### CRM API Structure
+#### Authentication APIs
+- **Auth API**: `/api/auth` - Registration, login, token refresh endpoints
 
-#### Individual Microservice APIs (Backward Compatible)
+#### CRM Entity APIs
 - **Deals API**: `/api/deals` - Complete CRUD operations for deals management
 - **Contacts API**: `/api/contacts` - Contact management with search and filtering
 - **Activities API**: `/api/activities` - Activity tracking and management
-- **Pipelines API**: `/api/pipelines` - Sales pipeline and stage management
+- **Pipelines API**: `/api/pipelines` - Sales pipeline and stage management (8 predefined stages with is_default flag)
 - **Companies API**: `/api/companies` - Company management and search
-- **Products API**: `/api/products` - Product catalog management
-- **Standalone Usage**: All APIs can be used independently without the dashboard
+- **Products API**: `/api/products` - Product catalog management with variations
+- **Sales Stages API**: `/api/sales-stages` - Pipeline stage management
 
 ### Multi-Tenant Design
 - **Tenant Isolation**: Each tenant has separate data through tenant_id columns
@@ -147,40 +141,28 @@ Preferred communication style: Simple, everyday language.
 - **Database**: Production Neon database with connection pooling
 - **Environment Variables**: DATABASE_URL, GEMINI_API_KEY required
 
-### Recent Development Progress (January 2025)
-- **Frontend-Backend Integration**: Complete CRUD operations working for all entities
-- **API Testing**: All endpoints tested and verified working (companies, contacts, products, deals)
+### Recent Development Progress (2025)
+- **Frontend-Backend Integration**: Complete CRUD operations working for all CRM entities
+- **API Testing**: All endpoints tested and verified working (companies, contacts, products, deals, activities)
 - **Form Validation**: Enhanced form schemas and error handling across all entity creation forms
-- **Modal System**: NewContactModal component integrated with proper API calls
+- **Modal System**: Component modals integrated with proper API calls
 - **Data Flow**: TanStack Query mutations and cache invalidation working correctly
-- **Authentication**: Mock authentication system with proper headers working
-- **Bills Module Enhancement**: Upgraded from mock data to full API integration with create/edit/delete operations
-- **Tasks Module Enhancement**: Complete CRUD functionality with API integration and create dialog forms
-- **Data Manager Integration**: Universal entity management with search, edit, and delete across all record types
+- **Authentication**: JWT-based authentication with access and refresh tokens
+- **Setup Module**: Complete management of sales stages, pipelines, interest levels, activity types, and products
 
-### Latest Features (August 2025)
-- **Complete 6-Module Platform**: Full implementation of all business modules
-  - **CRM Module**: Complete customer relationship management with deals, contacts, companies
-  - **Finance Module**: Financial management with budgets, expenses, invoices
-  - **Projects & Workflows Module**: Task management, project tracking, and workflow automation
-  - **HR Module**: Human resources management with employee records and payroll
-  - **AI & Analytics Module**: AI-driven analytics and business intelligence features
-  - **AAM Module**: Advanced Access Manager with user/role management and permissions
-- **Rebranding to Epesicloud**: Platform renamed from EpesiCRM to Epesicloud
-- **Simplified Module Selector**: Clean interface showing only module names and icons
-- **Multi-Module Microservice Architecture**: Each module with independent frontend/backend/API structure
-- **Comprehensive API Routes**: All modules mounted under /api/[module] with health checks and stats
-- **Database Schema**: Complete multi-tenant database with role permissions and user management tables
+### Latest Features (October 2025)
+- **CRM-Only Platform**: Transformed from multi-module to dedicated CRM application
+- **Landing Page**: Professional CRM marketing page with features and benefits
+- **Authentication Flow**: JWT-based login and registration with token management
+- **Protected Routes**: CRM dashboard accessible only after authentication
 - **Multi-Chat AI Assistant**: Enhanced floating AI orb with multiple conversation support
 - **Enhanced Event Tracking**: Added old_data and new_data fields to event_logs for comprehensive change tracking
 - **Pipeline Kanban View**: Full 6-stage pipeline view with drag-and-drop functionality
 - **Global Search**: Sectioned autocomplete search across contacts, deals, companies, activities
-- **Complete CRUD Functionality**: All entity buttons now have actual functionality instead of placeholders
-  - Finance: Bills, Expenses, Invoices with full API integration
+- **Complete CRUD Functionality**: All entity buttons now have actual functionality
   - CRM: Contacts, Companies, Deals, Activities with comprehensive forms
-  - HR: Employee management with departments and positions
-  - Workflows: Tasks and project management with status tracking
-  - Universal Data Manager: Cross-module data access and management
+  - Setup: Sales Stages, Interest Levels, Pipelines, Activity Types, Products
+  - Advanced filtering and search capabilities
 
 ### Key Architectural Decisions
 

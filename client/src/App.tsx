@@ -9,43 +9,23 @@ import { AuthProvider } from "@/lib/auth-context";
 import { MultiChatFloatingAIOrb } from "@/components/ai/multi-chat-floating-ai-orb";
 import { PageTrackingProvider } from "@/hooks/use-page-tracking";
 
-// Module Selector and Module Components
-import ModuleSelector from "@/pages/module-selector";
+// Pages
+import Landing from "@/pages/landing";
+import Login from "@/pages/login";
+import Register from "@/pages/register";
 import CRMDashboard from "@/modules/crm/pages/crm-dashboard";
-import { FinanceModule } from "@/modules/finance";
-import { HRModule } from "@/modules/hr";
-import { AAMModule } from "@/modules/aam";
-import { AnalyticsModule } from "@/modules/analytics";
-import WorkflowsModule from "@/modules/workflows";
 import NotFound from "@/pages/not-found";
-import DataManager from "@/pages/DataManager";
 
 function Router() {
   return (
     <Switch>
-      {/* Module Selector - Landing Page */}
-      <Route path="/" component={ModuleSelector} />
+      {/* Public Routes */}
+      <Route path="/" component={Landing} />
+      <Route path="/login" component={Login} />
+      <Route path="/register" component={Register} />
       
-      {/* CRM Module Routes */}
+      {/* CRM Application Routes (Protected) */}
       <Route path="/crm" component={CRMDashboard} nest />
-      
-      {/* Finance Module Routes */}
-      <Route path="/finance" component={FinanceModule} nest />
-      
-      {/* Workflows Module Routes */}
-      <Route path="/workflows" component={WorkflowsModule} nest />
-      
-      {/* HR Module Routes */}
-      <Route path="/hr" component={HRModule} nest />
-      
-      {/* Analytics Module Routes */}
-      <Route path="/analytics" component={AnalyticsModule} nest />
-      
-      {/* AAM Module Routes */}
-      <Route path="/aam" component={AAMModule} nest />
-      
-      {/* Data Manager */}
-      <Route path="/data-manager" component={DataManager} />
       
       {/* 404 Not Found */}
       <Route component={NotFound} />
