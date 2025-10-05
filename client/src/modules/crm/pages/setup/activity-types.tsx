@@ -3,8 +3,6 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Plus, MessageSquare, Edit, Trash2, Search } from "lucide-react";
-import { Sidebar } from "@/components/layout/sidebar";
-import { TopBar } from "@/components/layout/topbar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -147,21 +145,18 @@ export default function ActivityTypes() {
   };
 
   return (
-    <div className="flex h-screen bg-slate-50">
-      <Sidebar />
-      <main className="flex-1 overflow-hidden">
-        <TopBar />
-        <div className="p-6">
-          <div className="flex justify-between items-center mb-6">
-            <div>
-              <h1 className="text-2xl font-bold text-slate-900">Activity Types</h1>
-              <p className="text-slate-600">Manage activity types including Call, Email, Meeting, and Note</p>
-            </div>
-            <Button onClick={() => openModal()} className="flex items-center space-x-2">
-              <Plus className="w-4 h-4" />
-              <span>Add Activity Type</span>
-            </Button>
+    <>
+      <div className="p-6">
+        <div className="flex justify-between items-center mb-6">
+          <div>
+            <h1 className="text-2xl font-bold text-slate-900">Activity Types</h1>
+            <p className="text-slate-600">Manage activity types including Call, Email, Meeting, and Note</p>
           </div>
+          <Button onClick={() => openModal()} className="flex items-center space-x-2" data-testid="button-add-activity-type">
+            <Plus className="w-4 h-4" />
+            <span>Add Activity Type</span>
+          </Button>
+        </div>
 
           {/* Search */}
           <div className="relative mb-6">
@@ -240,8 +235,7 @@ export default function ActivityTypes() {
               </Button>
             </div>
           )}
-        </div>
-      </main>
+      </div>
 
       {/* Modal */}
       <Dialog open={isModalOpen} onOpenChange={closeModal}>
@@ -300,6 +294,6 @@ export default function ActivityTypes() {
           </Form>
         </DialogContent>
       </Dialog>
-    </div>
+    </>
   );
 }
