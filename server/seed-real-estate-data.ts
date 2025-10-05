@@ -147,6 +147,7 @@ export async function createSampleProducts(tenantId: number): Promise<void> {
       if (twoBedroomType) {
         const sunsetTowers = await storage.createProduct({
           name: 'Sunset Towers',
+          title: 'Sunset Towers - Luxury Apartments',
           sku: 'ST-APT-001',
           description: 'Modern luxury apartments with panoramic city views',
           productTypeId: twoBedroomType.id,
@@ -159,19 +160,19 @@ export async function createSampleProducts(tenantId: number): Promise<void> {
         // Create variations for Sunset Towers
         await storage.createProductVariation({
           productId: sunsetTowers.id,
-          variationName: 'Unit A - 2BR Corner Unit',
+          name: 'Unit A - 2BR Corner Unit',
           sku: 'ST-A-2BR',
           price: '475000',
-          specifications: { floor: '15', view: 'City View', sqft: '1200' },
+          attributes: JSON.stringify({ floor: '15', view: 'City View', sqft: '1200' }),
           tenantId,
         });
         
         await storage.createProductVariation({
           productId: sunsetTowers.id,
-          variationName: 'Unit B - 2BR Garden View',
+          name: 'Unit B - 2BR Garden View',
           sku: 'ST-B-2BR',
           price: '425000',
-          specifications: { floor: '3', view: 'Garden View', sqft: '1100' },
+          attributes: JSON.stringify({ floor: '3', view: 'Garden View', sqft: '1100' }),
           tenantId,
         });
       }
@@ -184,6 +185,7 @@ export async function createSampleProducts(tenantId: number): Promise<void> {
       if (threeBedroomType) {
         const palmValley = await storage.createProduct({
           name: 'Palm Valley Villas',
+          title: 'Palm Valley Villas - Exclusive Community',
           sku: 'PV-VIL-001',
           description: 'Exclusive gated community villas with private gardens',
           productTypeId: threeBedroomType.id,
@@ -196,19 +198,19 @@ export async function createSampleProducts(tenantId: number): Promise<void> {
         // Create variations for Palm Valley
         await storage.createProductVariation({
           productId: palmValley.id,
-          variationName: 'Villa Type A - Corner Plot',
+          name: 'Villa Type A - Corner Plot',
           sku: 'PV-A-3BR',
           price: '895000',
-          specifications: { plot: 'Corner', sqft: '2800', pool: 'Yes' },
+          attributes: JSON.stringify({ plot: 'Corner', sqft: '2800', pool: 'Yes' }),
           tenantId,
         });
         
         await storage.createProductVariation({
           productId: palmValley.id,
-          variationName: 'Villa Type B - Standard',
+          name: 'Villa Type B - Standard',
           sku: 'PV-B-3BR',
           price: '825000',
-          specifications: { plot: 'Standard', sqft: '2500', pool: 'Yes' },
+          attributes: JSON.stringify({ plot: 'Standard', sqft: '2500', pool: 'Yes' }),
           tenantId,
         });
       }
