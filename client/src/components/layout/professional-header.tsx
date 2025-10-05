@@ -134,8 +134,8 @@ export function ProfessionalHeader({ onToggleSidebar, isSidebarCollapsed }: Prof
         <GlobalSearch open={searchOpen} onOpenChange={setSearchOpen} />
       </div>
 
-      {/* Right Section - Mobile Search + Notifications + User Menu */}
-      <div className="flex items-center space-x-2 sm:space-x-4 ml-auto flex-shrink-0">
+      {/* Right Section - Mobile Search + Notifications + User Actions Menu */}
+      <div className="flex items-center space-x-2 sm:space-x-3 ml-auto flex-shrink-0">
         {/* Mobile Search Icon */}
         <button
           onClick={() => setSearchOpen(true)}
@@ -154,18 +154,24 @@ export function ProfessionalHeader({ onToggleSidebar, isSidebarCollapsed }: Prof
           <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-red-500 rounded-full border-2 border-white" />
         </button>
 
-        {/* User Menu */}
+        {/* User Actions Dropdown */}
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <button
-              className="flex items-center space-x-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 rounded-full"
+              className="flex items-center space-x-2 px-3 h-10 rounded-lg border border-transparent hover:bg-slate-50 hover:border-slate-200 transition-all duration-200"
               data-testid="button-user-menu"
             >
-              <Avatar className="w-9 h-9 border-2 border-white shadow-sm hover:shadow-md transition-shadow">
-                <AvatarFallback className="bg-blue-100 text-blue-600 font-semibold text-sm">
+              <Avatar className="w-8 h-8 border-2 border-white shadow-sm">
+                <AvatarFallback className="bg-blue-100 text-blue-600 font-semibold text-xs">
                   {getUserInitials()}
                 </AvatarFallback>
               </Avatar>
+              <div className="hidden sm:flex flex-col items-start min-w-0">
+                <span className="text-sm font-medium text-slate-900 truncate max-w-[120px]">
+                  {user?.firstName} {user?.lastName}
+                </span>
+              </div>
+              <ChevronDown className="hidden sm:block w-4 h-4 text-slate-500" />
             </button>
           </DropdownMenuTrigger>
           
