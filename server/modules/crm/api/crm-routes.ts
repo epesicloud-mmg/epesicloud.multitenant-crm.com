@@ -5,6 +5,9 @@ import companiesRouter from "../../../api/companies.js";
 import activitiesRouter from "../../../api/activities.js";
 import pipelinesRouter from "../../../api/pipelines.js";
 import productsRouter from "../../../api/products.js";
+import productCategoriesRouter from "../../../api/product-categories.js";
+import productVariationsRouter from "../../../api/product-variations.js";
+import productOffersRouter from "../../../api/product-offers.js";
 import usersRouter from "../../../api/users.js";
 
 const crmRouter = Router();
@@ -16,6 +19,9 @@ crmRouter.use("/companies", companiesRouter);
 crmRouter.use("/activities", activitiesRouter);
 crmRouter.use("/pipelines", pipelinesRouter);
 crmRouter.use("/products", productsRouter);
+crmRouter.use("/product-categories", productCategoriesRouter);
+crmRouter.use("/product-variations", productVariationsRouter);
+crmRouter.use("/product-offers", productOffersRouter);
 crmRouter.use("/users", usersRouter);
 
 // CRM-specific endpoints

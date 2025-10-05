@@ -1,14 +1,14 @@
 import { 
   tenants, users, roles, permissions, rolePermissions, tenantUsers, refreshTokens,
   companies, products, leads, contacts, salesStages, deals, activities,
-  activityTypes, salesPipelines, interestLevels, productTypes, productCategories, customers,
+  activityTypes, salesPipelines, interestLevels, productTypes, productCategories, productVariations, productOffers, customers,
   type Tenant, type User, type Role, type Permission, type TenantUser, type RefreshToken,
   type Company, type Product, type Lead, type Contact, type SalesStage, type Deal, type Activity,
-  type ActivityType, type SalesPipeline, type InterestLevel, type ProductType, type ProductCategory, type Customer,
+  type ActivityType, type SalesPipeline, type InterestLevel, type ProductType, type ProductCategory, type ProductVariation, type ProductOffer, type Customer,
   type InsertTenant, type InsertUser, type InsertRole, type InsertPermission, type InsertTenantUser, type InsertRefreshToken,
   type InsertCompany, type InsertProduct, type InsertLead, type InsertContact, 
   type InsertSalesStage, type InsertDeal, type InsertActivity, type InsertActivityType, type InsertSalesPipeline, type InsertInterestLevel,
-  type InsertProductType, type InsertProductCategory, type InsertCustomer
+  type InsertProductType, type InsertProductCategory, type InsertProductVariation, type InsertProductOffer, type InsertCustomer
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, and, desc, count, or, ilike, sql } from "drizzle-orm";
@@ -122,7 +122,26 @@ export interface IStorage {
   createProductType(productType: InsertProductType): Promise<ProductType>;
   
   getProductCategories(tenantId: number): Promise<ProductCategory[]>;
+  getProductCategory(id: number, tenantId: number): Promise<ProductCategory | undefined>;
   createProductCategory(category: InsertProductCategory): Promise<ProductCategory>;
+  updateProductCategory(id: number, category: Partial<InsertProductCategory>, tenantId: number): Promise<ProductCategory | undefined>;
+  deleteProductCategory(id: number, tenantId: number): Promise<boolean>;
+  
+  // ==================== CRM - PRODUCT VARIATIONS ====================
+  getProductVariations(tenantId: number): Promise<ProductVariation[]>;
+  getProductVariation(id: number, tenantId: number): Promise<ProductVariation | undefined>;
+  getProductVariationsByProduct(productId: number, tenantId: number): Promise<ProductVariation[]>;
+  createProductVariation(variation: InsertProductVariation): Promise<ProductVariation>;
+  updateProductVariation(id: number, variation: Partial<InsertProductVariation>, tenantId: number): Promise<ProductVariation | undefined>;
+  deleteProductVariation(id: number, tenantId: number): Promise<boolean>;
+  
+  // ==================== CRM - PRODUCT OFFERS ====================
+  getProductOffers(tenantId: number): Promise<ProductOffer[]>;
+  getProductOffer(id: number, tenantId: number): Promise<ProductOffer | undefined>;
+  getProductOffersByProduct(productId: number, tenantId: number): Promise<ProductOffer[]>;
+  createProductOffer(offer: InsertProductOffer): Promise<ProductOffer>;
+  updateProductOffer(id: number, offer: Partial<InsertProductOffer>, tenantId: number): Promise<ProductOffer | undefined>;
+  deleteProductOffer(id: number, tenantId: number): Promise<boolean>;
   
   // ==================== CRM - ACTIVITY TYPES ====================
   getActivityTypes(tenantId: number): Promise<ActivityType[]>;
@@ -738,6 +757,101 @@ export class DbStorage implements IStorage {
   async createProductCategory(category: InsertProductCategory): Promise<ProductCategory> {
     const [newCategory] = await db.insert(productCategories).values(category).returning();
     return newCategory;
+  }
+  
+  async getProductCategory(id: number, tenantId: number): Promise<ProductCategory | undefined> {
+    const [category] = await db.select().from(productCategories)
+      .where(and(eq(productCategories.id, id), eq(productCategories.tenantId, tenantId)))
+      .limit(1);
+    return category;
+  }
+  
+  async updateProductCategory(id: number, category: Partial<InsertProductCategory>, tenantId: number): Promise<ProductCategory | undefined> {
+    const [updated] = await db.update(productCategories)
+      .set(category)
+      .where(and(eq(productCategories.id, id), eq(productCategories.tenantId, tenantId)))
+      .returning();
+    return updated;
+  }
+  
+  async deleteProductCategory(id: number, tenantId: number): Promise<boolean> {
+    const result = await db.delete(productCategories)
+      .where(and(eq(productCategories.id, id), eq(productCategories.tenantId, tenantId)));
+    return result.rowCount ? result.rowCount > 0 : false;
+  }
+  
+  // ==================== CRM - PRODUCT VARIATIONS ====================
+  
+  async getProductVariations(tenantId: number): Promise<ProductVariation[]> {
+    return await db.select().from(productVariations).where(eq(productVariations.tenantId, tenantId));
+  }
+  
+  async getProductVariation(id: number, tenantId: number): Promise<ProductVariation | undefined> {
+    const [variation] = await db.select().from(productVariations)
+      .where(and(eq(productVariations.id, id), eq(productVariations.tenantId, tenantId)))
+      .limit(1);
+    return variation;
+  }
+  
+  async getProductVariationsByProduct(productId: number, tenantId: number): Promise<ProductVariation[]> {
+    return await db.select().from(productVariations)
+      .where(and(eq(productVariations.productId, productId), eq(productVariations.tenantId, tenantId)));
+  }
+  
+  async createProductVariation(variation: InsertProductVariation): Promise<ProductVariation> {
+    const [newVariation] = await db.insert(productVariations).values(variation).returning();
+    return newVariation;
+  }
+  
+  async updateProductVariation(id: number, variation: Partial<InsertProductVariation>, tenantId: number): Promise<ProductVariation | undefined> {
+    const [updated] = await db.update(productVariations)
+      .set({ ...variation, updatedAt: new Date() })
+      .where(and(eq(productVariations.id, id), eq(productVariations.tenantId, tenantId)))
+      .returning();
+    return updated;
+  }
+  
+  async deleteProductVariation(id: number, tenantId: number): Promise<boolean> {
+    const result = await db.delete(productVariations)
+      .where(and(eq(productVariations.id, id), eq(productVariations.tenantId, tenantId)));
+    return result.rowCount ? result.rowCount > 0 : false;
+  }
+  
+  // ==================== CRM - PRODUCT OFFERS ====================
+  
+  async getProductOffers(tenantId: number): Promise<ProductOffer[]> {
+    return await db.select().from(productOffers).where(eq(productOffers.tenantId, tenantId));
+  }
+  
+  async getProductOffer(id: number, tenantId: number): Promise<ProductOffer | undefined> {
+    const [offer] = await db.select().from(productOffers)
+      .where(and(eq(productOffers.id, id), eq(productOffers.tenantId, tenantId)))
+      .limit(1);
+    return offer;
+  }
+  
+  async getProductOffersByProduct(productId: number, tenantId: number): Promise<ProductOffer[]> {
+    return await db.select().from(productOffers)
+      .where(and(eq(productOffers.productId, productId), eq(productOffers.tenantId, tenantId)));
+  }
+  
+  async createProductOffer(offer: InsertProductOffer): Promise<ProductOffer> {
+    const [newOffer] = await db.insert(productOffers).values(offer).returning();
+    return newOffer;
+  }
+  
+  async updateProductOffer(id: number, offer: Partial<InsertProductOffer>, tenantId: number): Promise<ProductOffer | undefined> {
+    const [updated] = await db.update(productOffers)
+      .set({ ...offer, updatedAt: new Date() })
+      .where(and(eq(productOffers.id, id), eq(productOffers.tenantId, tenantId)))
+      .returning();
+    return updated;
+  }
+  
+  async deleteProductOffer(id: number, tenantId: number): Promise<boolean> {
+    const result = await db.delete(productOffers)
+      .where(and(eq(productOffers.id, id), eq(productOffers.tenantId, tenantId)));
+    return result.rowCount ? result.rowCount > 0 : false;
   }
   
   // ==================== CRM - ACTIVITY TYPES ====================
