@@ -12,6 +12,7 @@ const Pipelines = lazy(() => import("@/pages/pipelines"));
 const Activities = lazy(() => import("@/pages/activities"));
 const UserManagement = lazy(() => import("@/pages/user-management"));
 const ImportExport = lazy(() => import("@/pages/import-export"));
+const Products = lazy(() => import("@/pages/products"));
 
 // Reports
 const SalesPerformance = lazy(() => import("@/pages/reports/sales"));
@@ -60,6 +61,7 @@ export default function CRMDashboard() {
           <Route path="/deals" component={() => <AllDeals />} />
           <Route path="/pipelines" component={() => <Pipelines />} />
           <Route path="/activities" component={() => <Activities />} />
+          <Route path="/products" component={() => <Products />} />
           
           {/* User Management */}
           <Route path="/user-management">
