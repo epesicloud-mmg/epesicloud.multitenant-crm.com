@@ -13,7 +13,6 @@ import {
 const getNavigation = (modulePrefix: string) => [
   { name: "Dashboard", href: modulePrefix || "/", icon: PieChart, permission: "view_dashboard" },
   { name: "Deals", href: `${modulePrefix}/deals`, icon: Handshake, permission: "manage_deals" },
-  { name: "Pipelines", href: `${modulePrefix}/pipelines`, icon: GitBranch, permission: "manage_deals" },
   { name: "Activities", href: `${modulePrefix}/activities`, icon: Clock, permission: "manage_activities" },
   { name: "Contacts", href: `${modulePrefix}/contacts`, icon: Users, permission: "manage_contacts" },
   { name: "Companies", href: `${modulePrefix}/companies`, icon: Building, permission: "manage_companies" },
