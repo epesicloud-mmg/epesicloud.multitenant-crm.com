@@ -31,6 +31,7 @@ const InterestLevels = lazy(() => import("./setup/interest-levels"));
 const CRMAssistants = lazy(() => import("./crm-assistants"));
 const CRMInstantSearch = lazy(() => import("./crm-instant-search"));
 const ProductTypes = lazy(() => import("./products-types"));
+const ProductCategories = lazy(() => import("./product-categories"));
 const CustomerTypes = lazy(() => import("./setup-customer-types"));
 
 function LoadingSpinner() {
@@ -62,6 +63,10 @@ export default function CRMDashboard() {
           <Route path="/pipelines" component={() => <Pipelines />} />
           <Route path="/activities" component={() => <Activities />} />
           <Route path="/products" component={() => <Products />} />
+          
+          {/* Product Sub-pages */}
+          <Route path="/products/types" component={() => <ProductTypes />} />
+          <Route path="/products/categories" component={() => <ProductCategories />} />
           
           {/* User Management */}
           <Route path="/user-management">
