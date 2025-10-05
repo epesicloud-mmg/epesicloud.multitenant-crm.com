@@ -12,13 +12,19 @@ app.use(express.urlencoded({ extended: false }));
 app.use(eventTrackingMiddleware());
 app.use(auditLogger());
 
-// Middleware to set tenantId and userId from session/auth
+// Middleware to set tenantId and userId from headers
 app.use((req: any, res, next) => {
-  if (req.session?.user) {
-    req.user = req.session.user;
-    req.tenantId = req.session.user.tenantId;
-    req.userId = req.session.user.id;
+  const tenantIdHeader = req.headers['x-tenant-id'];
+  const userIdHeader = req.headers['x-user-id'];
+  
+  if (tenantIdHeader) {
+    req.tenantId = parseInt(tenantIdHeader as string);
   }
+  
+  if (userIdHeader) {
+    req.userId = parseInt(userIdHeader as string);
+  }
+  
   next();
 });
 
