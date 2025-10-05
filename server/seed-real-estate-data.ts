@@ -122,6 +122,106 @@ export async function createDefaultProductCategories(tenantId: number): Promise<
 }
 
 /**
+ * Creates sample real estate products with variations for a new tenant
+ */
+export async function createSampleProducts(tenantId: number): Promise<void> {
+  try {
+    console.log(`Creating sample products for tenant ${tenantId}...`);
+    
+    // Get product types and categories for reference
+    const productTypes = await storage.getProductTypes(tenantId);
+    const categories = await storage.getProductCategories(tenantId);
+    const pipelines = await storage.getSalesPipelines(tenantId);
+    
+    if (productTypes.length === 0 || categories.length === 0 || pipelines.length === 0) {
+      console.log('Skipping sample products - prerequisites not met');
+      return;
+    }
+    
+    const defaultPipeline = pipelines.find(p => p.isDefault) || pipelines[0];
+    
+    // Sample Apartment Products
+    const apartmentCategory = categories.find(c => c.name === 'Apartment');
+    if (apartmentCategory) {
+      const twoBedroomType = productTypes.find(pt => pt.name === 'Two Bedroom');
+      if (twoBedroomType) {
+        const sunsetTowers = await storage.createProduct({
+          name: 'Sunset Towers',
+          sku: 'ST-APT-001',
+          description: 'Modern luxury apartments with panoramic city views',
+          productTypeId: twoBedroomType.id,
+          categoryId: apartmentCategory.id,
+          salesPipelineId: defaultPipeline.id,
+          salePrice: '450000',
+          tenantId,
+        });
+        
+        // Create variations for Sunset Towers
+        await storage.createProductVariation({
+          productId: sunsetTowers.id,
+          variationName: 'Unit A - 2BR Corner Unit',
+          sku: 'ST-A-2BR',
+          price: '475000',
+          specifications: { floor: '15', view: 'City View', sqft: '1200' },
+          tenantId,
+        });
+        
+        await storage.createProductVariation({
+          productId: sunsetTowers.id,
+          variationName: 'Unit B - 2BR Garden View',
+          sku: 'ST-B-2BR',
+          price: '425000',
+          specifications: { floor: '3', view: 'Garden View', sqft: '1100' },
+          tenantId,
+        });
+      }
+    }
+    
+    // Sample Villa Product
+    const villaCategory = categories.find(c => c.name === 'Villa');
+    if (villaCategory) {
+      const threeBedroomType = productTypes.find(pt => pt.name === 'Three Bedroom');
+      if (threeBedroomType) {
+        const palmValley = await storage.createProduct({
+          name: 'Palm Valley Villas',
+          sku: 'PV-VIL-001',
+          description: 'Exclusive gated community villas with private gardens',
+          productTypeId: threeBedroomType.id,
+          categoryId: villaCategory.id,
+          salesPipelineId: defaultPipeline.id,
+          salePrice: '850000',
+          tenantId,
+        });
+        
+        // Create variations for Palm Valley
+        await storage.createProductVariation({
+          productId: palmValley.id,
+          variationName: 'Villa Type A - Corner Plot',
+          sku: 'PV-A-3BR',
+          price: '895000',
+          specifications: { plot: 'Corner', sqft: '2800', pool: 'Yes' },
+          tenantId,
+        });
+        
+        await storage.createProductVariation({
+          productId: palmValley.id,
+          variationName: 'Villa Type B - Standard',
+          sku: 'PV-B-3BR',
+          price: '825000',
+          specifications: { plot: 'Standard', sqft: '2500', pool: 'Yes' },
+          tenantId,
+        });
+      }
+    }
+    
+    console.log(`Successfully created sample products for tenant ${tenantId}`);
+  } catch (error) {
+    console.error('Error creating sample products:', error);
+    throw error;
+  }
+}
+
+/**
  * Seeds all real estate data for a new tenant
  * Call this function after tenant registration
  */
@@ -132,6 +232,7 @@ export async function seedRealEstateData(tenantId: number): Promise<void> {
     await createDefaultLeadSources(tenantId);
     await createDefaultProductTypes(tenantId);
     await createDefaultProductCategories(tenantId);
+    await createSampleProducts(tenantId);
     
     console.log(`Successfully seeded all real estate data for tenant ${tenantId}`);
   } catch (error) {

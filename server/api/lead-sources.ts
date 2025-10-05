@@ -73,7 +73,12 @@ router.patch("/:id", authenticate, async (req: AuthRequest, res: Response) => {
     }
 
     const id = parseInt(req.params.id);
-    const updatedLeadSource = await storage.updateLeadSource(id, req.body, tenantId);
+    
+    // Validate and sanitize update data - prevent tenantId tampering
+    const updateSchema = insertLeadSourceSchema.partial().omit({ tenantId: true });
+    const validatedData = updateSchema.parse(req.body);
+    
+    const updatedLeadSource = await storage.updateLeadSource(id, validatedData, tenantId);
     
     if (!updatedLeadSource) {
       return res.status(404).json({ error: "Lead source not found" });
