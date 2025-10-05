@@ -1,13 +1,13 @@
 import { 
   tenants, users, roles, permissions, rolePermissions, tenantUsers, refreshTokens,
-  companies, products, leads, contacts, salesStages, deals, activities,
+  companies, products, leads, contacts, salesStages, deals, activities, leadSources,
   activityTypes, salesPipelines, interestLevels, productTypes, productCategories, productVariations, productOffers, customers,
   type Tenant, type User, type Role, type Permission, type TenantUser, type RefreshToken,
-  type Company, type Product, type Lead, type Contact, type SalesStage, type Deal, type Activity,
+  type Company, type Product, type Lead, type Contact, type SalesStage, type Deal, type Activity, type LeadSource,
   type ActivityType, type SalesPipeline, type InterestLevel, type ProductType, type ProductCategory, type ProductVariation, type ProductOffer, type Customer,
   type InsertTenant, type InsertUser, type InsertRole, type InsertPermission, type InsertTenantUser, type InsertRefreshToken,
   type InsertCompany, type InsertProduct, type InsertLead, type InsertContact, 
-  type InsertSalesStage, type InsertDeal, type InsertActivity, type InsertActivityType, type InsertSalesPipeline, type InsertInterestLevel,
+  type InsertSalesStage, type InsertDeal, type InsertActivity, type InsertLeadSource, type InsertActivityType, type InsertSalesPipeline, type InsertInterestLevel,
   type InsertProductType, type InsertProductCategory, type InsertProductVariation, type InsertProductOffer, type InsertCustomer
 } from "@shared/schema";
 import { db } from "./db";
@@ -95,6 +95,13 @@ export interface IStorage {
   createActivity(activity: InsertActivity): Promise<Activity>;
   updateActivity(id: number, activity: Partial<InsertActivity>, tenantId: number): Promise<Activity | undefined>;
   deleteActivity(id: number, tenantId: number): Promise<boolean>;
+  
+  // ==================== LEAD SOURCES ====================
+  getLeadSources(tenantId: number): Promise<LeadSource[]>;
+  getLeadSource(id: number, tenantId: number): Promise<LeadSource | undefined>;
+  createLeadSource(leadSource: InsertLeadSource): Promise<LeadSource>;
+  updateLeadSource(id: number, leadSource: Partial<InsertLeadSource>, tenantId: number): Promise<LeadSource | undefined>;
+  deleteLeadSource(id: number, tenantId: number): Promise<boolean>;
   
   // ==================== CRM - SALES PIPELINES ====================
   getSalesPipelines(tenantId: number): Promise<SalesPipeline[]>;
@@ -630,6 +637,40 @@ export class DbStorage implements IStorage {
   async deleteActivity(id: number, tenantId: number): Promise<boolean> {
     const result = await db.delete(activities)
       .where(and(eq(activities.id, id), eq(activities.tenantId, tenantId)));
+    return result.rowCount ? result.rowCount > 0 : false;
+  }
+  
+  // ==================== LEAD SOURCES ====================
+  
+  async getLeadSources(tenantId: number): Promise<LeadSource[]> {
+    return await db.select().from(leadSources)
+      .where(eq(leadSources.tenantId, tenantId))
+      .orderBy(leadSources.category, leadSources.sourceName);
+  }
+  
+  async getLeadSource(id: number, tenantId: number): Promise<LeadSource | undefined> {
+    const [source] = await db.select().from(leadSources)
+      .where(and(eq(leadSources.id, id), eq(leadSources.tenantId, tenantId)))
+      .limit(1);
+    return source;
+  }
+  
+  async createLeadSource(leadSource: InsertLeadSource): Promise<LeadSource> {
+    const [newSource] = await db.insert(leadSources).values(leadSource).returning();
+    return newSource;
+  }
+  
+  async updateLeadSource(id: number, leadSource: Partial<InsertLeadSource>, tenantId: number): Promise<LeadSource | undefined> {
+    const [updated] = await db.update(leadSources)
+      .set({ ...leadSource, updatedAt: new Date() })
+      .where(and(eq(leadSources.id, id), eq(leadSources.tenantId, tenantId)))
+      .returning();
+    return updated;
+  }
+  
+  async deleteLeadSource(id: number, tenantId: number): Promise<boolean> {
+    const result = await db.delete(leadSources)
+      .where(and(eq(leadSources.id, id), eq(leadSources.tenantId, tenantId)));
     return result.rowCount ? result.rowCount > 0 : false;
   }
   

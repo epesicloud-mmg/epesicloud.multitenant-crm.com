@@ -265,6 +265,7 @@ export const deals = pgTable("deals", {
   productId: integer("product_id").references(() => products.id),
   productVariationId: integer("product_variation_id").references(() => productVariations.id),
   interestLevelId: integer("interest_level_id").references(() => interestLevels.id),
+  leadSourceId: integer("lead_source_id").references(() => leadSources.id),
   probability: integer("probability").default(50),
   expectedCloseDate: timestamp("expected_close_date"),
   actualCloseDate: timestamp("actual_close_date"),
@@ -289,6 +290,18 @@ export const activities = pgTable("activities", {
   tenantId: integer("tenant_id").notNull().references(() => tenants.id),
   scheduledAt: timestamp("scheduled_at"),
   completedAt: timestamp("completed_at"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+// Lead Sources table
+export const leadSources = pgTable("lead_sources", {
+  id: serial("id").primaryKey(),
+  sourceName: text("source_name").notNull(),
+  category: text("category").notNull(), // e.g., "Social Media", "Referral", "Digital Marketing", "Offline"
+  description: text("description"),
+  isActive: boolean("is_active").default(true),
+  tenantId: integer("tenant_id").notNull().references(() => tenants.id),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
@@ -461,6 +474,10 @@ export const dealsRelations = relations(deals, ({ one, many }) => ({
     fields: [deals.interestLevelId],
     references: [interestLevels.id],
   }),
+  leadSource: one(leadSources, {
+    fields: [deals.leadSourceId],
+    references: [leadSources.id],
+  }),
   assignedTo: one(users, {
     fields: [deals.assignedToId],
     references: [users.id],
@@ -497,6 +514,14 @@ export const activitiesRelations = relations(activities, ({ one }) => ({
     references: [users.id],
     relationName: "supervisor",
   }),
+}));
+
+export const leadSourcesRelations = relations(leadSources, ({ one, many }) => ({
+  tenant: one(tenants, {
+    fields: [leadSources.tenantId],
+    references: [tenants.id],
+  }),
+  deals: many(deals),
 }));
 
 export const productsRelations = relations(products, ({ one, many }) => ({
@@ -569,6 +594,7 @@ export const insertContactSchema = createInsertSchema(contacts).omit({ id: true,
 export const insertLeadSchema = createInsertSchema(leads).omit({ id: true, createdAt: true, updatedAt: true });
 export const insertDealSchema = createInsertSchema(deals).omit({ id: true, createdAt: true, updatedAt: true });
 export const insertActivitySchema = createInsertSchema(activities).omit({ id: true, createdAt: true, updatedAt: true });
+export const insertLeadSourceSchema = createInsertSchema(leadSources).omit({ id: true, createdAt: true, updatedAt: true });
 export const insertActivityTypeSchema = createInsertSchema(activityTypes).omit({ id: true, createdAt: true });
 export const insertInterestLevelSchema = createInsertSchema(interestLevels).omit({ id: true, createdAt: true });
 export const insertSalesPipelineSchema = createInsertSchema(salesPipelines).omit({ id: true, createdAt: true, updatedAt: true });
@@ -597,6 +623,7 @@ export type Contact = typeof contacts.$inferSelect;
 export type Lead = typeof leads.$inferSelect;
 export type Deal = typeof deals.$inferSelect;
 export type Activity = typeof activities.$inferSelect;
+export type LeadSource = typeof leadSources.$inferSelect;
 export type ActivityType = typeof activityTypes.$inferSelect;
 export type InterestLevel = typeof interestLevels.$inferSelect;
 export type SalesPipeline = typeof salesPipelines.$inferSelect;
@@ -625,6 +652,7 @@ export type InsertContact = z.infer<typeof insertContactSchema>;
 export type InsertLead = z.infer<typeof insertLeadSchema>;
 export type InsertDeal = z.infer<typeof insertDealSchema>;
 export type InsertActivity = z.infer<typeof insertActivitySchema>;
+export type InsertLeadSource = z.infer<typeof insertLeadSourceSchema>;
 export type InsertActivityType = z.infer<typeof insertActivityTypeSchema>;
 export type InsertInterestLevel = z.infer<typeof insertInterestLevelSchema>;
 export type InsertSalesPipeline = z.infer<typeof insertSalesPipelineSchema>;

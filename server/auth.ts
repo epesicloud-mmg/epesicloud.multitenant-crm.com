@@ -3,6 +3,7 @@ import bcrypt from 'bcryptjs';
 import crypto from 'crypto';
 import { Request, Response, NextFunction } from 'express';
 import { storage } from './storage';
+import { seedRealEstateData } from './seed-real-estate-data';
 
 const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key-change-in-production';
 const ACCESS_TOKEN_EXPIRY = '15m';
@@ -96,6 +97,7 @@ export async function createDefaultTenant(userId: number, userName: string) {
   // Create default owner role for this tenant
   const ownerRole = await storage.createRole({
     name: 'Owner',
+    level: 1,
     description: 'Tenant owner with full access',
     tenantId: tenant.id,
     isActive: true,
@@ -168,6 +170,9 @@ export async function createDefaultTenant(userId: number, userName: string) {
     });
   }
 
+  // Seed real estate data (lead sources, product types, product categories)
+  await seedRealEstateData(tenant.id);
+
   return tenant;
 }
 
@@ -181,10 +186,11 @@ export async function createDefaultGlobalRoles() {
   ];
 
   const createdRoles = [];
-  for (const role of roles) {
+  for (let i = 0; i < roles.length; i++) {
+    const role = roles[i];
     const existing = await storage.getRoles();
     if (!existing.find(r => r.name === role.name && !r.tenantId)) {
-      createdRoles.push(await storage.createRole({ ...role, isActive: true }));
+      createdRoles.push(await storage.createRole({ ...role, level: i + 1, isActive: true }));
     }
   }
 
