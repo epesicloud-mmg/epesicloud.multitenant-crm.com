@@ -51,10 +51,13 @@ router.post('/register', async (req, res) => {
     // Step 2: Create owner role for this tenant
     const ownerRole = await storage.createRole({
       name: 'Owner',
+      level: 1, // Highest level (1 = Owner/Admin)
+      permissions: [],
       description: 'Tenant owner with full access',
-      tenantId: tenant.id,
+      modules: [],
       isActive: true,
-    });
+      tenantId: tenant.id,
+    } as any);
 
     // Step 3: Create user with tenant and role
     const user = await storage.createUser({
