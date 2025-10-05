@@ -42,7 +42,21 @@ router.post('/register', async (req, res) => {
     // Hash password
     const hashedPassword = await hashPassword(data.password);
 
-    // Create user without tenant first
+    // Step 1: Create tenant first
+    const tenant = await storage.createTenant({
+      name: `${data.firstName} ${data.lastName}'s Workspace`,
+      subdomain: `${data.username}-${Date.now()}`.toLowerCase().replace(/\s+/g, '-'),
+    });
+
+    // Step 2: Create owner role for this tenant
+    const ownerRole = await storage.createRole({
+      name: 'Owner',
+      description: 'Tenant owner with full access',
+      tenantId: tenant.id,
+      isActive: true,
+    });
+
+    // Step 3: Create user with tenant and role
     const user = await storage.createUser({
       username: data.username,
       email: data.email,
@@ -51,10 +65,16 @@ router.post('/register', async (req, res) => {
       lastName: data.lastName,
       phone: data.phone,
       isActive: true,
-    });
+      roleId: ownerRole.id,
+      tenantId: tenant.id,
+    } as any);
 
-    // Create default tenant for user
-    const tenant = await createDefaultTenant(user.id, `${data.firstName} ${data.lastName}`);
+    // Step 4: Add user to tenant as owner
+    await storage.addUserToTenant({
+      userId: user.id,
+      tenantId: tenant.id,
+      roleId: ownerRole.id,
+    });
 
     // Update user's last login
     await storage.updateUserLastLogin(user.id);
