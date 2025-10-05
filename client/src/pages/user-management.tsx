@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { MainLayout } from '@/components/layout/main-layout';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -211,6 +212,7 @@ export default function UserManagement() {
     return <Badge variant="default">Active</Badge>;
   };
 
+    <MainLayout>
   if (usersError) {
     return (
       <div className="flex items-center justify-center h-64">
@@ -219,13 +221,15 @@ export default function UserManagement() {
           <Button onClick={() => window.location.reload()} className="mt-2">
             Retry
           </Button>
+    </MainLayout>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="space-y-6">
+    <MainLayout>
+    <div className="p-6 space-y-6">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
@@ -600,4 +604,3 @@ export default function UserManagement() {
       )}
     </div>
   );
-}

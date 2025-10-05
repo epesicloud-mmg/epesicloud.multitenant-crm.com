@@ -10,10 +10,11 @@ async function throwIfResNotOk(res: Response) {
 function getAuthHeaders() {
   const currentRole = localStorage.getItem('userRole') || 'super admin';
   const currentUserId = localStorage.getItem('userId') || '1';
+  const tenantId = localStorage.getItem('tenantId') || '1';
   const managerId = localStorage.getItem('managerId');
   
   const headers: Record<string, string> = {
-    "X-Tenant-Id": "1",
+    "X-Tenant-Id": tenantId,
     "x-user-id": currentUserId,
     "x-user-role": currentRole,
   };

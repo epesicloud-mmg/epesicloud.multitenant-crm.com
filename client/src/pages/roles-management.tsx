@@ -3,8 +3,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { Sidebar } from "@/components/layout/sidebar";
-import { TopBar } from "@/components/layout/topbar";
+import { MainLayout } from "@/components/layout/main-layout";
 import { Plus, Shield, Edit2, Trash2, Users, Settings } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -225,54 +224,37 @@ export default function RolesManagement() {
 
   if (rolesLoading) {
     return (
-      <div className="min-h-screen flex bg-slate-50">
-        <Sidebar />
-        <main className="flex-1 overflow-auto">
-          <TopBar title="Roles Management" />
-          <div className="p-6">
-            <div className="animate-pulse space-y-4">
-              <div className="h-8 bg-gray-200 rounded w-1/4"></div>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {[1, 2, 3].map((i) => (
-                  <div key={i} className="h-48 bg-gray-200 rounded"></div>
-                ))}
-              </div>
+      <MainLayout>
+        <div className="p-6">
+          <div className="animate-pulse space-y-4">
+            <div className="h-8 bg-gray-200 rounded w-1/4"></div>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {[1, 2, 3].map((i) => (
+                <div key={i} className="h-48 bg-gray-200 rounded"></div>
+              ))}
             </div>
           </div>
-        </main>
-      </div>
+        </div>
+      </MainLayout>
     );
   }
 
   return (
-    <div className="min-h-screen flex bg-slate-50">
-      <Sidebar />
-      <main className="flex-1 overflow-auto">
-        <TopBar 
-          title="Roles Management" 
-          onNewContact={openNewRoleModal}
-        />
+    <MainLayout>
+      <div className="p-6">
+        <div className="mb-6 flex items-center justify-between">
+          <div>
+            <h1 className="text-2xl font-bold" data-testid="heading-roles-management">Roles Management</h1>
+            <p className="text-muted-foreground mt-1">Manage user roles and permissions</p>
+          </div>
+          <Button onClick={openNewRoleModal} data-testid="button-add-role">
+            <Plus className="w-4 h-4 mr-2" />
+            Add New Role
+          </Button>
+        </div>
         
         <div className="p-6">
           <div className="bg-white rounded-xl border border-slate-200 shadow-sm">
-            {/* Header */}
-            <div className="p-6 border-b border-slate-200">
-              <div className="flex items-center justify-between">
-                <div>
-                  <h3 className="text-lg font-semibold text-slate-900">All Roles</h3>
-                  <p className="text-sm text-slate-600 mt-1">
-                    Manage user roles and permissions
-                  </p>
-                </div>
-                <div className="flex items-center space-x-3">
-                  <Button onClick={openNewRoleModal}>
-                    <Plus className="w-4 h-4 mr-2" />
-                    Add New Role
-                  </Button>
-                </div>
-              </div>
-            </div>
-
             {/* Roles Grid */}
             <div className="p-6">
               {roles.length === 0 ? (
@@ -498,6 +480,7 @@ export default function RolesManagement() {
           </Form>
         </DialogContent>
       </Dialog>
-    </div>
+      </div>
+    </MainLayout>
   );
 }

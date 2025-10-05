@@ -12,6 +12,16 @@ app.use(express.urlencoded({ extended: false }));
 app.use(eventTrackingMiddleware());
 app.use(auditLogger());
 
+// Middleware to set tenantId and userId from session/auth
+app.use((req: any, res, next) => {
+  if (req.session?.user) {
+    req.user = req.session.user;
+    req.tenantId = req.session.user.tenantId;
+    req.userId = req.session.user.id;
+  }
+  next();
+});
+
 app.use((req, res, next) => {
   const start = Date.now();
   const path = req.path;
