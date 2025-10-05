@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Plus, Edit, Trash2 } from "lucide-react";
+import { MainLayout } from "@/components/layout/main-layout";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -145,11 +146,16 @@ export default function ProductTypesPage() {
   };
 
   if (isLoading) {
-    return <div className="p-8">Loading product types...</div>;
+    return (
+      <MainLayout>
+        <div className="p-8">Loading product types...</div>
+      </MainLayout>
+    );
   }
 
   return (
-    <div className="p-8">
+    <MainLayout>
+      <div className="p-8">
       <div className="flex justify-between items-center mb-8">
         <div>
           <h1 className="text-3xl font-bold">Product Types</h1>
@@ -267,6 +273,7 @@ export default function ProductTypesPage() {
           </CardContent>
         </Card>
       )}
-    </div>
+      </div>
+    </MainLayout>
   );
 }
