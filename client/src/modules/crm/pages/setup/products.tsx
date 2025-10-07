@@ -3,8 +3,6 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Plus, Package, Edit, Trash2, Camera } from "lucide-react";
-import { Sidebar } from "@/components/layout/sidebar";
-import { TopBar } from "@/components/layout/topbar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -197,11 +195,7 @@ export default function ProductsSetup() {
   };
 
   return (
-    <div className="flex h-screen bg-slate-50">
-      <Sidebar />
-      <main className="flex-1 overflow-hidden">
-        <TopBar />
-        <div className="p-6">
+    <div className="p-6">
           <div className="flex justify-between items-center mb-6">
             <div>
               <h1 className="text-2xl font-bold text-slate-900">Products Setup</h1>
@@ -330,8 +324,6 @@ export default function ProductsSetup() {
               )}
             </CardContent>
           </Card>
-        </div>
-      </main>
 
       {/* Modal */}
       <Dialog open={isModalOpen} onOpenChange={closeModal}>

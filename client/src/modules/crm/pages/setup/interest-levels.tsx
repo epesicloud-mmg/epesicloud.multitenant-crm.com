@@ -254,7 +254,6 @@ export default function InterestLevels() {
               </Button>
             </div>
           )}
-        </div>
 
       {/* Modal */}
       <Dialog open={isModalOpen} onOpenChange={closeModal}>
