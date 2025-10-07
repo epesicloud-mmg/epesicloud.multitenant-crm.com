@@ -4,21 +4,9 @@ import { ProfessionalHeader } from "./professional-header";
 
 interface MainLayoutProps {
   children: React.ReactNode;
-  title?: string;
-  showWorkspaceSelector?: boolean;
-  currentWorkspace?: string;
-  onWorkspaceChange?: (workspace: string) => void;
-  onNewContact?: () => void;
 }
 
-export function MainLayout({ 
-  children, 
-  title, 
-  showWorkspaceSelector = false,
-  currentWorkspace,
-  onWorkspaceChange,
-  onNewContact 
-}: MainLayoutProps) {
+export function MainLayout({ children }: MainLayoutProps) {
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
 
   const handleToggleSidebar = () => {
