@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
@@ -29,12 +29,24 @@ const setupProductSchema = z.object({
 
 type SetupProductFormData = z.infer<typeof setupProductSchema>;
 
+interface Product {
+  id?: number;
+  name: string;
+  title: string;
+  description: string | null;
+  salePrice: string;
+  salesPipelineId?: number | null;
+  categoryId?: number | null;
+  productTypeId?: number | null;
+}
+
 interface ProductSetupModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  product?: Product | null;
 }
 
-export function ProductSetupModal({ open, onOpenChange }: ProductSetupModalProps) {
+export function ProductSetupModal({ open, onOpenChange, product }: ProductSetupModalProps) {
   const [uploadedFiles, setUploadedFiles] = useState<{ [key: string]: File | null }>({
     prod1: null,
     prod2: null,
@@ -61,18 +73,65 @@ export function ProductSetupModal({ open, onOpenChange }: ProductSetupModalProps
     },
   });
 
+  useEffect(() => {
+    if (open) {
+      if (product) {
+        form.reset({
+          salesPipelineId: product.salesPipelineId ?? undefined,
+          name: product.name,
+          title: product.title,
+          description: product.description ?? "",
+          salePrice: product.salePrice,
+          whyClients: "",
+          offerDetails: "",
+          shortDescription: "",
+          categoryId: product.categoryId ?? undefined,
+          productTypeId: product.productTypeId ?? undefined,
+          tenantId: Number(localStorage.getItem('tenantId')) || 1,
+        });
+      } else {
+        form.reset({
+          salesPipelineId: undefined,
+          name: "",
+          title: "",
+          description: "",
+          salePrice: "",
+          whyClients: "",
+          offerDetails: "",
+          shortDescription: "",
+          categoryId: undefined,
+          productTypeId: undefined,
+          tenantId: Number(localStorage.getItem('tenantId')) || 1,
+        });
+      }
+    }
+  }, [open, product, form]);
+
   const createProductSetupMutation = useMutation({
     mutationFn: async (data: SetupProductFormData) => {
-      return apiRequest("POST", "/api/products", {
+      const salePriceNum = parseFloat(data.salePrice);
+      if (isNaN(salePriceNum)) {
+        throw new Error("Invalid sale price");
+      }
+      
+      const payload = {
         name: data.name,
         title: data.title,
-        description: data.description,
-        salePrice: data.salePrice,
-        salesPipelineId: data.salesPipelineId,
-        categoryId: data.categoryId,
-        productTypeId: data.productTypeId,
+        description: data.description || null,
+        salePrice: salePriceNum,
+        salesPipelineId: data.salesPipelineId ?? null,
+        categoryId: data.categoryId ?? null,
+        productTypeId: data.productTypeId ?? null,
         tenantId: data.tenantId,
-      });
+      };
+      
+      if (product?.id) {
+        const response = await apiRequest("PATCH", `/api/products/${product.id}`, payload);
+        return response;
+      } else {
+        const response = await apiRequest("POST", "/api/products", payload);
+        return response;
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/products"] });
@@ -81,13 +140,13 @@ export function ProductSetupModal({ open, onOpenChange }: ProductSetupModalProps
       onOpenChange(false);
       toast({
         title: "Success",
-        description: "Product setup saved successfully",
+        description: product?.id ? "Product updated successfully" : "Product created successfully",
       });
     },
-    onError: () => {
+    onError: (error: Error) => {
       toast({
         title: "Error",
-        description: "Failed to save product setup",
+        description: error.message || (product?.id ? "Failed to update product" : "Failed to create product"),
         variant: "destructive",
       });
     },
@@ -141,7 +200,7 @@ export function ProductSetupModal({ open, onOpenChange }: ProductSetupModalProps
       <DialogContent className="max-w-6xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="text-xl font-semibold text-slate-900">
-            Product Setup Configuration
+            {product?.id ? "Edit Product" : "Product Setup Configuration"}
           </DialogTitle>
           <p className="text-sm text-slate-600">
             Configure your product setup with pipelines, descriptions, and marketing materials

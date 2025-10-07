@@ -1,34 +1,13 @@
 import { useState } from "react";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Plus, Package, Edit, Trash2, Camera } from "lucide-react";
 import { ProductSetupModal } from "@/components/modals/product-setup-modal";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
-import { z } from "zod";
-
-const productSchema = z.object({
-  name: z.string().min(1, "Name is required"),
-  title: z.string().min(1, "Title is required"),
-  description: z.string().optional(),
-  salePrice: z.string().min(1, "Sale price is required"),
-  featuredPhoto: z.string().optional(),
-  category: z.string().optional(),
-  salesPipelineId: z.number().optional(),
-  tenantId: z.number(),
-});
-
-type ProductFormData = z.infer<typeof productSchema>;
 
 interface Product {
   id: number;
@@ -44,11 +23,6 @@ interface Product {
   createdAt: string;
 }
 
-interface SalesPipeline {
-  id: number;
-  name: string;
-}
-
 export default function ProductsSetup() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
@@ -57,80 +31,6 @@ export default function ProductsSetup() {
 
   const { data: products = [], isLoading } = useQuery<Product[]>({
     queryKey: ["/api/products"],
-  });
-
-  const { data: salesPipelines = [] } = useQuery<SalesPipeline[]>({
-    queryKey: ["/api/sales-pipelines"],
-  });
-
-  const form = useForm<ProductFormData>({
-    resolver: zodResolver(productSchema),
-    defaultValues: {
-      title: "",
-      description: "",
-      salePrice: "",
-      featuredPhoto: "",
-      category: "",
-      salesPipelineId: undefined,
-      tenantId: 1,
-    },
-  });
-
-  const createMutation = useMutation({
-    mutationFn: async (data: ProductFormData) => {
-      return apiRequest("/api/products", {
-        method: "POST",
-        body: JSON.stringify({
-          ...data,
-          salePrice: parseFloat(data.salePrice),
-        }),
-      });
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/products"] });
-      setIsModalOpen(false);
-      form.reset();
-      toast({
-        title: "Success",
-        description: "Product created successfully",
-      });
-    },
-    onError: () => {
-      toast({
-        title: "Error",
-        description: "Failed to create product",
-        variant: "destructive",
-      });
-    },
-  });
-
-  const updateMutation = useMutation({
-    mutationFn: async (data: ProductFormData & { id: number }) => {
-      return apiRequest(`/api/products/${data.id}`, {
-        method: "PATCH",
-        body: JSON.stringify({
-          ...data,
-          salePrice: parseFloat(data.salePrice),
-        }),
-      });
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/products"] });
-      setIsModalOpen(false);
-      setEditingProduct(null);
-      form.reset();
-      toast({
-        title: "Success",
-        description: "Product updated successfully",
-      });
-    },
-    onError: () => {
-      toast({
-        title: "Error",
-        description: "Failed to update product",
-        variant: "destructive",
-      });
-    },
   });
 
   const deleteMutation = useMutation({
@@ -156,37 +56,13 @@ export default function ProductsSetup() {
   });
 
   const openModal = (product?: Product) => {
-    if (product) {
-      setEditingProduct(product);
-      form.reset({
-        name: product.name,
-        title: product.title,
-        description: product.description || "",
-        salePrice: product.salePrice,
-        featuredPhoto: product.featuredPhoto || "",
-        category: product.category || "",
-        salesPipelineId: product.salesPipelineId || undefined,
-        tenantId: 1,
-      });
-    } else {
-      setEditingProduct(null);
-      form.reset();
-    }
+    setEditingProduct(product || null);
     setIsModalOpen(true);
   };
 
   const closeModal = () => {
     setIsModalOpen(false);
     setEditingProduct(null);
-    form.reset();
-  };
-
-  const onSubmit = (data: ProductFormData) => {
-    if (editingProduct) {
-      updateMutation.mutate({ ...data, id: editingProduct.id });
-    } else {
-      createMutation.mutate(data);
-    }
   };
 
   const handleDelete = (id: number) => {
@@ -330,6 +206,7 @@ export default function ProductsSetup() {
       <ProductSetupModal 
         open={isModalOpen} 
         onOpenChange={setIsModalOpen}
+        product={editingProduct}
       />
     </div>
   );
