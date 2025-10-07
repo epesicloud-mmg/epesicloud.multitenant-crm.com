@@ -14,13 +14,17 @@ import { apiRequest } from "@/lib/queryClient";
 import { z } from "zod";
 
 const setupProductSchema = z.object({
-  salesPipeline: z.string().min(1, "Sales pipeline is required"),
-  projectName: z.string().min(1, "Project name is required"),
-  projectDescription: z.string().min(1, "Project description is required"),
-  whyClients: z.string().min(1, "Why clients should buy is required"),
-  offerDetails: z.string().min(1, "Offer details are required"),
-  shortDescription: z.string().min(1, "Short description is required"),
-  marketingList: z.string().min(1, "Marketing list is required"),
+  salesPipelineId: z.number().optional(),
+  name: z.string().min(1, "Product name is required"),
+  title: z.string().min(1, "Product title is required"),
+  description: z.string().min(1, "Product description is required"),
+  salePrice: z.string().min(1, "Sale price is required").regex(/^\d+(\.\d{1,2})?$/, "Enter a valid price"),
+  whyClients: z.string().optional(),
+  offerDetails: z.string().optional(),
+  shortDescription: z.string().optional(),
+  categoryId: z.number().optional(),
+  productTypeId: z.number().optional(),
+  tenantId: z.number(),
 });
 
 type SetupProductFormData = z.infer<typeof setupProductSchema>;
@@ -43,26 +47,32 @@ export function ProductSetupModal({ open, onOpenChange }: ProductSetupModalProps
   const form = useForm<SetupProductFormData>({
     resolver: zodResolver(setupProductSchema),
     defaultValues: {
-      salesPipeline: "",
-      projectName: "",
-      projectDescription: "",
+      salesPipelineId: undefined,
+      name: "",
+      title: "",
+      description: "",
+      salePrice: "",
       whyClients: "",
       offerDetails: "",
       shortDescription: "",
-      marketingList: "",
+      categoryId: undefined,
+      productTypeId: undefined,
+      tenantId: Number(localStorage.getItem('tenantId')) || 1,
     },
   });
 
   const createProductSetupMutation = useMutation({
     mutationFn: async (data: SetupProductFormData) => {
-      // For now, just simulate saving the product setup
-      // In a real app, this would save to a products_setup table
-      const response = await apiRequest("POST", "/api/products", {
-        name: data.projectName,
-        description: data.projectDescription,
-        salePrice: "0", // Default price, can be updated later
+      return apiRequest("POST", "/api/products", {
+        name: data.name,
+        title: data.title,
+        description: data.description,
+        salePrice: data.salePrice,
+        salesPipelineId: data.salesPipelineId,
+        categoryId: data.categoryId,
+        productTypeId: data.productTypeId,
+        tenantId: data.tenantId,
       });
-      return response.json();
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/products"] });
@@ -153,21 +163,19 @@ export function ProductSetupModal({ open, onOpenChange }: ProductSetupModalProps
               {/* Sales Pipeline */}
               <FormField
                 control={form.control}
-                name="salesPipeline"
+                name="salesPipelineId"
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Sales Pipeline</FormLabel>
-                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                    <Select onValueChange={(value) => field.onChange(Number(value))} value={field.value?.toString()}>
                       <FormControl>
                         <SelectTrigger>
                           <SelectValue placeholder="Select Sales Pipeline" />
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        <SelectItem value="default">Default Pipeline</SelectItem>
-                        <SelectItem value="enterprise">Enterprise Pipeline</SelectItem>
-                        <SelectItem value="startup">Startup Pipeline</SelectItem>
-                        <SelectItem value="smb">SMB Pipeline</SelectItem>
+                        <SelectItem value="1">Default Pipeline</SelectItem>
+                        <SelectItem value="2">Enterprise Pipeline</SelectItem>
                       </SelectContent>
                     </Select>
                     <FormMessage />
@@ -175,15 +183,15 @@ export function ProductSetupModal({ open, onOpenChange }: ProductSetupModalProps
                 )}
               />
 
-              {/* Project Name */}
+              {/* Product Name */}
               <FormField
                 control={form.control}
-                name="projectName"
+                name="name"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Project Name *</FormLabel>
+                    <FormLabel>Product Name *</FormLabel>
                     <FormControl>
-                      <Input placeholder="Enter Project Name" {...field} />
+                      <Input placeholder="Enter Product Name" {...field} data-testid="input-product-name" />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -205,15 +213,15 @@ export function ProductSetupModal({ open, onOpenChange }: ProductSetupModalProps
                 )}
               />
 
-              {/* Short Description */}
+              {/* Sale Price */}
               <FormField
                 control={form.control}
-                name="shortDescription"
+                name="salePrice"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Short Description *</FormLabel>
+                    <FormLabel>Sale Price *</FormLabel>
                     <FormControl>
-                      <Input placeholder="Enter Short Description" {...field} />
+                      <Input placeholder="0.00" type="text" {...field} data-testid="input-sale-price" />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -223,16 +231,48 @@ export function ProductSetupModal({ open, onOpenChange }: ProductSetupModalProps
 
             {/* Text Areas Row */}
             <div className="grid grid-cols-2 gap-4">
-              {/* Project Description */}
+              {/* Product Title */}
               <FormField
                 control={form.control}
-                name="projectDescription"
+                name="title"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Project Description *</FormLabel>
+                    <FormLabel>Product Title *</FormLabel>
+                    <FormControl>
+                      <Input placeholder="Enter Product Title" {...field} data-testid="input-product-title" />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              {/* Short Description */}
+              <FormField
+                control={form.control}
+                name="shortDescription"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Short Description</FormLabel>
+                    <FormControl>
+                      <Input placeholder="Enter Short Description" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              {/* Product Description */}
+              <FormField
+                control={form.control}
+                name="description"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Product Description *</FormLabel>
                     <FormControl>
                       <Textarea
-                        placeholder="Enter Project Description"
+                        placeholder="Enter Product Description"
                         className="min-h-[100px] resize-none"
                         {...field}
                       />
@@ -248,42 +288,14 @@ export function ProductSetupModal({ open, onOpenChange }: ProductSetupModalProps
                 name="whyClients"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Why clients should buy into this service or this project?</FormLabel>
+                    <FormLabel>Why clients should buy this product?</FormLabel>
                     <FormControl>
                       <Textarea
-                        placeholder="Enter Why clients should buy into this service or this project?"
+                        placeholder="Enter why clients should buy this product?"
                         className="min-h-[100px] resize-none"
                         {...field}
                       />
                     </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </div>
-
-            {/* Marketing List */}
-            <div className="grid grid-cols-2 gap-4">
-              <FormField
-                control={form.control}
-                name="marketingList"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Marketing List</FormLabel>
-                    <Select onValueChange={field.onChange} defaultValue={field.value}>
-                      <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Real Estate Companies" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        <SelectItem value="real-estate">Real Estate Companies</SelectItem>
-                        <SelectItem value="tech-startups">Tech Startups</SelectItem>
-                        <SelectItem value="healthcare">Healthcare Providers</SelectItem>
-                        <SelectItem value="finance">Financial Services</SelectItem>
-                        <SelectItem value="retail">Retail Businesses</SelectItem>
-                      </SelectContent>
-                    </Select>
                     <FormMessage />
                   </FormItem>
                 )}
