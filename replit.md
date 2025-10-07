@@ -169,6 +169,14 @@ Preferred communication style: Simple, everyday language.
   - Setup menu with submenu: Activity Types, Sales Pipelines, Sales Stages, Interest Levels
   - Collapsible sidebar with persistent state
   - MainLayout and CRMLayout both use ProfessionalSidebar for consistency
+- **Product Setup Configuration Modal** (October 7, 2025):
+  - Comprehensive product creation and editing form with "Product" terminology
+  - Sale price field with decimal validation and proper backend type conversion
+  - Support for sales pipeline assignment, categories, and product types
+  - File upload areas for product images (4 upload slots)
+  - Product description, title, and marketing fields
+  - Both create and edit modes with proper form reset behavior
+  - Integrated into Products Setup page replacing legacy form
 
 ### Key Architectural Decisions
 
