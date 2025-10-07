@@ -39,10 +39,10 @@ const getProductsSubMenu = (modulePrefix: string) => [
 ];
 
 const getSetupSubMenu = (modulePrefix: string) => [
-  { name: "Activity Types", href: `${modulePrefix}/setup/activity-types`, icon: MessageSquare, permission: "manage_interactions" },
-  { name: "Sales Pipelines", href: `${modulePrefix}/setup/sales-pipelines`, icon: GitBranch, permission: "manage_setup" },
-  { name: "Sales Stages", href: `${modulePrefix}/setup/sales-stages`, icon: Target, permission: "manage_setup" },
-  { name: "Interest Levels", href: `${modulePrefix}/setup/interest-levels`, icon: Thermometer, permission: "manage_setup" },
+  { name: "Activity Types", href: `${modulePrefix}/setup/activity-types`, icon: MessageSquare, permission: "manage_activities" },
+  { name: "Sales Pipelines", href: `${modulePrefix}/setup/sales-pipelines`, icon: GitBranch, permission: "manage_activities" },
+  { name: "Sales Stages", href: `${modulePrefix}/setup/sales-stages`, icon: Target, permission: "manage_activities" },
+  { name: "Interest Levels", href: `${modulePrefix}/setup/interest-levels`, icon: Thermometer, permission: "manage_activities" },
 ];
 
 interface ProfessionalSidebarProps {
