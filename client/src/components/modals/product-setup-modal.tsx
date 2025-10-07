@@ -32,9 +32,9 @@ type SetupProductFormData = z.infer<typeof setupProductSchema>;
 interface Product {
   id?: number;
   name: string;
-  title: string;
+  title: string | null;
   description: string | null;
-  salePrice: string;
+  salePrice: string | null;
   salesPipelineId?: number | null;
   categoryId?: number | null;
   productTypeId?: number | null;
@@ -79,9 +79,9 @@ export function ProductSetupModal({ open, onOpenChange, product }: ProductSetupM
         form.reset({
           salesPipelineId: product.salesPipelineId ?? undefined,
           name: product.name,
-          title: product.title,
+          title: product.title ?? "",
           description: product.description ?? "",
-          salePrice: product.salePrice,
+          salePrice: product.salePrice ?? "",
           whyClients: "",
           offerDetails: "",
           shortDescription: "",

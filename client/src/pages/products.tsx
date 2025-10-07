@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { Plus, Package, Edit, Trash2, DollarSign, Search, Filter, Settings } from "lucide-react";
+import { Plus, Package, Edit, Trash2, DollarSign, Search, Filter } from "lucide-react";
 import { MainLayout } from "@/components/layout/main-layout";
 import { ProductSetupModal } from "@/components/modals/product-setup-modal";
 import { Button } from "@/components/ui/button";
@@ -8,13 +8,10 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
-import { Textarea } from "@/components/ui/textarea";
-import { useForm } from "react-hook-form";
+import { insertProductSchema, type Product } from "@shared/schema";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { insertProductSchema, type Product } from "@shared/schema";
+import { useForm } from "react-hook-form";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 
@@ -136,13 +133,7 @@ export default function Products() {
 
   const handleEdit = (product: Product) => {
     setEditingProduct(product);
-    form.reset({
-      name: product.name,
-      title: product.title || "",
-      description: product.description || "",
-      salePrice: product.salePrice.toString(),
-    });
-    setIsDialogOpen(true);
+    setShowProductSetup(true);
   };
 
   const handleDelete = (id: number) => {
@@ -153,13 +144,7 @@ export default function Products() {
 
   const handleNewProduct = () => {
     setEditingProduct(null);
-    form.reset({
-      name: "",
-      title: "",
-      description: "",
-      salePrice: "",
-    });
-    setIsDialogOpen(true);
+    setShowProductSetup(true);
   };
 
   const filteredProducts = products?.filter(product =>
@@ -169,22 +154,14 @@ export default function Products() {
 
   if (isLoading) {
     return (
-      <MainLayout 
-        showWorkspaceSelector={true} 
-        currentWorkspace={currentWorkspace}
-        onWorkspaceChange={handleWorkspaceChange}
-      >
+      <MainLayout>
         <div className="p-6">Loading products...</div>
       </MainLayout>
     );
   }
 
   return (
-    <MainLayout 
-      showWorkspaceSelector={true} 
-      currentWorkspace={currentWorkspace}
-      onWorkspaceChange={handleWorkspaceChange}
-    >
+    <MainLayout>
       <div className="p-6">
           <div className="bg-white rounded-xl border border-slate-200 shadow-sm">
             {/* Header */}
@@ -210,15 +187,6 @@ export default function Products() {
                   <Button variant="outline" size="sm">
                     <Filter className="w-4 h-4 mr-2" />
                     Filter
-                  </Button>
-                  <Button 
-                    variant="outline" 
-                    size="sm"
-                    onClick={() => setShowProductSetup(true)}
-                    className="bg-gradient-to-r from-purple-50 to-pink-50 border-purple-200 hover:from-purple-100 hover:to-pink-100"
-                  >
-                    <Settings className="w-4 h-4 mr-2 text-purple-600" />
-                    Product Setup
                   </Button>
                   <Button onClick={handleNewProduct}>
                     <Plus className="w-4 h-4 mr-2" />
@@ -272,7 +240,7 @@ export default function Products() {
                           <div className="flex items-center space-x-1">
                             <DollarSign className="w-4 h-4 text-slate-400" />
                             <span className="font-medium text-slate-900">
-                              {product.salePrice.toLocaleString()}
+                              {product.salePrice ? product.salePrice.toLocaleString() : "0"}
                             </span>
                           </div>
                         </TableCell>
@@ -309,113 +277,11 @@ export default function Products() {
           </div>
         </div>
 
-        {/* Regular Product Modal */}
-        <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-          <DialogContent className="sm:max-w-[425px]">
-            <DialogHeader>
-              <DialogTitle>
-                {editingProduct ? "Edit Product" : "Add New Product"}
-              </DialogTitle>
-              <DialogDescription>
-                {editingProduct 
-                  ? "Update the product information below." 
-                  : "Fill in the details to add a new product to your catalog."
-                }
-              </DialogDescription>
-            </DialogHeader>
-            <Form {...form}>
-              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-                <FormField
-                  control={form.control}
-                  name="name"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Product Name</FormLabel>
-                      <FormControl>
-                        <Input placeholder="Enter product name" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name="title"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Product Title</FormLabel>
-                      <FormControl>
-                        <Input placeholder="Enter product title" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name="description"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Description</FormLabel>
-                      <FormControl>
-                        <Textarea
-                          placeholder="Enter product description"
-                          className="resize-none"
-                          {...field}
-                          value={field.value || ""}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name="salePrice"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Sale Price</FormLabel>
-                      <FormControl>
-                        <Input
-                          type="text"
-                          placeholder="0.00"
-                          {...field}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <div className="flex gap-2 pt-4">
-                  <Button
-                    type="submit"
-                    disabled={createMutation.isPending || updateMutation.isPending}
-                    onClick={(e) => {
-                      console.log("Create Product button clicked!");
-                      console.log("Form valid:", form.formState.isValid);
-                      console.log("Form errors:", form.formState.errors);
-                      console.log("Form values:", form.getValues());
-                    }}
-                  >
-                    {editingProduct ? "Update" : "Create"} Product
-                  </Button>
-                  <Button
-                    type="button"
-                    variant="outline"
-                    onClick={() => setIsDialogOpen(false)}
-                  >
-                    Cancel
-                  </Button>
-                </div>
-              </form>
-            </Form>
-          </DialogContent>
-        </Dialog>
-
         {/* Product Setup Modal */}
         <ProductSetupModal 
           open={showProductSetup} 
           onOpenChange={setShowProductSetup}
+          product={editingProduct}
         />
     </MainLayout>
   );
