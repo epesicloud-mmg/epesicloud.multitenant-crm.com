@@ -140,6 +140,12 @@ export default function AllDeals() {
     return contact ? `${contact.firstName} ${contact.lastName}` : "Unassigned";
   };
 
+  const getProductName = (productId: number | null | undefined) => {
+    if (!productId) return "-";
+    const product = products.find((p: Product) => p.id === productId);
+    return product ? product.name : "-";
+  };
+
   const getStageInfo = (stageId: number) => {
     const stage = stages.find((s: SalesStage) => s.id === stageId);
     if (!stage) return { name: "Unknown", color: "gray" };
@@ -294,6 +300,31 @@ export default function AllDeals() {
 
                     <FormField
                       control={form.control}
+                      name="productId"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Product</FormLabel>
+                          <Select onValueChange={(value) => field.onChange(parseInt(value))} defaultValue={field.value?.toString()}>
+                            <FormControl>
+                              <SelectTrigger>
+                                <SelectValue placeholder="Select a product" />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                              {products.filter(product => product.id).map((product: Product) => (
+                                <SelectItem key={product.id} value={product.id.toString()}>
+                                  {product.name} - ${product.salePrice}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    <FormField
+                      control={form.control}
                       name="probability"
                       render={({ field }) => (
                         <FormItem>
@@ -391,6 +422,7 @@ export default function AllDeals() {
                   <TableRow>
                     <TableHead>Deal</TableHead>
                     <TableHead>Contact</TableHead>
+                    <TableHead>Product</TableHead>
                     <TableHead>Stage</TableHead>
                     <TableHead>Value</TableHead>
                     <TableHead>Probability</TableHead>
@@ -409,6 +441,7 @@ export default function AllDeals() {
                           </div>
                         </TableCell>
                         <TableCell>{getContactName(deal.contactId || 0)}</TableCell>
+                        <TableCell>{getProductName(deal.productId)}</TableCell>
                         <TableCell>
                           <Badge variant="outline" className={`bg-${stageInfo.color}-50 text-${stageInfo.color}-700 border-${stageInfo.color}-200`}>
                             {stageInfo.name}
