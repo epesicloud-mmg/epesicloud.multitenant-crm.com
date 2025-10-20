@@ -3,15 +3,18 @@ import {
   companies, products, leads, contacts, salesStages, deals, activities, leadSources,
   activityTypes, salesPipelines, interestLevels, productTypes, productCategories, productVariations, productOffers, customers,
   customerTypes, meetingTypes, meetingCancellationReasons, paymentMethods, paymentItems,
+  paymentPlans, payments, commissionStatuses, commissions, commissionItems,
   type Tenant, type User, type Role, type Permission, type TenantUser, type RefreshToken,
   type Company, type Product, type Lead, type Contact, type SalesStage, type Deal, type Activity, type LeadSource,
   type ActivityType, type SalesPipeline, type InterestLevel, type ProductType, type ProductCategory, type ProductVariation, type ProductOffer, type Customer,
   type CustomerType, type MeetingType, type MeetingCancellationReason, type PaymentMethod, type PaymentItem,
+  type PaymentPlan, type Payment, type CommissionStatus, type Commission, type CommissionItem,
   type InsertTenant, type InsertUser, type InsertRole, type InsertPermission, type InsertTenantUser, type InsertRefreshToken,
   type InsertCompany, type InsertProduct, type InsertLead, type InsertContact, 
   type InsertSalesStage, type InsertDeal, type InsertActivity, type InsertLeadSource, type InsertActivityType, type InsertSalesPipeline, type InsertInterestLevel,
   type InsertProductType, type InsertProductCategory, type InsertProductVariation, type InsertProductOffer, type InsertCustomer,
-  type InsertCustomerType, type InsertMeetingType, type InsertMeetingCancellationReason, type InsertPaymentMethod, type InsertPaymentItem
+  type InsertCustomerType, type InsertMeetingType, type InsertMeetingCancellationReason, type InsertPaymentMethod, type InsertPaymentItem,
+  type InsertPaymentPlan, type InsertPayment, type InsertCommissionStatus, type InsertCommission, type InsertCommissionItem
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, and, desc, count, or, ilike, sql } from "drizzle-orm";
@@ -190,6 +193,55 @@ export interface IStorage {
   createPaymentItem(item: InsertPaymentItem): Promise<PaymentItem>;
   updatePaymentItem(id: number, item: Partial<InsertPaymentItem>, tenantId: number): Promise<PaymentItem | undefined>;
   deletePaymentItem(id: number, tenantId: number): Promise<boolean>;
+  
+  // ==================== PAYMENT COLLECTION MODULE ====================
+  
+  // Payment Plans
+  getPaymentPlans(tenantId: number): Promise<PaymentPlan[]>;
+  getPaymentPlan(id: number, tenantId: number): Promise<PaymentPlan | undefined>;
+  getPaymentPlansByDeal(dealId: number, tenantId: number): Promise<PaymentPlan[]>;
+  createPaymentPlan(plan: InsertPaymentPlan): Promise<PaymentPlan>;
+  updatePaymentPlan(id: number, plan: Partial<InsertPaymentPlan>, tenantId: number): Promise<PaymentPlan | undefined>;
+  deletePaymentPlan(id: number, tenantId: number): Promise<boolean>;
+  
+  // Payments
+  getPayments(tenantId: number): Promise<Payment[]>;
+  getPayment(id: number, tenantId: number): Promise<Payment | undefined>;
+  getPaymentsByDeal(dealId: number, tenantId: number): Promise<Payment[]>;
+  getPaymentsByPlan(planId: number, tenantId: number): Promise<Payment[]>;
+  getPaymentsByContact(contactId: number, tenantId: number): Promise<Payment[]>;
+  createPayment(payment: InsertPayment): Promise<Payment>;
+  updatePayment(id: number, payment: Partial<InsertPayment>, tenantId: number): Promise<Payment | undefined>;
+  deletePayment(id: number, tenantId: number): Promise<boolean>;
+  generateReceiptNumber(tenantId: number): Promise<string>;
+  
+  // ==================== COMMISSION TRACKING MODULE ====================
+  
+  // Commission Statuses
+  getCommissionStatuses(tenantId: number): Promise<CommissionStatus[]>;
+  getCommissionStatus(id: number, tenantId: number): Promise<CommissionStatus | undefined>;
+  createCommissionStatus(status: InsertCommissionStatus): Promise<CommissionStatus>;
+  updateCommissionStatus(id: number, status: Partial<InsertCommissionStatus>, tenantId: number): Promise<CommissionStatus | undefined>;
+  deleteCommissionStatus(id: number, tenantId: number): Promise<boolean>;
+  
+  // Commissions
+  getCommissions(tenantId: number, filters?: { status?: string; userId?: number }): Promise<Commission[]>;
+  getCommission(id: number, tenantId: number): Promise<Commission | undefined>;
+  getCommissionsByUser(userId: number, tenantId: number): Promise<Commission[]>;
+  getCommissionsByDeal(dealId: number, tenantId: number): Promise<Commission[]>;
+  createCommission(commission: InsertCommission): Promise<Commission>;
+  updateCommission(id: number, commission: Partial<InsertCommission>, tenantId: number): Promise<Commission | undefined>;
+  deleteCommission(id: number, tenantId: number): Promise<boolean>;
+  verifyCommission(id: number, verifiedById: number, tenantId: number): Promise<Commission | undefined>;
+  approveCommission(id: number, approvedById: number, tenantId: number): Promise<Commission | undefined>;
+  markCommissionPaid(id: number, paidById: number, paymentReference: string, tenantId: number): Promise<Commission | undefined>;
+  generateCommissionNumber(tenantId: number): Promise<string>;
+  
+  // Commission Items
+  getCommissionItems(commissionId: number, tenantId: number): Promise<CommissionItem[]>;
+  createCommissionItem(item: InsertCommissionItem): Promise<CommissionItem>;
+  updateCommissionItem(id: number, item: Partial<InsertCommissionItem>, tenantId: number): Promise<CommissionItem | undefined>;
+  deleteCommissionItem(id: number, tenantId: number): Promise<boolean>;
   
   // ==================== DASHBOARD ====================
   getDashboardMetrics(tenantId: number): Promise<{
@@ -1072,6 +1124,264 @@ export class DbStorage implements IStorage {
   async deletePaymentItem(id: number, tenantId: number): Promise<boolean> {
     const result = await db.delete(paymentItems)
       .where(and(eq(paymentItems.id, id), eq(paymentItems.tenantId, tenantId)));
+    return result.rowCount ? result.rowCount > 0 : false;
+  }
+  
+  // ==================== PAYMENT COLLECTION MODULE ====================
+  
+  // Payment Plans
+  async getPaymentPlans(tenantId: number): Promise<PaymentPlan[]> {
+    return await db.select().from(paymentPlans).where(eq(paymentPlans.tenantId, tenantId)).orderBy(desc(paymentPlans.createdAt));
+  }
+  
+  async getPaymentPlan(id: number, tenantId: number): Promise<PaymentPlan | undefined> {
+    const [plan] = await db.select().from(paymentPlans)
+      .where(and(eq(paymentPlans.id, id), eq(paymentPlans.tenantId, tenantId)));
+    return plan;
+  }
+  
+  async getPaymentPlansByDeal(dealId: number, tenantId: number): Promise<PaymentPlan[]> {
+    return await db.select().from(paymentPlans)
+      .where(and(eq(paymentPlans.dealId, dealId), eq(paymentPlans.tenantId, tenantId)))
+      .orderBy(desc(paymentPlans.createdAt));
+  }
+  
+  async createPaymentPlan(plan: InsertPaymentPlan): Promise<PaymentPlan> {
+    const [newPlan] = await db.insert(paymentPlans).values(plan).returning();
+    return newPlan;
+  }
+  
+  async updatePaymentPlan(id: number, plan: Partial<InsertPaymentPlan>, tenantId: number): Promise<PaymentPlan | undefined> {
+    const [updated] = await db.update(paymentPlans)
+      .set({ ...plan, updatedAt: new Date() })
+      .where(and(eq(paymentPlans.id, id), eq(paymentPlans.tenantId, tenantId)))
+      .returning();
+    return updated;
+  }
+  
+  async deletePaymentPlan(id: number, tenantId: number): Promise<boolean> {
+    const result = await db.delete(paymentPlans)
+      .where(and(eq(paymentPlans.id, id), eq(paymentPlans.tenantId, tenantId)));
+    return result.rowCount ? result.rowCount > 0 : false;
+  }
+  
+  // Payments
+  async getPayments(tenantId: number): Promise<Payment[]> {
+    return await db.select().from(payments).where(eq(payments.tenantId, tenantId)).orderBy(desc(payments.paymentDate));
+  }
+  
+  async getPayment(id: number, tenantId: number): Promise<Payment | undefined> {
+    const [payment] = await db.select().from(payments)
+      .where(and(eq(payments.id, id), eq(payments.tenantId, tenantId)));
+    return payment;
+  }
+  
+  async getPaymentsByDeal(dealId: number, tenantId: number): Promise<Payment[]> {
+    return await db.select().from(payments)
+      .where(and(eq(payments.dealId, dealId), eq(payments.tenantId, tenantId)))
+      .orderBy(desc(payments.paymentDate));
+  }
+  
+  async getPaymentsByPlan(planId: number, tenantId: number): Promise<Payment[]> {
+    return await db.select().from(payments)
+      .where(and(eq(payments.paymentPlanId, planId), eq(payments.tenantId, tenantId)))
+      .orderBy(desc(payments.paymentDate));
+  }
+  
+  async getPaymentsByContact(contactId: number, tenantId: number): Promise<Payment[]> {
+    return await db.select().from(payments)
+      .where(and(eq(payments.contactId, contactId), eq(payments.tenantId, tenantId)))
+      .orderBy(desc(payments.paymentDate));
+  }
+  
+  async createPayment(payment: InsertPayment): Promise<Payment> {
+    const [newPayment] = await db.insert(payments).values(payment).returning();
+    return newPayment;
+  }
+  
+  async updatePayment(id: number, payment: Partial<InsertPayment>, tenantId: number): Promise<Payment | undefined> {
+    const [updated] = await db.update(payments)
+      .set({ ...payment, updatedAt: new Date() })
+      .where(and(eq(payments.id, id), eq(payments.tenantId, tenantId)))
+      .returning();
+    return updated;
+  }
+  
+  async deletePayment(id: number, tenantId: number): Promise<boolean> {
+    const result = await db.delete(payments)
+      .where(and(eq(payments.id, id), eq(payments.tenantId, tenantId)));
+    return result.rowCount ? result.rowCount > 0 : false;
+  }
+  
+  async generateReceiptNumber(tenantId: number): Promise<string> {
+    const year = new Date().getFullYear();
+    const [result] = await db.select({ count: count() })
+      .from(payments)
+      .where(eq(payments.tenantId, tenantId));
+    const nextNumber = (result.count + 1).toString().padStart(6, '0');
+    return `RCP-${year}-${nextNumber}`;
+  }
+  
+  // ==================== COMMISSION TRACKING MODULE ====================
+  
+  // Commission Statuses
+  async getCommissionStatuses(tenantId: number): Promise<CommissionStatus[]> {
+    return await db.select().from(commissionStatuses)
+      .where(eq(commissionStatuses.tenantId, tenantId))
+      .orderBy(commissionStatuses.sortOrder);
+  }
+  
+  async getCommissionStatus(id: number, tenantId: number): Promise<CommissionStatus | undefined> {
+    const [status] = await db.select().from(commissionStatuses)
+      .where(and(eq(commissionStatuses.id, id), eq(commissionStatuses.tenantId, tenantId)));
+    return status;
+  }
+  
+  async createCommissionStatus(status: InsertCommissionStatus): Promise<CommissionStatus> {
+    const [newStatus] = await db.insert(commissionStatuses).values(status).returning();
+    return newStatus;
+  }
+  
+  async updateCommissionStatus(id: number, status: Partial<InsertCommissionStatus>, tenantId: number): Promise<CommissionStatus | undefined> {
+    const [updated] = await db.update(commissionStatuses)
+      .set({ ...status, updatedAt: new Date() })
+      .where(and(eq(commissionStatuses.id, id), eq(commissionStatuses.tenantId, tenantId)))
+      .returning();
+    return updated;
+  }
+  
+  async deleteCommissionStatus(id: number, tenantId: number): Promise<boolean> {
+    const result = await db.delete(commissionStatuses)
+      .where(and(eq(commissionStatuses.id, id), eq(commissionStatuses.tenantId, tenantId)));
+    return result.rowCount ? result.rowCount > 0 : false;
+  }
+  
+  // Commissions
+  async getCommissions(tenantId: number, filters?: { status?: string; userId?: number }): Promise<Commission[]> {
+    const conditions = [eq(commissions.tenantId, tenantId)];
+    
+    if (filters?.status) {
+      conditions.push(eq(commissions.status, filters.status));
+    }
+    
+    if (filters?.userId) {
+      conditions.push(eq(commissions.userId, filters.userId));
+    }
+    
+    return await db.select().from(commissions)
+      .where(and(...conditions))
+      .orderBy(desc(commissions.createdAt));
+  }
+  
+  async getCommission(id: number, tenantId: number): Promise<Commission | undefined> {
+    const [commission] = await db.select().from(commissions)
+      .where(and(eq(commissions.id, id), eq(commissions.tenantId, tenantId)));
+    return commission;
+  }
+  
+  async getCommissionsByUser(userId: number, tenantId: number): Promise<Commission[]> {
+    return await db.select().from(commissions)
+      .where(and(eq(commissions.userId, userId), eq(commissions.tenantId, tenantId)))
+      .orderBy(desc(commissions.createdAt));
+  }
+  
+  async getCommissionsByDeal(dealId: number, tenantId: number): Promise<Commission[]> {
+    return await db.select().from(commissions)
+      .where(and(eq(commissions.dealId, dealId), eq(commissions.tenantId, tenantId)))
+      .orderBy(desc(commissions.createdAt));
+  }
+  
+  async createCommission(commission: InsertCommission): Promise<Commission> {
+    const [newCommission] = await db.insert(commissions).values(commission).returning();
+    return newCommission;
+  }
+  
+  async updateCommission(id: number, commission: Partial<InsertCommission>, tenantId: number): Promise<Commission | undefined> {
+    const [updated] = await db.update(commissions)
+      .set({ ...commission, updatedAt: new Date() })
+      .where(and(eq(commissions.id, id), eq(commissions.tenantId, tenantId)))
+      .returning();
+    return updated;
+  }
+  
+  async deleteCommission(id: number, tenantId: number): Promise<boolean> {
+    const result = await db.delete(commissions)
+      .where(and(eq(commissions.id, id), eq(commissions.tenantId, tenantId)));
+    return result.rowCount ? result.rowCount > 0 : false;
+  }
+  
+  async verifyCommission(id: number, verifiedById: number, tenantId: number): Promise<Commission | undefined> {
+    const [updated] = await db.update(commissions)
+      .set({ 
+        status: 'verified',
+        verifiedById,
+        verifiedAt: new Date(),
+        updatedAt: new Date()
+      })
+      .where(and(eq(commissions.id, id), eq(commissions.tenantId, tenantId)))
+      .returning();
+    return updated;
+  }
+  
+  async approveCommission(id: number, approvedById: number, tenantId: number): Promise<Commission | undefined> {
+    const [updated] = await db.update(commissions)
+      .set({ 
+        status: 'approved',
+        approvedById,
+        approvedAt: new Date(),
+        updatedAt: new Date()
+      })
+      .where(and(eq(commissions.id, id), eq(commissions.tenantId, tenantId)))
+      .returning();
+    return updated;
+  }
+  
+  async markCommissionPaid(id: number, paidById: number, paymentReference: string, tenantId: number): Promise<Commission | undefined> {
+    const [updated] = await db.update(commissions)
+      .set({ 
+        status: 'paid',
+        paidById,
+        paidAt: new Date(),
+        paymentReference,
+        updatedAt: new Date()
+      })
+      .where(and(eq(commissions.id, id), eq(commissions.tenantId, tenantId)))
+      .returning();
+    return updated;
+  }
+  
+  async generateCommissionNumber(tenantId: number): Promise<string> {
+    const year = new Date().getFullYear();
+    const [result] = await db.select({ count: count() })
+      .from(commissions)
+      .where(eq(commissions.tenantId, tenantId));
+    const nextNumber = (result.count + 1).toString().padStart(6, '0');
+    return `COM-${year}-${nextNumber}`;
+  }
+  
+  // Commission Items
+  async getCommissionItems(commissionId: number, tenantId: number): Promise<CommissionItem[]> {
+    return await db.select().from(commissionItems)
+      .where(and(eq(commissionItems.commissionId, commissionId), eq(commissionItems.tenantId, tenantId)))
+      .orderBy(desc(commissionItems.createdAt));
+  }
+  
+  async createCommissionItem(item: InsertCommissionItem): Promise<CommissionItem> {
+    const [newItem] = await db.insert(commissionItems).values(item).returning();
+    return newItem;
+  }
+  
+  async updateCommissionItem(id: number, item: Partial<InsertCommissionItem>, tenantId: number): Promise<CommissionItem | undefined> {
+    const [updated] = await db.update(commissionItems)
+      .set({ ...item, updatedAt: new Date() })
+      .where(and(eq(commissionItems.id, id), eq(commissionItems.tenantId, tenantId)))
+      .returning();
+    return updated;
+  }
+  
+  async deleteCommissionItem(id: number, tenantId: number): Promise<boolean> {
+    const result = await db.delete(commissionItems)
+      .where(and(eq(commissionItems.id, id), eq(commissionItems.tenantId, tenantId)));
     return result.rowCount ? result.rowCount > 0 : false;
   }
   

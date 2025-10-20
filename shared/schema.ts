@@ -371,6 +371,110 @@ export const paymentItems = pgTable("payment_items", {
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
 
+// ====================
+// PAYMENT COLLECTION MODULE
+// ====================
+
+// Payment Plans table - installment plans for property purchases
+export const paymentPlans = pgTable("payment_plans", {
+  id: serial("id").primaryKey(),
+  planName: text("plan_name").notNull(),
+  dealId: integer("deal_id").references(() => deals.id, { onDelete: 'cascade' }),
+  contactId: integer("contact_id").references(() => contacts.id),
+  totalAmount: decimal("total_amount", { precision: 15, scale: 2 }).notNull(),
+  paidAmount: decimal("paid_amount", { precision: 15, scale: 2 }).default('0').notNull(),
+  balanceAmount: decimal("balance_amount", { precision: 15, scale: 2 }).notNull(),
+  numberOfInstallments: integer("number_of_installments").notNull(),
+  installmentAmount: decimal("installment_amount", { precision: 15, scale: 2 }).notNull(),
+  frequency: text("frequency").notNull().default('monthly'),
+  startDate: timestamp("start_date").notNull(),
+  endDate: timestamp("end_date"),
+  status: text("status").notNull().default('active'),
+  notes: text("notes"),
+  tenantId: integer("tenant_id").notNull().references(() => tenants.id),
+  createdById: integer("created_by_id").references(() => users.id),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+// Payments table - actual payment transactions
+export const payments = pgTable("payments", {
+  id: serial("id").primaryKey(),
+  receiptNumber: text("receipt_number").notNull().unique(),
+  dealId: integer("deal_id").references(() => deals.id),
+  paymentPlanId: integer("payment_plan_id").references(() => paymentPlans.id),
+  contactId: integer("contact_id").references(() => contacts.id),
+  amount: decimal("amount", { precision: 15, scale: 2 }).notNull(),
+  paymentMethodId: integer("payment_method_id").references(() => paymentMethods.id),
+  paymentItemId: integer("payment_item_id").references(() => paymentItems.id),
+  paymentDate: timestamp("payment_date").notNull(),
+  transactionReference: text("transaction_reference"),
+  bankName: text("bank_name"),
+  chequeNumber: text("cheque_number"),
+  notes: text("notes"),
+  status: text("status").notNull().default('completed'),
+  collectedById: integer("collected_by_id").references(() => users.id),
+  tenantId: integer("tenant_id").notNull().references(() => tenants.id),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+// ====================
+// COMMISSION TRACKING MODULE
+// ====================
+
+// Commission Status Types
+export const commissionStatuses = pgTable("commission_statuses", {
+  id: serial("id").primaryKey(),
+  statusName: text("status_name").notNull(),
+  description: text("description"),
+  sortOrder: integer("sort_order").default(0),
+  isActive: boolean("is_active").default(true),
+  tenantId: integer("tenant_id").notNull().references(() => tenants.id),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+// Commissions table - main commission records with approval workflow
+export const commissions = pgTable("commissions", {
+  id: serial("id").primaryKey(),
+  commissionNumber: text("commission_number").notNull().unique(),
+  dealId: integer("deal_id").references(() => deals.id),
+  paymentId: integer("payment_id").references(() => payments.id),
+  userId: integer("user_id").notNull().references(() => users.id),
+  totalAmount: decimal("total_amount", { precision: 15, scale: 2 }).notNull(),
+  commissionRate: decimal("commission_rate", { precision: 5, scale: 2 }),
+  baseAmount: decimal("base_amount", { precision: 15, scale: 2 }),
+  statusId: integer("status_id").references(() => commissionStatuses.id),
+  status: text("status").notNull().default('pending'),
+  notes: text("notes"),
+  createdById: integer("created_by_id").references(() => users.id),
+  verifiedById: integer("verified_by_id").references(() => users.id),
+  verifiedAt: timestamp("verified_at"),
+  approvedById: integer("approved_by_id").references(() => users.id),
+  approvedAt: timestamp("approved_at"),
+  paidById: integer("paid_by_id").references(() => users.id),
+  paidAt: timestamp("paid_at"),
+  paymentReference: text("payment_reference"),
+  tenantId: integer("tenant_id").notNull().references(() => tenants.id),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+// Commission Items table - breakdown of commission (for split commissions)
+export const commissionItems = pgTable("commission_items", {
+  id: serial("id").primaryKey(),
+  commissionId: integer("commission_id").notNull().references(() => commissions.id, { onDelete: 'cascade' }),
+  userId: integer("user_id").notNull().references(() => users.id),
+  itemDescription: text("item_description").notNull(),
+  amount: decimal("amount", { precision: 15, scale: 2 }).notNull(),
+  percentage: decimal("percentage", { precision: 5, scale: 2 }),
+  notes: text("notes"),
+  tenantId: integer("tenant_id").notNull().references(() => tenants.id),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
 // Customers table
 export const customers = pgTable("customers", {
   id: serial("id").primaryKey(),
@@ -689,6 +793,11 @@ export const insertMeetingTypeSchema = createInsertSchema(meetingTypes).omit({ i
 export const insertMeetingCancellationReasonSchema = createInsertSchema(meetingCancellationReasons).omit({ id: true, createdAt: true, updatedAt: true, tenantId: true });
 export const insertPaymentMethodSchema = createInsertSchema(paymentMethods).omit({ id: true, createdAt: true, updatedAt: true, tenantId: true });
 export const insertPaymentItemSchema = createInsertSchema(paymentItems).omit({ id: true, createdAt: true, updatedAt: true, tenantId: true });
+export const insertPaymentPlanSchema = createInsertSchema(paymentPlans).omit({ id: true, createdAt: true, updatedAt: true, tenantId: true });
+export const insertPaymentSchema = createInsertSchema(payments).omit({ id: true, createdAt: true, updatedAt: true, tenantId: true });
+export const insertCommissionStatusSchema = createInsertSchema(commissionStatuses).omit({ id: true, createdAt: true, updatedAt: true, tenantId: true });
+export const insertCommissionSchema = createInsertSchema(commissions).omit({ id: true, createdAt: true, updatedAt: true, tenantId: true });
+export const insertCommissionItemSchema = createInsertSchema(commissionItems).omit({ id: true, createdAt: true, updatedAt: true, tenantId: true });
 
 // ====================
 // SELECT TYPES
@@ -724,6 +833,11 @@ export type MeetingType = typeof meetingTypes.$inferSelect;
 export type MeetingCancellationReason = typeof meetingCancellationReasons.$inferSelect;
 export type PaymentMethod = typeof paymentMethods.$inferSelect;
 export type PaymentItem = typeof paymentItems.$inferSelect;
+export type PaymentPlan = typeof paymentPlans.$inferSelect;
+export type Payment = typeof payments.$inferSelect;
+export type CommissionStatus = typeof commissionStatuses.$inferSelect;
+export type Commission = typeof commissions.$inferSelect;
+export type CommissionItem = typeof commissionItems.$inferSelect;
 
 // ====================
 // INSERT TYPES
@@ -759,3 +873,8 @@ export type InsertMeetingType = z.infer<typeof insertMeetingTypeSchema>;
 export type InsertMeetingCancellationReason = z.infer<typeof insertMeetingCancellationReasonSchema>;
 export type InsertPaymentMethod = z.infer<typeof insertPaymentMethodSchema>;
 export type InsertPaymentItem = z.infer<typeof insertPaymentItemSchema>;
+export type InsertPaymentPlan = z.infer<typeof insertPaymentPlanSchema>;
+export type InsertPayment = z.infer<typeof insertPaymentSchema>;
+export type InsertCommissionStatus = z.infer<typeof insertCommissionStatusSchema>;
+export type InsertCommission = z.infer<typeof insertCommissionSchema>;
+export type InsertCommissionItem = z.infer<typeof insertCommissionItemSchema>;
