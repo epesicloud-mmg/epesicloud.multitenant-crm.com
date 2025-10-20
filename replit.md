@@ -46,6 +46,8 @@ Preferred communication style: Simple, everyday language.
 - **Companies API**: `/api/companies` - Company management and search
 - **Products API**: `/api/products` - Product catalog management with variations
 - **Sales Stages API**: `/api/sales-stages` - Pipeline stage management
+- **Payments API**: `/api/payments` - Payment collection, payment plans, and payment history (11 endpoints)
+- **Commissions API**: `/api/commissions` - Commission creation, 4-stage approval workflow, and reporting (12 endpoints)
 
 ### Multi-Tenant Design
 - **Tenant Isolation**: Each tenant has separate data through tenant_id columns
@@ -62,6 +64,8 @@ Preferred communication style: Simple, everyday language.
 
 ### Database Schema
 - **Core Entities**: Tenants, Users, Roles, Companies, Contacts, Leads, Deals, Activities, Products
+- **Payment Entities**: Payment Plans, Payments (with status tracking: pending, completed, failed, refunded)
+- **Commission Entities**: Commission Statuses, Commissions, Commission Items (with 4-stage workflow: pending→verified→approved→paid)
 - **Relationships**: Proper foreign key relationships with cascading rules
 - **Audit Fields**: Created/updated timestamps on all entities
 - **Hierarchical Users**: Manager-subordinate relationships for organizational structure
@@ -163,6 +167,17 @@ Preferred communication style: Simple, everyday language.
   - CRM: Contacts, Companies, Deals, Activities with comprehensive forms
   - Setup: Sales Stages, Interest Levels, Pipelines, Activity Types, Products
   - Advanced filtering and search capabilities
+- **Payment Collection Module** (October 20, 2025):
+  - Payment Plans: Create and manage installment plans with schedules
+  - Collect Payment: Record payments with method tracking, bank details, and transaction references
+  - Payment History: View all payment transactions with status filtering and search
+  - 11 API endpoints for complete payment workflow management
+- **Commission Tracking Module** (October 20, 2025):
+  - New Commission: Create commissions with multiple line items and product associations
+  - 4-Stage Approval Workflow: pending → verified → approved → paid with timestamp tracking
+  - Pending Approval: Review and manage commissions awaiting approval with status updates
+  - Commission Reports: Comprehensive reporting with search, filtering, and analytics
+  - 12 API endpoints for complete commission lifecycle management
 - **Unified Professional Sidebar**: All CRM pages now use ProfessionalSidebar component
   - Consistent navigation across all pages
   - Products menu with submenu: All Products, Product Types, Categories, Offers & Deals
