@@ -203,16 +203,6 @@ export const productCategories = pgTable("product_categories", {
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
-// Product groups (for grouping related products, e.g., property complexes, developments)
-export const productGroups = pgTable("product_groups", {
-  id: serial("id").primaryKey(),
-  name: text("name").notNull(),
-  description: text("description"),
-  tenantId: integer("tenant_id").notNull().references(() => tenants.id),
-  createdAt: timestamp("created_at").defaultNow().notNull(),
-  updatedAt: timestamp("updated_at").defaultNow().notNull(),
-});
-
 // Products table
 export const products = pgTable("products", {
   id: serial("id").primaryKey(),
@@ -220,10 +210,10 @@ export const products = pgTable("products", {
   title: text("title").notNull(),
   description: text("description"),
   salePrice: decimal("sale_price", { precision: 12, scale: 2 }),
+  currency: text("currency").default("USD"),
   sku: text("sku"),
   productTypeId: integer("product_type_id").references(() => productTypes.id),
   categoryId: integer("category_id").references(() => productCategories.id),
-  productGroupId: integer("product_group_id").references(() => productGroups.id),
   featuredPhoto: text("featured_photo"),
   isFeatured: boolean("is_featured").default(false),
   salesPipelineId: integer("sales_pipeline_id").references(() => salesPipelines.id),
@@ -693,14 +683,6 @@ export const leadSourcesRelations = relations(leadSources, ({ one, many }) => ({
   deals: many(deals),
 }));
 
-export const productGroupsRelations = relations(productGroups, ({ one, many }) => ({
-  tenant: one(tenants, {
-    fields: [productGroups.tenantId],
-    references: [tenants.id],
-  }),
-  products: many(products),
-}));
-
 export const productsRelations = relations(products, ({ one, many }) => ({
   tenant: one(tenants, {
     fields: [products.tenantId],
@@ -713,10 +695,6 @@ export const productsRelations = relations(products, ({ one, many }) => ({
   category: one(productCategories, {
     fields: [products.categoryId],
     references: [productCategories.id],
-  }),
-  productGroup: one(productGroups, {
-    fields: [products.productGroupId],
-    references: [productGroups.id],
   }),
   salesPipeline: one(salesPipelines, {
     fields: [products.salesPipelineId],
@@ -782,7 +760,6 @@ export const insertSalesPipelineSchema = createInsertSchema(salesPipelines).omit
 export const insertSalesStageSchema = createInsertSchema(salesStages).omit({ id: true, createdAt: true, updatedAt: true, tenantId: true });
 export const insertProductTypeSchema = createInsertSchema(productTypes).omit({ id: true, createdAt: true, tenantId: true });
 export const insertProductCategorySchema = createInsertSchema(productCategories).omit({ id: true, createdAt: true, tenantId: true });
-export const insertProductGroupSchema = createInsertSchema(productGroups).omit({ id: true, createdAt: true, updatedAt: true, tenantId: true });
 export const insertProductSchema = createInsertSchema(products).omit({ id: true, createdAt: true, updatedAt: true, tenantId: true });
 export const insertProductVariationSchema = createInsertSchema(productVariations).omit({ id: true, createdAt: true, updatedAt: true, tenantId: true });
 export const insertProductOfferSchema = createInsertSchema(productOffers).omit({ id: true, createdAt: true, updatedAt: true, tenantId: true });
@@ -822,7 +799,6 @@ export type SalesPipeline = typeof salesPipelines.$inferSelect;
 export type SalesStage = typeof salesStages.$inferSelect;
 export type ProductType = typeof productTypes.$inferSelect;
 export type ProductCategory = typeof productCategories.$inferSelect;
-export type ProductGroup = typeof productGroups.$inferSelect;
 export type Product = typeof products.$inferSelect;
 export type ProductVariation = typeof productVariations.$inferSelect;
 export type ProductOffer = typeof productOffers.$inferSelect;

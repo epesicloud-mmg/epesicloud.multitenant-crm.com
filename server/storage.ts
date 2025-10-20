@@ -274,6 +274,34 @@ export class DbStorage implements IStorage {
     const [user] = await db.select().from(users).where(eq(users.id, id)).limit(1);
     return user;
   }
+
+  async getUserWithPermissions(userId: number, tenantId: number): Promise<any> {
+    // Get user basic info
+    const user = await this.getUser(userId);
+    if (!user) return undefined;
+
+    // Get tenant membership with role
+    const membership = await this.getUserTenantMembership(userId, tenantId);
+    if (!membership) return undefined;
+
+    // Get role details
+    const role = await this.getRole(membership.roleId);
+    if (!role) return undefined;
+
+    // Get permissions
+    const permissions = await this.getUserPermissions(userId, tenantId);
+
+    return {
+      ...user,
+      tenantId,
+      role: {
+        id: role.id,
+        name: role.name,
+        permissions: role.permissions || [],
+      },
+      permissions: permissions.map(p => p.name),
+    };
+  }
   
   async updateUser(id: number, user: Partial<InsertUser>): Promise<User | undefined> {
     const [updated] = await db.update(users)
