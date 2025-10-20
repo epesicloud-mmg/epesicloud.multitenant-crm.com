@@ -1,5 +1,5 @@
 import { Link, useLocation } from "wouter";
-import { Users, PieChart, Building, Handshake, Clock, BarChart, Download, Settings, Package, ChevronDown, ChevronRight, TrendingUp, Calendar, DollarSign, FileText, UserCog, Shield, UserCheck, MessageSquare, Target, Thermometer, Tag, Grid3X3, Percent, GitBranch } from "lucide-react";
+import { Users, PieChart, Building, Handshake, Clock, BarChart, Download, Settings, Package, ChevronDown, ChevronRight, TrendingUp, Calendar, DollarSign, FileText, UserCog, Shield, UserCheck, MessageSquare, Target, Thermometer, Tag, Grid3X3, Percent, GitBranch, Wallet, Banknote, CreditCard, Receipt, CheckCircle2 } from "lucide-react";
 import { useState } from "react";
 import { useTenant } from "@/lib/tenant-context";
 import { usePermissions } from "@/lib/permissions-context";
@@ -51,6 +51,18 @@ const getSetupSubMenu = (modulePrefix: string) => [
   { name: "Payment Items", href: `${modulePrefix}/setup/payment-items`, icon: Package, permission: "manage_activities" },
 ];
 
+const getPaymentsSubMenu = (modulePrefix: string) => [
+  { name: "Collect Payment", href: `${modulePrefix}/payments/collect`, icon: Wallet, permission: "manage_activities" },
+  { name: "Payment History", href: `${modulePrefix}/payments/history`, icon: Receipt, permission: "manage_activities" },
+  { name: "Payment Plans", href: `${modulePrefix}/payments/plans`, icon: CreditCard, permission: "manage_activities" },
+];
+
+const getCommissionsSubMenu = (modulePrefix: string) => [
+  { name: "New Commission", href: `${modulePrefix}/commissions/new`, icon: Banknote, permission: "manage_activities" },
+  { name: "Pending Approval", href: `${modulePrefix}/commissions/pending`, icon: CheckCircle2, permission: "manage_activities" },
+  { name: "Commission Reports", href: `${modulePrefix}/commissions/reports`, icon: FileText, permission: "manage_activities" },
+];
+
 interface ProfessionalSidebarProps {
   isCollapsed: boolean;
 }
@@ -69,18 +81,24 @@ export function ProfessionalSidebar({ isCollapsed }: ProfessionalSidebarProps) {
   const [reportsExpanded, setReportsExpanded] = useState(false);
   const [userManagementExpanded, setUserManagementExpanded] = useState(false);
   const [productsExpanded, setProductsExpanded] = useState(false);
+  const [paymentsExpanded, setPaymentsExpanded] = useState(false);
+  const [commissionsExpanded, setCommissionsExpanded] = useState(false);
   const [setupExpanded, setSetupExpanded] = useState(false);
 
   const navigation = getNavigation(modulePrefix);
   const reportsSubMenu = getReportsSubMenu(modulePrefix);
   const userManagementSubMenu = getUserManagementSubMenu(modulePrefix);
   const productsSubMenu = getProductsSubMenu(modulePrefix);
+  const paymentsSubMenu = getPaymentsSubMenu(modulePrefix);
+  const commissionsSubMenu = getCommissionsSubMenu(modulePrefix);
   const setupSubMenu = getSetupSubMenu(modulePrefix);
   
   const filteredNavigation = navigation.filter(item => hasPermission(item.permission));
   const filteredReports = reportsSubMenu.filter(item => hasPermission(item.permission));
   const filteredUserManagement = userManagementSubMenu.filter(item => hasPermission(item.permission));
   const filteredProducts = productsSubMenu.filter(item => hasPermission(item.permission));
+  const filteredPayments = paymentsSubMenu.filter(item => hasPermission(item.permission));
+  const filteredCommissions = commissionsSubMenu.filter(item => hasPermission(item.permission));
   const filteredSetup = setupSubMenu.filter(item => hasPermission(item.permission));
 
   if (!localStorage.getItem('userRole')) {
@@ -257,6 +275,22 @@ export function ProfessionalSidebar({ isCollapsed }: ProfessionalSidebarProps) {
             items={filteredProducts}
             expanded={productsExpanded}
             onToggle={() => setProductsExpanded(!productsExpanded)}
+          />
+
+          <ExpandableSection
+            title="Payments"
+            icon={Wallet}
+            items={filteredPayments}
+            expanded={paymentsExpanded}
+            onToggle={() => setPaymentsExpanded(!paymentsExpanded)}
+          />
+
+          <ExpandableSection
+            title="Commissions"
+            icon={Banknote}
+            items={filteredCommissions}
+            expanded={commissionsExpanded}
+            onToggle={() => setCommissionsExpanded(!commissionsExpanded)}
           />
 
           <ExpandableSection

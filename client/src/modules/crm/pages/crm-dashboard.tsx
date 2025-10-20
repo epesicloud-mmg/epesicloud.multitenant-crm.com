@@ -33,6 +33,16 @@ const CancellationReasons = lazy(() => import("./setup/cancellation-reasons"));
 const PaymentMethods = lazy(() => import("./setup/payment-methods"));
 const PaymentItems = lazy(() => import("./setup/payment-items"));
 
+// Payment pages
+const CollectPayment = lazy(() => import("./payments/collect-payment"));
+const PaymentHistory = lazy(() => import("./payments/payment-history"));
+const PaymentPlans = lazy(() => import("./payments/payment-plans"));
+
+// Commission pages
+const NewCommission = lazy(() => import("./commissions/new-commission"));
+const PendingApproval = lazy(() => import("./commissions/pending-approval"));
+const CommissionReports = lazy(() => import("./commissions/commission-reports"));
+
 // Tools pages
 const CRMAssistants = lazy(() => import("./crm-assistants"));
 const CRMInstantSearch = lazy(() => import("./crm-instant-search"));
@@ -176,6 +186,40 @@ export default function CRMDashboard() {
           <Route path="/setup/payment-items">
             <CRMLayout>
               <PaymentItems />
+            </CRMLayout>
+          </Route>
+          
+          {/* Payment Management */}
+          <Route path="/payments/collect">
+            <CRMLayout>
+              <CollectPayment />
+            </CRMLayout>
+          </Route>
+          <Route path="/payments/history">
+            <CRMLayout>
+              <PaymentHistory />
+            </CRMLayout>
+          </Route>
+          <Route path="/payments/plans">
+            <CRMLayout>
+              <PaymentPlans />
+            </CRMLayout>
+          </Route>
+          
+          {/* Commission Management */}
+          <Route path="/commissions/new">
+            <CRMLayout>
+              <NewCommission />
+            </CRMLayout>
+          </Route>
+          <Route path="/commissions/pending">
+            <CRMLayout>
+              <PendingApproval />
+            </CRMLayout>
+          </Route>
+          <Route path="/commissions/reports">
+            <CRMLayout>
+              <CommissionReports />
             </CRMLayout>
           </Route>
           
