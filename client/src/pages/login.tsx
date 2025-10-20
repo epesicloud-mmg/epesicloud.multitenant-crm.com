@@ -21,13 +21,14 @@ export default function Login() {
     setLoading(true);
 
     try {
-      const response = await apiRequest("POST", "/api/auth/login", formData) as any;
+      const response = await apiRequest("POST", "/api/auth/login", formData);
+      const data = await response.json();
       
       // Store auth data in localStorage
-      localStorage.setItem("accessToken", response.accessToken);
-      localStorage.setItem("refreshToken", response.refreshToken);
-      localStorage.setItem("user", JSON.stringify(response.user));
-      localStorage.setItem("tenantId", response.tenantId);
+      localStorage.setItem("accessToken", data.accessToken);
+      localStorage.setItem("refreshToken", data.refreshToken);
+      localStorage.setItem("user", JSON.stringify(data.user));
+      localStorage.setItem("tenantId", data.tenantId.toString());
 
       toast({
         title: "Welcome back!",

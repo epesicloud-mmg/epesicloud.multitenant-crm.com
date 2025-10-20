@@ -8,19 +8,13 @@ async function throwIfResNotOk(res: Response) {
 }
 
 function getAuthHeaders() {
-  const currentRole = localStorage.getItem('userRole') || 'super admin';
-  const currentUserId = localStorage.getItem('userId') || '1';
-  const tenantId = localStorage.getItem('tenantId') || '1';
-  const managerId = localStorage.getItem('managerId');
+  const accessToken = localStorage.getItem('accessToken');
   
-  const headers: Record<string, string> = {
-    "X-Tenant-Id": tenantId,
-    "x-user-id": currentUserId,
-    "x-user-role": currentRole,
-  };
+  const headers: Record<string, string> = {};
   
-  if (managerId) {
-    headers["x-manager-id"] = managerId;
+  // Send JWT token if available
+  if (accessToken) {
+    headers["Authorization"] = `Bearer ${accessToken}`;
   }
   
   return headers;

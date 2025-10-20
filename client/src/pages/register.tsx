@@ -42,15 +42,16 @@ export default function Register() {
         email: formData.email,
         username: formData.username,
         password: formData.password,
-      }) as any;
+      });
+      const data = await response.json();
 
       // Store auth data in localStorage
-      localStorage.setItem("accessToken", response.accessToken);
-      localStorage.setItem("refreshToken", response.refreshToken);
-      localStorage.setItem("user", JSON.stringify(response.user));
+      localStorage.setItem("accessToken", data.accessToken);
+      localStorage.setItem("refreshToken", data.refreshToken);
+      localStorage.setItem("user", JSON.stringify(data.user));
       // Handle both response formats: register returns tenant.id, login returns tenantId
-      const tenantId = response.tenant?.id || response.tenantId;
-      localStorage.setItem("tenantId", tenantId);
+      const tenantId = data.tenant?.id || data.tenantId;
+      localStorage.setItem("tenantId", tenantId.toString());
 
       toast({
         title: "Account created!",
