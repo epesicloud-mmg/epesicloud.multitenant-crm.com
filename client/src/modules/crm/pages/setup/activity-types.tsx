@@ -14,7 +14,9 @@ import { apiRequest } from "@/lib/queryClient";
 import { insertActivityTypeSchema, type ActivityType } from "@shared/schema";
 import { z } from "zod";
 
-type ActivityTypeFormData = z.infer<typeof insertActivityTypeSchema>;
+// Client-side schema without tenantId (server adds it)
+const activityTypeFormSchema = insertActivityTypeSchema.omit({ tenantId: true });
+type ActivityTypeFormData = z.infer<typeof activityTypeFormSchema>;
 
 export default function ActivityTypes() {
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -24,27 +26,23 @@ export default function ActivityTypes() {
   const queryClient = useQueryClient();
 
   const { data: activityTypes = [], isLoading } = useQuery<ActivityType[]>({
-    queryKey: ["/api/activity-types"],
+    queryKey: ["/api/crm/activity-types"],
   });
 
   const form = useForm<ActivityTypeFormData>({
-    resolver: zodResolver(insertActivityTypeSchema),
+    resolver: zodResolver(activityTypeFormSchema),
     defaultValues: {
       typeName: "",
       description: "",
-      tenantId: 1,
     },
   });
 
   const createMutation = useMutation({
     mutationFn: async (data: ActivityTypeFormData) => {
-      return apiRequest("/api/activity-types", {
-        method: "POST",
-        body: JSON.stringify(data),
-      });
+      return apiRequest("POST", "/api/crm/activity-types", data);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/activity-types"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/crm/activity-types"] });
       setIsModalOpen(false);
       form.reset();
       toast({
@@ -63,13 +61,10 @@ export default function ActivityTypes() {
 
   const updateMutation = useMutation({
     mutationFn: async (data: ActivityTypeFormData & { id: number }) => {
-      return apiRequest(`/api/activity-types/${data.id}`, {
-        method: "PATCH",
-        body: JSON.stringify(data),
-      });
+      return apiRequest("PATCH", `/api/crm/activity-types/${data.id}`, data);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/activity-types"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/crm/activity-types"] });
       setIsModalOpen(false);
       setEditingType(null);
       form.reset();
@@ -89,12 +84,10 @@ export default function ActivityTypes() {
 
   const deleteMutation = useMutation({
     mutationFn: async (id: number) => {
-      return apiRequest(`/api/activity-types/${id}`, {
-        method: "DELETE",
-      });
+      return apiRequest("DELETE", `/api/crm/activity-types/${id}`);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/activity-types"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/crm/activity-types"] });
       toast({
         title: "Success",
         description: "Activity type deleted successfully",
@@ -115,7 +108,6 @@ export default function ActivityTypes() {
       form.reset({
         typeName: type.typeName,
         description: type.description || "",
-        tenantId: type.tenantId,
       });
     } else {
       setEditingType(null);
@@ -272,6 +264,7 @@ export default function ActivityTypes() {
                         placeholder="Brief description of this activity type..."
                         className="min-h-[80px]"
                         {...field}
+                        value={field.value || ""}
                       />
                     </FormControl>
                     <FormMessage />

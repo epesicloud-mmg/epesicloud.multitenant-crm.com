@@ -18,7 +18,6 @@ const interestLevelSchema = z.object({
   level: z.string().min(1, "Interest level is required"),
   description: z.string().min(1, "Description is required"),
   color: z.string().min(1, "Color is required"),
-  tenantId: z.number(),
 });
 
 type InterestLevelFormData = z.infer<typeof interestLevelSchema>;
@@ -39,7 +38,7 @@ export default function InterestLevels() {
   const queryClient = useQueryClient();
 
   const { data: interestLevels = [], isLoading } = useQuery<InterestLevel[]>({
-    queryKey: ["/api/interest-levels"],
+    queryKey: ["/api/crm/interest-levels"],
   });
 
   const form = useForm<InterestLevelFormData>({
@@ -48,16 +47,15 @@ export default function InterestLevels() {
       level: "",
       description: "",
       color: "#3b82f6",
-      tenantId: 1,
     },
   });
 
   const createMutation = useMutation({
     mutationFn: async (data: InterestLevelFormData) => {
-      return apiRequest("POST", "/api/interest-levels", data);
+      return apiRequest("POST", "/api/crm/interest-levels", data);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/interest-levels"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/crm/interest-levels"] });
       setIsModalOpen(false);
       form.reset();
       toast({
@@ -76,10 +74,10 @@ export default function InterestLevels() {
 
   const updateMutation = useMutation({
     mutationFn: async (data: InterestLevelFormData & { id: number }) => {
-      return apiRequest("PATCH", `/api/interest-levels/${data.id}`, data);
+      return apiRequest("PATCH", `/api/crm/interest-levels/${data.id}`, data);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/interest-levels"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/crm/interest-levels"] });
       setIsModalOpen(false);
       setEditingLevel(null);
       form.reset();
@@ -99,10 +97,10 @@ export default function InterestLevels() {
 
   const deleteMutation = useMutation({
     mutationFn: async (id: number) => {
-      return apiRequest("DELETE", `/api/interest-levels/${id}`);
+      return apiRequest("DELETE", `/api/crm/interest-levels/${id}`);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/interest-levels"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/crm/interest-levels"] });
       toast({
         title: "Success",
         description: "Interest level deleted successfully",
@@ -124,7 +122,6 @@ export default function InterestLevels() {
         level: level.level,
         description: level.description,
         color: level.color,
-        tenantId: 1,
       });
     } else {
       setEditingLevel(null);

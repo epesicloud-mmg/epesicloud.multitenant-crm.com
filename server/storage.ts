@@ -159,10 +159,14 @@ export interface IStorage {
   // ==================== CRM - ACTIVITY TYPES ====================
   getActivityTypes(tenantId: number): Promise<ActivityType[]>;
   createActivityType(activityType: InsertActivityType): Promise<ActivityType>;
+  updateActivityType(id: number, activityType: Partial<InsertActivityType>, tenantId: number): Promise<ActivityType | undefined>;
+  deleteActivityType(id: number, tenantId: number): Promise<boolean>;
   
   // ==================== CRM - INTEREST LEVELS ====================
   getInterestLevels(tenantId: number): Promise<InterestLevel[]>;
   createInterestLevel(interestLevel: InsertInterestLevel): Promise<InterestLevel>;
+  updateInterestLevel(id: number, interestLevel: Partial<InsertInterestLevel>, tenantId: number): Promise<InterestLevel | undefined>;
+  deleteInterestLevel(id: number, tenantId: number): Promise<boolean>;
   
   // ==================== CRM - CUSTOMER TYPES ====================
   getCustomerTypes(tenantId: number): Promise<CustomerType[]>;
@@ -1019,6 +1023,20 @@ export class DbStorage implements IStorage {
     return newType;
   }
   
+  async updateActivityType(id: number, activityType: Partial<InsertActivityType>, tenantId: number): Promise<ActivityType | undefined> {
+    const [updated] = await db.update(activityTypes)
+      .set(activityType)
+      .where(and(eq(activityTypes.id, id), eq(activityTypes.tenantId, tenantId)))
+      .returning();
+    return updated;
+  }
+  
+  async deleteActivityType(id: number, tenantId: number): Promise<boolean> {
+    const result = await db.delete(activityTypes)
+      .where(and(eq(activityTypes.id, id), eq(activityTypes.tenantId, tenantId)));
+    return result.rowCount !== null && result.rowCount > 0;
+  }
+  
   // ==================== CRM - INTEREST LEVELS ====================
   
   async getInterestLevels(tenantId: number): Promise<InterestLevel[]> {
@@ -1028,6 +1046,20 @@ export class DbStorage implements IStorage {
   async createInterestLevel(interestLevel: InsertInterestLevel): Promise<InterestLevel> {
     const [newLevel] = await db.insert(interestLevels).values(interestLevel).returning();
     return newLevel;
+  }
+  
+  async updateInterestLevel(id: number, interestLevel: Partial<InsertInterestLevel>, tenantId: number): Promise<InterestLevel | undefined> {
+    const [updated] = await db.update(interestLevels)
+      .set(interestLevel)
+      .where(and(eq(interestLevels.id, id), eq(interestLevels.tenantId, tenantId)))
+      .returning();
+    return updated;
+  }
+  
+  async deleteInterestLevel(id: number, tenantId: number): Promise<boolean> {
+    const result = await db.delete(interestLevels)
+      .where(and(eq(interestLevels.id, id), eq(interestLevels.tenantId, tenantId)));
+    return result.rowCount !== null && result.rowCount > 0;
   }
   
   // ==================== CRM - CUSTOMER TYPES ====================

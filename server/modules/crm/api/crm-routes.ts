@@ -18,6 +18,9 @@ import paymentMethodsRouter from "../../../api/payment-methods.js";
 import paymentItemsRouter from "../../../api/payment-items.js";
 import paymentsRouter from "../../../api/payments.js";
 import commissionsRouter from "../../../api/commissions.js";
+import activityTypesRouter from "../../../api/activity-types.js";
+import salesStagesRouter from "../../../api/sales-stages.js";
+import interestLevelsRouter from "../../../api/interest-levels.js";
 
 const crmRouter = Router();
 
@@ -43,6 +46,9 @@ crmRouter.use("/payment-methods", paymentMethodsRouter);
 crmRouter.use("/payment-items", paymentItemsRouter);
 crmRouter.use("/payments", paymentsRouter);
 crmRouter.use("/commissions", commissionsRouter);
+crmRouter.use("/activity-types", activityTypesRouter);
+crmRouter.use("/sales-stages", salesStagesRouter);
+crmRouter.use("/interest-levels", interestLevelsRouter);
 
 // CRM-specific endpoints
 crmRouter.get("/health", (req, res) => {
