@@ -1,0 +1,651 @@
+<ul class="navigation navigation-main" id="main-menu-navigation" data-menu="menu-navigation">
+    <!--<li class="nav-item" class="padding:5px !important;"><?= Enquiry::global_search_input("name,email,phone"); ?></li>-->
+    <li class="nav-item"><a href="<?= Url::dashboard(); ?>"><i class="la la-home"></i>
+            <span class="menu-title" data-i18n="nav.dash.main">Dashboard</span></a>
+
+    </li>
+
+    <li class="nav-item"><a href="<?= Url::layout("sale_pipeline_kanban"); ?>"><i class="la la-file-text"></i>
+            <span class="menu-title" data-i18n="nav.dash.main">Sales Pipeline</span></a>
+
+    </li>
+
+    <li class="nav-item"><a href="<?= Url::portlet('main/team_calendar'); ?>"><i class="la la-calendar"></i>
+            <span class="menu-title" data-i18n="nav.dash.main">Activity Calendar</span></a>
+
+    </li>
+
+
+    <li class="nav-item <?= Url::is([
+                            Url::form_panel('Enquiry'), Url::form_panel('Enquiry_bulk'),
+                            Url::form_panel('Enquiry_account_executive'), Url::grid_panel('Enquiry')
+                        ]) ? 'open' : ''; ?>"><a href="#"><i class="la la-list"></i>
+            <span class="menu-title" data-i18n="nav.templates.main">Leads</span></a>
+        <ul class="menu-content">
+            <li><a class="menu-item" href="<?= Url::form_panel('Enquiry'); ?>"
+                    data-i18n="<?= Url::form_panel('Enquiry'); ?>">New Opportunity</a></li>
+
+
+            <li><a class="menu-item" href="<?= Url::grid_panel('Enquiry/config/bulk_qualify'); ?>"
+                    data-i18n="<?= Url::grid_panel('Enquiry/config/bulk_qualify'); ?>">Pending Qualify
+
+                    <?php $pending_id = Qualification_status_type::alias_id("pending"); ?>
+                    <?= Enquiry::badge("qualification_status_type_id=" . $pending_id, ['status' => 'warning']); ?></a>
+            </li>
+
+
+
+            <li><a class="menu-item"
+                    href="<?= Url::grid_panel('Enquiry/qualification_status_type_id/' . ($qualified_id = Qualification_status_type::alias_id("qualified")) . "/action/activity_feed,view"); ?>"
+                    data-i18n="<?= Url::grid_panel('Enquiry/qualification_status_type_id/' . ($qualified_id = Qualification_status_type::alias_id("qualified")) . "/action/activity_feed,view"); ?>">Qualified
+                    Leads
+                    <?= Enquiry::badge("qualification_status_type_id=" . $qualified_id, ['status' => 'success']); ?></a>
+            </li>
+
+            <li><a class="menu-item"
+                    href="<?= Url::grid_panel('Enquiry/qualification_status_type_id/' . $declined_id = Qualification_status_type::alias_id("declined")); ?>"
+                    data-i18n="<?= Url::grid_panel('Enquiry/config/not_qualified'); ?>">Declined
+                    <?= Enquiry::badge("qualification_status_type_id=" . $declined_id, ['status' => 'danger']); ?></a>
+            </li>
+
+
+
+            <li><a class="menu-item"
+                    href="<?= Url::grid_panel('Enquiry/config/lead_journey/action/activity_feed,review_lead'); ?>"
+                    data-i18n="<?= Url::grid_panel('Enquiry/config/lead_journey'); ?>">Lead Journey</a></li>
+
+
+
+
+            <li><a class="menu-item"
+                    href="<?= Url::grid_panel('Enquiry/originator_type_id/' . $originator_id = Originator_type::alias_id("company")); ?>"
+                    data-i18n="<?= Url::grid_panel('Enquiry/originator_type_id/' . $originator_id = Originator_type::alias_id("company")); ?>">Comp.
+                    Originated
+                    <?= Enquiry::badge("originator_type_id=" . $originator_id, ['status' => 'default']); ?></a></a>
+            </li>
+
+
+            <li><a class="menu-item"
+                    href="<?= Url::grid_panel('Enquiry/originator_type_id/' . $originator_id = Originator_type::alias_id("agent")); ?>"
+                    data-i18n="<?= Url::grid_panel('Enquiry/originator_type_id/' . $originator_id = Originator_type::alias_id("agent")); ?>">Agent
+                    Originated
+                    <?= Enquiry::badge("originator_type_id=" . $originator_id, ['status' => 'default']); ?></a></a>
+            </li>
+
+            <li><a class="menu-item"
+                    href="<?= Url::grid_panel('Enquiry/originator_type_id/' . $originator_id = Originator_type::alias_id("third_party_agent")); ?>"
+                    data-i18n="<?= Url::grid_panel('Enquiry/originator_type_id/' . $originator_id = Originator_type::alias_id("third_party_agent")); ?>">ThirdParty
+                    Leads
+                    <?= Enquiry::badge("originator_type_id=" . $originator_id, ['status' => 'default']); ?></a></a>
+            </li>
+
+
+
+           
+
+                    <?php if(Session::user()->role->alias=='admin'):?>
+                        <li><a class="menu-item"
+                    href="<?= Url::grid_panel('Enquiry/config/report/action/activity_feed,delete?filters=1'); ?>"
+                    data-i18n="<?= Url::grid_panel('Enquiry/config/report/action/activity_feed,delete?filters=1'); ?>">All
+                    Leads</a></li>
+                <?php else:?>
+                    <li><a class="menu-item"
+                    href="<?= Url::grid_panel('Enquiry/config/report/action/activity_feed?filters=1'); ?>"
+                    data-i18n="<?= Url::grid_panel('Enquiry/config/report/action/activity_feed?filters=1'); ?>">All
+                    Leads</a></li>
+            <?php endif;?>
+
+
+            <li><a class="menu-item" href="<?= Url::entry_panel('Csv_upload'); ?>"
+                    data-i18n="<?= Url::entry_panel('Csv_upload'); ?>">Bulk CSV Upload</a></li>
+
+
+
+        </ul>
+    </li>
+
+    <li class="nav-item <?= nav_open("nav_followups"); ?>">
+        <a href="#"><i class="la la-refresh"></i>
+            <span class="menu-title" data-i18n="nav.templates.main">Followups</span></a>
+        <ul class="menu-content">
+
+            <?php foreach (Followup_type::aliases(['call', 'whatsapp', 'sms', 'reminder', 'followup_note', 'meeting', 'call_center']) as $followup_type) : ?>
+            <?= nav_menu_item($followup_type->title . Followup::badge("followup_type_id=" . $followup_type->id, ['status' => 'danger']), Url::grid_panel("Followup?followup_type_id=" . $followup_type->id), "nav_followups"); ?>
+
+            <?php endforeach; ?>
+
+        </ul>
+    </li>
+
+
+
+
+    <li class="nav-item <?= nav_open("nav_third_party_lead"); ?>">
+        <a href="#"><i class="la la-repeat"></i>
+            <span class="menu-title" data-i18n="nav.templates.main">Third Party Leads</span></a>
+        <ul class="menu-content">
+            <?= nav_menu_item("New Third Party Lead", Url::form_panel('Third_party_lead'), "nav_third_party_lead"); ?>
+            <?= nav_menu_item("Third Party Leads " . Enquiry::badge("originator_type_id=" . Originator_type::alias_id("third_party_agent"), ['status' => 'warning']), Url::grid_panel('Third_party_lead'), "nav_third_party_lead"); ?>
+            <?= nav_menu_item("All Third Party Agents ", Url::grid_panel('Third_party_agent'), "nav_third_party_lead"); ?>
+        </ul>
+    </li>
+
+    <li class="nav-item <?= nav_open("nav_contacts"); ?>">
+        <a href="#"><i class="la la-user-plus"></i>
+            <span class="menu-title" data-i18n="nav.templates.main">Contacts</span></a>
+        <ul class="menu-content">
+
+
+            <?= nav_menu_item("New Contact", Url::form_panel('Contact'), "nav_contacts"); ?>
+
+            <?= nav_menu_item("Manage Contacts", Url::grid_panel('Contact'), "nav_contacts"); ?>
+
+            <?= nav_menu_item("All Companies", Url::grid_panel('Company'), "nav_contacts"); ?>
+
+            <?= nav_menu_item("Create Deals", Url::grid_panel('Contact/action/create_enquiry'), "nav_contacts"); ?>
+
+
+
+
+        </ul>
+    </li>
+
+    <li class="nav-item <?= nav_open("nav_lead_allocation"); ?>">
+        <a href="#"><i class="la la-share"></i>
+            <span class="menu-title" data-i18n="nav.templates.main">Lead Allocations</span></a>
+        <ul class="menu-content">
+
+            <?= nav_menu_item("Assign Account Exec ", Url::form_panel('Enquiry_account_executive'), "nav_lead_allocation"); ?>
+
+            <?= nav_menu_item("Mass Re-assign Leads ", Url::form_panel('Batch_enquiry_agent'), "nav_lead_allocation"); ?>
+
+
+            <?= nav_menu_item("All Re-Assigned " . '<span
+                        class="badge badge badge-pill badge-danger float-right mr-2">' . Enquiry::count_reassignments() . '</span>', Url::grid_panel('Enquiry/config/reassigned'), "nav_lead_allocation"); ?>
+
+
+            <?= nav_menu_item("Pending Followup " . '<span
+                        class="badge badge badge-pill badge-danger float-right mr-2">' . Enquiry::count_reassignments_pending() . '</span>', Url::grid_panel('Enquiry/config/reassigned_pending'), "nav_lead_allocation"); ?>
+
+
+
+            <?= nav_menu_item("Auto Allocation Rules ", Url::entry_panel('Lead_allocation_rule'), "nav_lead_allocation"); ?>
+
+
+            <!--<li><a class="menu-item" href="#" data-i18n="#">Holiday Routing</a></li>-->
+        </ul>
+    </li>
+
+
+
+
+
+    <li class="nav-item <?= nav_open("lead_document"); ?>">
+        <a href="#"><i class="la la-folder-open"></i>
+            <span class="menu-title" data-i18n="nav.templates.main">Lead Documents</span></a>
+        <ul class="menu-content">
+            <?= nav_menu_item("Manage Documents", Url::portlet("main/documents"), "lead_document"); ?>
+        </ul>
+    </li>
+
+
+
+
+
+    <li class="nav-item <?= Url::is([Url::grid_panel('Enquiry/config/pending_followup')]) ? 'open' : ''; ?>"><a
+            href="#"><i class="la la-bolt"></i>
+            <span class="menu-title" data-i18n="nav.templates.main">Untouched Deals</span>
+        </a>
+        <ul class="menu-content">
+            <li><a class="menu-item" href="<?= Url::grid_panel('Enquiry/config/pending_followup?today=1'); ?>"
+                    data-i18n="<?= Url::grid_panel('Enquiry/config/pending_followup?today=1'); ?>">Today
+                    <span
+                        class="badge badge badge-pill badge-danger float-right mr-2"><?= Enquiry::pending_followup_count(['today' => 1]); ?></span></a>
+            </li>
+            <li><a class="menu-item" href="<?= Url::grid_panel('Enquiry/config/pending_followup?past=10'); ?>"
+                    data-i18n="<?= Url::grid_panel('Enquiry/config/pending_followup?past=10'); ?>">In
+                    Last 10 Days <span
+                        class="badge badge badge-pill badge-danger float-right mr-2"><?= Enquiry::pending_followup_count(['past' => 10]); ?>
+                    </span></a></li>
+
+            <li><a class="menu-item" href="<?= Url::grid_panel('Enquiry/config/pending_followup?past=30'); ?>"
+                    data-i18n="<?= Url::grid_panel('Enquiry/config/pending_followup?past=30'); ?>">In
+                    Last 30 Days <span
+                        class="badge badge badge-pill badge-danger float-right mr-2"><?= Enquiry::pending_followup_count(['past' => 30]); ?>
+                    </span></a></li>
+
+            <?php
+            //$year_month_results=Enquiry::pending_followup_count_by_month();
+
+            ?>
+
+            <?php
+            $this_month = date('Y') . '-' . date('m');; ?>
+            <li>
+                <a class="menu-item"
+                    href="<?= Url::grid_panel('Enquiry/config/pending_followup?year_month=' . $this_month); ?>"
+                    data-i18n="<?= Url::grid_panel('Enquiry/config/pending_followup?year_month=' . $this_month); ?>">
+                    This Month
+                    <!--<span class="badge badge badge-pill badge-danger float-right mr-2">
+                            <?php //echo arr($this_month,$year_month_results,"0");
+                            ?>
+                        </span>-->
+                </a>
+            </li>
+
+            <?php
+            $last_month = date("Y-m", strtotime(the_past("1", "month")));; ?>
+            <li><a class="menu-item"
+                    href="<?= Url::grid_panel('Enquiry/config/pending_followup?year_month=' . $last_month); ?>"
+                    data-i18n="<?= Url::grid_panel('Enquiry/config/pending_followup?year_month=' . $last_month); ?>">
+                    Last Month
+                    <!--<span class="badge badge badge-pill badge-danger float-right mr-2">
+                        <?php //echo arr($last_month,$year_month_results,"0");
+                        ?>
+                    </span>-->
+                </a>
+            </li>
+
+
+
+
+            <?php foreach (years(0) as $year) : ?>
+            <li
+                class="has-sub is-shown <?= strpos(arr('year_month', $_REQUEST, ''), $year) !== false ? 'open' : ''; ?>">
+                <a class="menu-item" href="#" data-i18n="nav.templates.vert.main"><?= $year; ?></a>
+                <ul class="menu-content" style="">
+                    <?php foreach (months() as $month_key => $month) : ?>
+
+                    <li class=""><a class="menu-item"
+                            href="<?= Url::grid_panel('Enquiry/config/pending_followup?year_month=' . $year . '-' . padded_month($month_key)); ?>"
+                            data-i18n="nav.templates.vert.classic_menu"><?= $month; ?>
+
+                            <?php if ($year < 2019 || ($year == 2019 && $month_key < 3)) : ?>
+                            <?php else : ?>
+                            <!--<span class="badge badge badge-pill badge-danger float-right mr-2">
+                                <?php //echo Year_month_summary::pull_summary($year,$month_key,"pending_followups");
+                                ?>
+                            </span>-->
+                            <?php endif; ?>
+
+                        </a>
+                    </li>
+                    <?php if ($year == date("Y")) {
+                                if ((int)$month_key == (int)date("m")) {
+                                    break;
+                                }
+                            }; ?>
+                    <?php endforeach; ?>
+
+                </ul>
+            </li>
+            <?php endforeach; ?>
+
+
+        </ul>
+    </li>
+
+
+
+
+
+    <li class="nav-item <?= Url::any_in_segment(['Lead_meeting']) ? 'open' : ''; ?>"><a href="#"><i
+                class="la la-tasks"></i>
+            <span class="menu-title" data-i18n="nav.templates.main">Meetings</span></a>
+        <ul class="menu-content">
+
+
+            <li><a class="menu-item" href="<?= Url::grid_panel('Lead_meeting?filter_check=ongoing'); ?>"
+                    data-i18n="<?= Url::grid_panel('Lead_meeting?filter_check=ongoing'); ?>">
+                    Ongoing Right Now <span class="badge badge badge-pill badge-danger float-right mr-2">
+                        <?= Lead_meeting::fetch_all("ongoing", true); ?></span></a></li>
+
+            <li><a class="menu-item" href="<?= Url::grid_panel('Lead_meeting?filter_check=planned_today'); ?>"
+                    data-i18n="<?= Url::grid_panel('Lead_meeting?filter_check=planned_today'); ?>">
+                    Planned For Today <span class="badge badge badge-pill badge-danger float-right mr-2">
+                        <?= Lead_meeting::fetch_all("planned_today", true); ?></span></a></li>
+
+            <li><a class="menu-item" href="<?= Url::grid_panel('Lead_meeting?filter_check=done_today'); ?>"
+                    data-i18n="<?= Url::grid_panel('Lead_meeting?filter_check=done_today'); ?>">
+                    Done Today <span class="badge badge badge-pill badge-danger float-right mr-2">
+                        <?= Lead_meeting::fetch_all("done_today", true); ?></span></a></li>
+
+            <li><a class="menu-item" href="<?= Url::grid_panel('Lead_meeting/c/all_planned'); ?>"
+                    data-i18n="<?= Url::grid_panel('Lead_meeting/c/all_planned'); ?>">
+                    All Planned <span class="badge badge badge-pill badge-danger float-right mr-2">
+                        <?= Lead_meeting::fetch_all("all_planned", true); ?></span></a></li>
+
+            <li><a class="menu-item" href="<?= Url::grid_panel('Lead_meeting/c/rescheduled'); ?>"
+                    data-i18n="<?= Url::grid_panel('Followup/c/rescheduled'); ?>">
+                    Rescheduled <span class="badge badge badge-pill badge-danger float-right mr-2">
+                        <?= Lead_meeting::fetch_all("rescheduled", true); ?></span></a></li>
+
+            <li><a class="menu-item" href="<?= Url::grid_panel('Lead_meeting/c/cancelled'); ?>"
+                    data-i18n="<?= Url::grid_panel('Followup/c/cancelled'); ?>">
+                    Cancelled <span class="badge badge badge-pill badge-danger float-right mr-2">
+                        <?= Lead_meeting::fetch_all("cancelled", true); ?></span></a></li>
+
+            <li><a class="menu-item" href="<?= Url::grid_panel('Lead_meeting/c/report'); ?>"
+                    data-i18n="<?= Url::grid_panel('Lead_meeting/c/report'); ?>">
+                    Meetings Report</a></li>
+
+
+
+
+        </ul>
+    </li>
+
+    <li class="nav-item">
+        <a href="#"><i class="la la-user-plus"></i>
+            <span class="menu-title" data-i18n="nav.templates.main">Other Activities</span></a>
+        <ul class="menu-content">
+
+            <li><a class="menu-item" href="<?= Url::form_panel('Other_activity'); ?>"
+                    data-i18n="<?= Url::form_panel('Other_activity'); ?>">New Activity</a></li>
+
+            
+
+            <?php if(Session::user()->role->alias=='admin'):?>
+            <li><a class="menu-item" href="<?= Url::report_panel('Other_activity/action/delete'); ?>"
+                    data-i18n="<?= Url::report_panel('Other_activity/action/delete'); ?>">All Activities</a></li>
+                <?php else:?>
+                    <li><a class="menu-item" href="<?= Url::grid_panel('Other_activity'); ?>"
+                    data-i18n="<?= Url::grid_panel('Other_activity'); ?>">Manage Activities</a></li>
+            <?php endif;?>
+        </ul>
+    </li>
+
+
+    <?php if (Session::user()->account->enable_trips_module) : ?>
+    <li class="nav-item <?= Url::any_in_segment(['Trip', 'Trip_lead', 'Trip_attendance']) ? 'open' : ''; ?>"><a
+            href="#"><i class="la la-bus"></i>
+            <span class="menu-title" data-i18n="nav.templates.main">Trips Module</span></a>
+        <ul class="menu-content">
+
+            <li><a class="menu-item" href="<?= Url::entry_panel('Trip'); ?>"
+                    data-i18n="<?= Url::entry_panel('Trip'); ?>">
+                    Create a Trip</a></li>
+
+            <li><a class="menu-item" href="<?= Url::grid_panel('Trip'); ?>" data-i18n="<?= Url::grid_panel('Trip'); ?>">
+                    View Trips</a></li>
+
+            <li><a class="menu-item" href="<?= Url::grid_panel('Trip/c/confirmation'); ?>"
+                    data-i18n="<?= Url::grid_panel('Trip/c/confirmation'); ?>">
+                    Make Confirmation</a></li>
+
+            <li><a class="menu-item" href="<?= Url::grid_panel('Trip/c/attendance'); ?>"
+                    data-i18n="<?= Url::grid_panel('Trip/c/attendance'); ?>">
+                    Mark Attendance</a></li>
+
+            <li><a class="menu-item" href="<?= Url::grid_panel('Trip_attendance'); ?>"
+                    data-i18n="<?= Url::grid_panel('Trip_attendance'); ?>">
+                    Attendance Report</a></li>
+
+
+            <li><a class="menu-item" href="<?= Url::grid_panel('Trip_attendance/config/bookings_per_agent'); ?>"
+                    data-i18n="<?= Url::grid_panel('Trip_attendance/config/bookings_per_agent'); ?>">
+                    Summary per Agent</a></li>
+
+            <li><a class="menu-item" href="<?= Url::grid_panel('Trip_attendance/c/bookings_per_lead'); ?>"
+                    data-i18n="<?= Url::grid_panel('Trip_attendance/c/bookings_per_lead'); ?>">
+                    VisitCount per Lead</a></li>
+
+            <li><a class="menu-item" href="<?= Url::grid_panel('Trip_attendance/config/bookings_per_supervisor'); ?>"
+                    data-i18n="<?= Url::grid_panel('Trip_attendance/c/bookings_per_supervisor'); ?>">
+                    Summary per Supervisor</a></li>
+
+            <li><a class="menu-item" href="<?= Url::grid_panel('Trip_lead/config/report'); ?>"
+                    data-i18n="<?= Url::grid_panel('Trip_lead/c/report'); ?>">
+                    Bookings Report</a></li>
+
+            <li><a class="menu-item" href="<?= Url::grid_panel('Trip_cancellation'); ?>"
+                    data-i18n="<?= Url::grid_panel('Trip_cancellation'); ?>">
+                    Cancelled Trips</a></li>
+
+        </ul>
+    </li>
+    <?php endif; ?>
+
+
+    <li
+        class="nav-item <?= Url::is(Url::grid_panel('Enquiry/config/sale_interest')) || Url::is_crud(['Sale_interest']) ? 'open' : ''; ?>">
+        <a href="#"><i class="la la-clipboard"></i>
+            <span class="menu-title" data-i18n="nav.templates.main">Interest Forms</span></a>
+        <ul class="menu-content">
+
+            <li><a class="menu-item" href="<?= Url::grid_panel('Enquiry/config/sale_interest'); ?>"
+                    data-i18n="<?= Url::grid_panel('Enquiry/config/sale_interest'); ?>">New Interest Form</a></li>
+
+            <?php echo Sale_interest::workflow_generate(); ?>
+
+            <?php if(Session::user()->role->alias=='admin'):?>
+            <li><a class="menu-item" href="<?= Url::report_panel('Sale_interest/action/delete'); ?>"
+                    data-i18n="<?= Url::report_panel('Sale_interest/action/delete'); ?>">All Sale Interests</a></li>
+            <?php endif;?>
+
+        </ul>
+    </li>
+    
+
+    <li class="nav-item <?= Url::is(["Payment", "Payment_plan"]) ? 'open' : ''; ?>"><a href="#"><i
+                class="la la-dollar"></i>
+            <span class="menu-title" data-i18n="nav.templates.main">Payments</span></a>
+        <ul class="menu-content">
+
+            <li><a class="menu-item" href="<?= Url::grid_panel('Sale_interest/action/record_payment'); ?>"
+                    data-i18n="<?= Url::grid_panel('Sale_interest/action/record_payment'); ?>">Collect Payment</a></li>
+
+            <li><a class="menu-item" href="<?= Url::grid_panel('Payment/c/report'); ?>"
+                    data-i18n="<?= Url::grid_panel('Payment/c/report'); ?>">Collected Payments</a></li>
+
+        </ul>
+    </li>
+
+    <?php /**echo Commision_request::workflow_generate(['container' => [
+        'icon' => 'la la-check-square',
+        'title' => 'Commisions', 'url_matches' => ["Commision_request", "commision"]
+    ]]);**/ ?>
+
+
+<li class="nav-item <?=Url::is(["Commision"])?'open':'';?>"><a
+                    href="#"><i class="la la-check-square"></i>
+                <span class="menu-title" data-i18n="nav.templates.main">Commissions</span></a>
+            <ul class="menu-content">
+
+            <li><a class="menu-item" href="<?=Url::batch_panel('Commision/commision_items');?>" 
+                data-i18n="<?=Url::batch_panel('Commision/commision_items');?>">Create New</a></li>
+
+            
+            <li><a class="menu-item" href="<?=Url::grid_panel('Commision/action/verify,edit,preview?commision_status_type_id='.Commision_status_type::alias_id('pending'));?>" 
+                data-i18n="<?=Url::grid_panel('Commision/action/verify,edit,preview?commision_status_type_id='.Commision_status_type::alias_id('pending'));?>">Verify Commissions</a></li>
+            
+            <li><a class="menu-item" href="<?=Url::grid_panel('Commision/action/approve,edit,preview?commision_status_type_id='.Commision_status_type::alias_id('verified'));?>" 
+                data-i18n="<?=Url::grid_panel('Commision/action/approve,edit,preview?commision_status_type_id='.Commision_status_type::alias_id('verified'));?>">Approve Commissions</a></li>
+               
+            <li><a class="menu-item" href="<?=Url::grid_panel('Commision/action/share_commision?commision_status_type_id='.Commision_status_type::alias_id("approved"));?>" 
+                data-i18n="<?=Url::grid_panel('Commision/action/share_commision?commision_status_type_id='.Commision_status_type::alias_id("approved"));?>">Share Commission</a></li>
+
+            <li><a class="menu-item" href="<?=Url::grid_panel('Commision_share');?>" 
+                data-i18n="<?=Url::grid_panel('Commision_share');?>">All Commission Shares</a></li>
+
+            <li><a class="menu-item" href="<?=Url::grid_panel('Commision?commision_status_type_id='.Commision_status_type::alias_id('declined'));?>" 
+                data-i18n="<?=Url::grid_panel('Commision?commision_status_type_id='.Commision_status_type::alias_id('declined'));?>">Declined Commissions</a></li>
+
+
+            <li><a class="menu-item" href="<?=Url::grid_panel('Commision');?>" 
+                data-i18n="<?=Url::grid_panel('Commision');?>">All Commissions</a></li>
+
+            </ul>
+        </li>
+
+    <li class="nav-item <?= nav_open("nav_manage_messaging_template"); ?>">
+        <a href="#"><i class="la la-paste"></i>
+            <span class="menu-title" data-i18n="nav.templates.main">Messaging Templates</span></a>
+        <ul class="menu-content">
+
+            <?= nav_menu_item("Email Templates", Url::grid_panel("Email_template"), "nav_manage_sale_pipeline"); ?>
+            <?= nav_menu_item("Sms Templates", Url::grid_panel("Sms_template"), "nav_manage_messaging_template"); ?>
+            <?= nav_menu_item("WhatsApp Templates", Url::grid_panel("Whatsapp_template"), "nav_manage_sale_pipeline"); ?>
+
+        </ul>
+    </li>
+
+
+    <li class="nav-item <?= nav_open("nav_manage_projects"); ?>">
+        <a href="#"><i class="la la-paste"></i>
+            <span class="menu-title" data-i18n="nav.templates.main">Manage Projects</span></a>
+        <ul class="menu-content">
+            <?= nav_menu_item("Projects/Service Lines", Url::entry_panel("Project"), "nav_manage_projects"); ?>
+            <?= nav_menu_item("Service/Unit Groups", Url::entry_panel("Unit_group"), "nav_manage_projects"); ?>
+            <?= nav_menu_item("Service/Unit Types", Url::entry_panel("Unit_type"), "nav_manage_projects"); ?>
+            <?= nav_menu_item("Service/Unit Categories", Url::entry_panel("Unit_category"), "nav_manage_projects"); ?>
+            <?= nav_menu_item("Project Activities", Url::entry_panel("Activity"), "nav_manage_projects"); ?>
+
+        </ul>
+    </li>
+
+
+    <li class="nav-item <?= nav_open("nav_manage_sale_pipeline"); ?>">
+        <a href="#"><i class="la la-building"></i>
+            <span class="menu-title" data-i18n="nav.templates.main">Sale Pipeline</span></a>
+        <ul class="menu-content">
+            <?= nav_menu_item("New Sale Pipleine", Url::batch_panel("Sale_pipeline/sale_stages"), "nav_manage_sale_pipeline"); ?>
+            <?= nav_menu_item("All Sale Pipelines", Url::grid_panel("Sale_pipeline"), "nav_manage_sale_pipeline"); ?>
+
+        </ul>
+    </li>
+
+
+    <li class="nav-item <?= nav_open("activity_performance"); ?>">
+        <a href="#"><i class="la la-paste"></i>
+            <span class="menu-title" data-i18n="nav.templates.main">Reporting</span></a>
+        <ul class="menu-content">
+
+        
+
+            <?= nav_menu_item("Performance Dashboard", Url::render("performance_dashboard_agent"), "activity_performance"); ?>
+
+            <?= nav_menu_item("Agent Performance", Url::render("team_performance?show_deleted=1"), "activity_performance"); ?>
+
+
+            <?= nav_menu_item("Leads Report", Url::grid_panel('Enquiry/config/report/action/activity_feed?filters=1'), "activity_performance"); ?>
+
+            <?= nav_menu_item("Activities Report", Url::grid_panel('Other_activity/config/report'), "activity_performance"); ?>
+
+            <?= nav_menu_item("Followups Report", Url::grid_panel('Followup/config/report'), "activity_performance"); ?>
+
+            <?= nav_menu_item("Calendar View", Url::portlet('main/team_calendar'), "activity_performance"); ?>
+
+
+            <?= nav_menu_item("Productivity Report", Url::render('productivity'), "activity_performance"); ?>
+
+            <?= nav_menu_item("Facilitation Report", Url::render('facilitation'), "activity_performance"); ?>
+            
+            <?= nav_menu_item("Full
+                    Year Summaries", Url::grid_panel("Year_month_summary?summary_fields=enquiries,qualified_enquiries,Reminder,Meeting,sale_interests,sales"), "activity_performance"); ?>
+
+            
+            <?= nav_menu_item("Per Stage Summary", Url::grid_panel('Sale_stage/config/report'), "activity_performance"); ?>
+
+            <?= nav_menu_item("Per Stage Interest Summary", Url::grid_panel('Sale_stage/config/dimension_metric_summary?metric=Enquiry&dimension=Lead_interest_level'), "activity_performance"); ?>
+
+            
+
+            <?= nav_menu_item("Interest Levels Summary", Url::grid_panel('Lead_interest_level/config/report'), "activity_performance"); ?>
+
+            
+            <?= nav_menu_item("Project Interest Levels", Url::grid_panel('Project/config/dimension_metric_summary?metric=Enquiry&dimension=Lead_interest_level'), "activity_performance"); ?>
+
+            <?= nav_menu_item("Project Sale Stages", Url::grid_panel('Project/config/dimension_metric_summary?metric=Enquiry&dimension=Sale_stage'), "activity_performance"); ?>
+
+            <?= nav_menu_item("Project Lead Sources", Url::grid_panel('Project/config/dimension_metric_summary?metric=Enquiry&dimension=Lead_source'), "activity_performance"); ?>
+
+
+            <?= nav_menu_item("Meetings Report", Url::grid_panel('Lead_meeting/c/report/action/delete'), "activity_performance"); ?>
+
+            <?= nav_menu_item("Mail Event Summary", Url::grid_panel('Mail_event_type/config/report'), "activity_performance"); ?>
+
+            <?= nav_menu_item("Call Logs", Url::report_panel('Call_log'), "activity_performance"); ?>
+
+            <?= nav_menu_item("Lead Journey", Url::grid_panel('Enquiry/config/lead_journey'), "activity_performance"); ?>
+
+
+
+            
+
+
+            <!--<?= nav_menu_item("Agent Tracking",  Url::grid_panel('Enquiry/config/tracking_summary/summary/by_agent'), "activity_performance"); ?>-->
+            <!--<?= nav_menu_item("Lead Source Tracking",  Url::grid_panel('Enquiry/config/tracking_summary/summary/by_lead_source'), "activity_performance"); ?>-->
+            <!--<?= nav_menu_item("Agent Activity Notifier",  Url::entry_panel('Agent_lead_activity_report'), "activity_performance"); ?>-->
+
+            <?= nav_menu_item("All Activities", Url::grid_panel('Lead_activity/config/report'), "activity_performance"); ?>
+
+        </ul>
+    </li>
+
+    <li class="nav-item <?= nav_open("nav_manage_analytics"); ?>">
+        <a href="#"><i class="la la-building"></i>
+            <span class="menu-title" data-i18n="nav.templates.main">Analytics</span></a>
+        <ul class="menu-content">
+            <?= nav_menu_item("Reports", Url::grid_panel("Report"), "nav_manage_analytics"); ?>
+            <?= nav_menu_item("Report Data Sources", Url::grid_panel("Report_data_source"), "nav_manage_analytics"); ?>
+
+            <?= nav_menu_item("Data Sources", Url::grid_panel("Data_source"), "nav_manage_analytics"); ?>
+            <?= nav_menu_item("Widgets", Url::grid_panel("Widget"), "nav_manage_analytics"); ?>
+
+        </ul>
+    </li>
+
+
+    <li class="nav-item <?= nav_open("nav_manage_users"); ?>">
+        <a href="#"><i class="la la-user"></i>
+            <span class="menu-title" data-i18n="nav.templates.main">Manage Users</span></a>
+        <ul class="menu-content">
+            <?= nav_menu_item("Branches ", Url::entry_panel('Branch'), "nav_manage_users"); ?>
+            <?= nav_menu_item("Create Agent", Url::form_panel("Agent"), "nav_manage_users"); ?>
+            <?= nav_menu_item("All Agents", Url::grid_panel("Agent"), "nav_manage_users"); ?>
+            <?= nav_menu_item("Create Supervisor", Url::form_panel("Supervisor"), "nav_manage_users"); ?>
+            <?= nav_menu_item("All Supervisors", Url::grid_panel("Supervisor"), "nav_manage_users"); ?>
+            <?= nav_menu_item("Create User", Url::form_panel("Acl_user"), "nav_manage_users"); ?>
+            <?= nav_menu_item("All Users", Url::grid_panel("Acl_user"), "nav_manage_users"); ?>
+            <?= nav_menu_item("Manage Roles ", Url::entry_panel('Role'), "nav_manage_users"); ?>
+            <?= nav_menu_item("Reset Credentials ", Url::entry_panel('Admin_password_change'), "nav_manage_users"); ?>
+        </ul>
+    </li>
+
+
+
+
+
+
+    <li class="nav-item <?= nav_open("nav_account_settings"); ?>">
+        <a href="#"><i class="la la-cog"></i>
+            <span class="menu-title" data-i18n="nav.templates.main">Account Settings</span></a>
+        <ul class="menu-content">
+            <?= nav_menu_item("Projects/Service Lines", Url::entry_panel("Project"), "nav_account_settings"); ?>
+            <?= nav_menu_item("Lead Source Categories", Url::entry_panel("Lead_source_category"), "nav_account_settings"); ?>
+            <?= nav_menu_item("Lead Sources", Url::entry_panel("Lead_source"), "nav_account_settings"); ?>
+            <?= nav_menu_item("Interaction Types", Url::entry_panel("Followup_type"), "nav_account_settings"); ?>
+            <?= nav_menu_item("Customer Types", Url::entry_panel("Customer_type"), "nav_account_settings"); ?>
+            <?= nav_menu_item("Zones", Url::entry_panel("Zone"), "nav_account_settings"); ?>
+            <?= nav_menu_item("Meeting Types", Url::entry_panel("Meeting_type"), "nav_account_settings"); ?>
+            <?= nav_menu_item("Meeting Cancel Reasons ", Url::entry_panel('Meeting_cancellation_reason'), "nav_account_settings"); ?>
+
+            <?= nav_menu_item("Payment Methods", Url::entry_panel("Payment_method"), "nav_account_settings"); ?>
+            <?= nav_menu_item("Payment Items", Url::entry_panel("Payment_item"), "nav_account_settings"); ?>
+            <?= nav_menu_item("Api Setting", Url::form_panel("Acl_api_preference"), "nav_account_settings"); ?>
+        </ul>
+    </li>
+
+
+
+
+
+
+
+
+
+
+
+
+</ul>
