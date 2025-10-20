@@ -222,96 +222,30 @@ export default function AllDeals() {
                   <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
                     <FormField
                       control={form.control}
-                      name="title"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Deal Title</FormLabel>
-                          <FormControl>
-                            <Input {...field} />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    
-                    <FormField
-                      control={form.control}
-                      name="value"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Deal Value</FormLabel>
-                          <FormControl>
-                            <Input type="number" {...field} />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-
-                    <FormField
-                      control={form.control}
-                      name="contactId"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Contact</FormLabel>
-                          <Select onValueChange={(value) => field.onChange(parseInt(value))} defaultValue={field.value?.toString()}>
-                            <FormControl>
-                              <SelectTrigger>
-                                <SelectValue placeholder="Select a contact" />
-                              </SelectTrigger>
-                            </FormControl>
-                            <SelectContent>
-                              {contacts.filter(contact => contact.id).map((contact: Contact) => (
-                                <SelectItem key={contact.id} value={contact.id.toString()}>
-                                  {contact.firstName} {contact.lastName}
-                                </SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-
-                    <FormField
-                      control={form.control}
-                      name="stageId"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Stage</FormLabel>
-                          <Select onValueChange={(value) => field.onChange(parseInt(value))} defaultValue={field.value?.toString()}>
-                            <FormControl>
-                              <SelectTrigger>
-                                <SelectValue placeholder="Select a stage" />
-                              </SelectTrigger>
-                            </FormControl>
-                            <SelectContent>
-                              {stages.map((stage: SalesStage) => (
-                                <SelectItem key={stage.id} value={stage.id.toString()}>
-                                  {stage.title}
-                                </SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-
-                    <FormField
-                      control={form.control}
                       name="productId"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Product</FormLabel>
-                          <Select onValueChange={(value) => field.onChange(parseInt(value))} defaultValue={field.value?.toString()}>
+                          <FormLabel>Product *</FormLabel>
+                          <Select 
+                            onValueChange={(value) => {
+                              const productId = parseInt(value);
+                              field.onChange(productId);
+                              // Auto-populate value and title from product
+                              const product = (products as Product[]).find(p => p.id === productId);
+                              if (product) {
+                                form.setValue('value', product.salePrice);
+                                form.setValue('title', `${product.name} Deal`);
+                              }
+                            }} 
+                            defaultValue={field.value?.toString()}
+                          >
                             <FormControl>
                               <SelectTrigger>
                                 <SelectValue placeholder="Select a product" />
                               </SelectTrigger>
                             </FormControl>
                             <SelectContent>
-                              {products.filter(product => product.id).map((product: Product) => (
+                              {(products as Product[]).filter(product => product.id).map((product: Product) => (
                                 <SelectItem key={product.id} value={product.id.toString()}>
                                   {product.name} - ${product.salePrice}
                                 </SelectItem>
@@ -325,12 +259,92 @@ export default function AllDeals() {
 
                     <FormField
                       control={form.control}
-                      name="probability"
+                      name="contactId"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Probability (%)</FormLabel>
+                          <FormLabel>Contact *</FormLabel>
+                          <Select onValueChange={(value) => field.onChange(parseInt(value))} defaultValue={field.value?.toString()}>
+                            <FormControl>
+                              <SelectTrigger>
+                                <SelectValue placeholder="Select a contact" />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                              {(contacts as Contact[]).filter(contact => contact.id).map((contact: Contact) => (
+                                <SelectItem key={contact.id} value={contact.id.toString()}>
+                                  {contact.firstName} {contact.lastName}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    <div className="grid grid-cols-2 gap-4">
+                      <FormField
+                        control={form.control}
+                        name="value"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Deal Value (auto-filled)</FormLabel>
+                            <FormControl>
+                              <Input type="number" {...field} className="bg-slate-50" readOnly />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+
+                      <FormField
+                        control={form.control}
+                        name="probability"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Probability (%)</FormLabel>
+                            <FormControl>
+                              <Input type="number" min="0" max="100" {...field} />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    </div>
+
+                    <FormField
+                      control={form.control}
+                      name="stageId"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Stage *</FormLabel>
+                          <Select onValueChange={(value) => field.onChange(parseInt(value))} defaultValue={field.value?.toString()}>
+                            <FormControl>
+                              <SelectTrigger>
+                                <SelectValue placeholder="Select a stage" />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                              {(stages as SalesStage[]).map((stage: SalesStage) => (
+                                <SelectItem key={stage.id} value={stage.id.toString()}>
+                                  {stage.title}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    <FormField
+                      control={form.control}
+                      name="title"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Deal Title (optional - auto-generated from product)</FormLabel>
                           <FormControl>
-                            <Input type="number" min="0" max="100" {...field} />
+                            <Input {...field} placeholder="Auto-generated from product" />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
