@@ -1,7 +1,7 @@
 import { Router, type Request, type Response } from "express";
 import { storage } from "../storage";
 import { insertLeadSourceSchema, type InsertLeadSource } from "@shared/schema";
-import { authMiddleware as authenticate, type AuthRequest } from "../auth";
+import { authenticateToken as authenticate, type AuthRequest } from "../auth";
 
 const router = Router();
 
@@ -74,9 +74,9 @@ router.patch("/:id", authenticate, async (req: AuthRequest, res: Response) => {
 
     const id = parseInt(req.params.id);
     
-    // Validate and sanitize update data - prevent tenantId tampering
-    const updateSchema = insertLeadSourceSchema.partial().omit({ tenantId: true });
-    const validatedData = updateSchema.parse(req.body);
+    // Validate and sanitize update data - explicitly exclude tenantId
+    const updateSchema = insertLeadSourceSchema.partial();
+    const { tenantId: _, ...validatedData } = updateSchema.parse(req.body);
     
     const updatedLeadSource = await storage.updateLeadSource(id, validatedData, tenantId);
     

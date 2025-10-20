@@ -4,6 +4,7 @@ import { createServer, type Server } from "http";
 // Import authentication routes
 import authRouter from "./routes/auth";
 import tenantsRouter from "./routes/tenants";
+import crmRouter from "./modules/crm/api/crm-routes.js";
 
 // Extend Request interface for authentication
 declare global {
@@ -30,8 +31,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Tenant management routes (protected)
   app.use("/api/tenants", tenantsRouter);
 
-  // CRM API routes will be added here
-  // They will all require authentication via the authenticateToken middleware
+  // CRM API routes (protected)
+  app.use("/api", crmRouter);
 
   const server = createServer(app);
   return server;

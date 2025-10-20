@@ -43,6 +43,12 @@ const getSetupSubMenu = (modulePrefix: string) => [
   { name: "Sales Pipelines", href: `${modulePrefix}/setup/sales-pipelines`, icon: GitBranch, permission: "manage_activities" },
   { name: "Sales Stages", href: `${modulePrefix}/setup/sales-stages`, icon: Target, permission: "manage_activities" },
   { name: "Interest Levels", href: `${modulePrefix}/setup/interest-levels`, icon: Thermometer, permission: "manage_activities" },
+  { name: "Lead Sources", href: `${modulePrefix}/setup/lead-sources`, icon: Target, permission: "manage_activities" },
+  { name: "Customer Types", href: `${modulePrefix}/setup/customer-types`, icon: Users, permission: "manage_activities" },
+  { name: "Meeting Types", href: `${modulePrefix}/setup/meeting-types`, icon: Calendar, permission: "manage_activities" },
+  { name: "Cancellation Reasons", href: `${modulePrefix}/setup/cancellation-reasons`, icon: MessageSquare, permission: "manage_activities" },
+  { name: "Payment Methods", href: `${modulePrefix}/setup/payment-methods`, icon: DollarSign, permission: "manage_activities" },
+  { name: "Payment Items", href: `${modulePrefix}/setup/payment-items`, icon: Package, permission: "manage_activities" },
 ];
 
 interface ProfessionalSidebarProps {

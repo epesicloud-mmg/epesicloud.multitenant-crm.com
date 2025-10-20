@@ -26,6 +26,12 @@ const ActivityTypes = lazy(() => import("./setup/activity-types"));
 const SalesPipelines = lazy(() => import("./setup/sales-pipelines"));
 const SalesStages = lazy(() => import("./setup/sales-stages"));
 const InterestLevels = lazy(() => import("./setup/interest-levels"));
+const LeadSources = lazy(() => import("./setup/lead-sources"));
+const CustomerTypesSetup = lazy(() => import("./setup/customer-types"));
+const MeetingTypes = lazy(() => import("./setup/meeting-types"));
+const CancellationReasons = lazy(() => import("./setup/cancellation-reasons"));
+const PaymentMethods = lazy(() => import("./setup/payment-methods"));
+const PaymentItems = lazy(() => import("./setup/payment-items"));
 
 // Tools pages
 const CRMAssistants = lazy(() => import("./crm-assistants"));
@@ -142,20 +148,34 @@ export default function CRMDashboard() {
           </Route>
           
           {/* Additional Setup Pages */}
-          <Route path="/setup/customer-types">
-            <CRMLayout>
-              <div className="p-6">
-                <h2 className="text-2xl font-bold mb-4">Customer Types</h2>
-                <p>Manage different customer categories and types.</p>
-              </div>
-            </CRMLayout>
-          </Route>
           <Route path="/setup/lead-sources">
             <CRMLayout>
-              <div className="p-6">
-                <h2 className="text-2xl font-bold mb-4">Lead Sources</h2>
-                <p>Configure where your leads come from.</p>
-              </div>
+              <LeadSources />
+            </CRMLayout>
+          </Route>
+          <Route path="/setup/customer-types">
+            <CRMLayout>
+              <CustomerTypesSetup />
+            </CRMLayout>
+          </Route>
+          <Route path="/setup/meeting-types">
+            <CRMLayout>
+              <MeetingTypes />
+            </CRMLayout>
+          </Route>
+          <Route path="/setup/cancellation-reasons">
+            <CRMLayout>
+              <CancellationReasons />
+            </CRMLayout>
+          </Route>
+          <Route path="/setup/payment-methods">
+            <CRMLayout>
+              <PaymentMethods />
+            </CRMLayout>
+          </Route>
+          <Route path="/setup/payment-items">
+            <CRMLayout>
+              <PaymentItems />
             </CRMLayout>
           </Route>
           

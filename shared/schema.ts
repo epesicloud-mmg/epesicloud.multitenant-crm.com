@@ -316,6 +316,61 @@ export const leadSources = pgTable("lead_sources", {
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
 
+// Customer Types table
+export const customerTypes = pgTable("customer_types", {
+  id: serial("id").primaryKey(),
+  typeName: text("type_name").notNull(),
+  description: text("description"),
+  isActive: boolean("is_active").default(true),
+  tenantId: integer("tenant_id").notNull().references(() => tenants.id),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+// Meeting Types table
+export const meetingTypes = pgTable("meeting_types", {
+  id: serial("id").primaryKey(),
+  typeName: text("type_name").notNull(),
+  description: text("description"),
+  isActive: boolean("is_active").default(true),
+  tenantId: integer("tenant_id").notNull().references(() => tenants.id),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+// Meeting Cancellation Reasons table
+export const meetingCancellationReasons = pgTable("meeting_cancellation_reasons", {
+  id: serial("id").primaryKey(),
+  reason: text("reason").notNull(),
+  description: text("description"),
+  isActive: boolean("is_active").default(true),
+  tenantId: integer("tenant_id").notNull().references(() => tenants.id),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+// Payment Methods table
+export const paymentMethods = pgTable("payment_methods", {
+  id: serial("id").primaryKey(),
+  methodName: text("method_name").notNull(),
+  description: text("description"),
+  isActive: boolean("is_active").default(true),
+  tenantId: integer("tenant_id").notNull().references(() => tenants.id),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+// Payment Items table
+export const paymentItems = pgTable("payment_items", {
+  id: serial("id").primaryKey(),
+  itemName: text("item_name").notNull(),
+  description: text("description"),
+  isActive: boolean("is_active").default(true),
+  tenantId: integer("tenant_id").notNull().references(() => tenants.id),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
 // Customers table
 export const customers = pgTable("customers", {
   id: serial("id").primaryKey(),
@@ -616,19 +671,24 @@ export const insertContactSchema = createInsertSchema(contacts).omit({ id: true,
 export const insertLeadSchema = createInsertSchema(leads).omit({ id: true, createdAt: true, updatedAt: true });
 export const insertDealSchema = createInsertSchema(deals).omit({ id: true, createdAt: true, updatedAt: true });
 export const insertActivitySchema = createInsertSchema(activities).omit({ id: true, createdAt: true, updatedAt: true });
-export const insertLeadSourceSchema = createInsertSchema(leadSources).omit({ id: true, createdAt: true, updatedAt: true });
-export const insertActivityTypeSchema = createInsertSchema(activityTypes).omit({ id: true, createdAt: true });
-export const insertInterestLevelSchema = createInsertSchema(interestLevels).omit({ id: true, createdAt: true });
-export const insertSalesPipelineSchema = createInsertSchema(salesPipelines).omit({ id: true, createdAt: true, updatedAt: true });
-export const insertSalesStageSchema = createInsertSchema(salesStages).omit({ id: true, createdAt: true, updatedAt: true });
-export const insertProductTypeSchema = createInsertSchema(productTypes).omit({ id: true, createdAt: true });
-export const insertProductCategorySchema = createInsertSchema(productCategories).omit({ id: true, createdAt: true });
-export const insertProductGroupSchema = createInsertSchema(productGroups).omit({ id: true, createdAt: true, updatedAt: true });
-export const insertProductSchema = createInsertSchema(products).omit({ id: true, createdAt: true, updatedAt: true });
-export const insertProductVariationSchema = createInsertSchema(productVariations).omit({ id: true, createdAt: true, updatedAt: true });
-export const insertProductOfferSchema = createInsertSchema(productOffers).omit({ id: true, createdAt: true, updatedAt: true });
-export const insertCustomerSchema = createInsertSchema(customers).omit({ id: true, createdAt: true, updatedAt: true });
-export const insertEventSchema = createInsertSchema(events).omit({ id: true, createdAt: true });
+export const insertLeadSourceSchema = createInsertSchema(leadSources).omit({ id: true, createdAt: true, updatedAt: true, tenantId: true });
+export const insertActivityTypeSchema = createInsertSchema(activityTypes).omit({ id: true, createdAt: true, tenantId: true });
+export const insertInterestLevelSchema = createInsertSchema(interestLevels).omit({ id: true, createdAt: true, tenantId: true });
+export const insertSalesPipelineSchema = createInsertSchema(salesPipelines).omit({ id: true, createdAt: true, updatedAt: true, tenantId: true });
+export const insertSalesStageSchema = createInsertSchema(salesStages).omit({ id: true, createdAt: true, updatedAt: true, tenantId: true });
+export const insertProductTypeSchema = createInsertSchema(productTypes).omit({ id: true, createdAt: true, tenantId: true });
+export const insertProductCategorySchema = createInsertSchema(productCategories).omit({ id: true, createdAt: true, tenantId: true });
+export const insertProductGroupSchema = createInsertSchema(productGroups).omit({ id: true, createdAt: true, updatedAt: true, tenantId: true });
+export const insertProductSchema = createInsertSchema(products).omit({ id: true, createdAt: true, updatedAt: true, tenantId: true });
+export const insertProductVariationSchema = createInsertSchema(productVariations).omit({ id: true, createdAt: true, updatedAt: true, tenantId: true });
+export const insertProductOfferSchema = createInsertSchema(productOffers).omit({ id: true, createdAt: true, updatedAt: true, tenantId: true });
+export const insertCustomerSchema = createInsertSchema(customers).omit({ id: true, createdAt: true, updatedAt: true, tenantId: true });
+export const insertEventSchema = createInsertSchema(events).omit({ id: true, createdAt: true, tenantId: true });
+export const insertCustomerTypeSchema = createInsertSchema(customerTypes).omit({ id: true, createdAt: true, updatedAt: true, tenantId: true });
+export const insertMeetingTypeSchema = createInsertSchema(meetingTypes).omit({ id: true, createdAt: true, updatedAt: true, tenantId: true });
+export const insertMeetingCancellationReasonSchema = createInsertSchema(meetingCancellationReasons).omit({ id: true, createdAt: true, updatedAt: true, tenantId: true });
+export const insertPaymentMethodSchema = createInsertSchema(paymentMethods).omit({ id: true, createdAt: true, updatedAt: true, tenantId: true });
+export const insertPaymentItemSchema = createInsertSchema(paymentItems).omit({ id: true, createdAt: true, updatedAt: true, tenantId: true });
 
 // ====================
 // SELECT TYPES
@@ -659,6 +719,11 @@ export type ProductVariation = typeof productVariations.$inferSelect;
 export type ProductOffer = typeof productOffers.$inferSelect;
 export type Customer = typeof customers.$inferSelect;
 export type Event = typeof events.$inferSelect;
+export type CustomerType = typeof customerTypes.$inferSelect;
+export type MeetingType = typeof meetingTypes.$inferSelect;
+export type MeetingCancellationReason = typeof meetingCancellationReasons.$inferSelect;
+export type PaymentMethod = typeof paymentMethods.$inferSelect;
+export type PaymentItem = typeof paymentItems.$inferSelect;
 
 // ====================
 // INSERT TYPES
@@ -689,3 +754,8 @@ export type InsertProductVariation = z.infer<typeof insertProductVariationSchema
 export type InsertProductOffer = z.infer<typeof insertProductOfferSchema>;
 export type InsertCustomer = z.infer<typeof insertCustomerSchema>;
 export type InsertEvent = z.infer<typeof insertEventSchema>;
+export type InsertCustomerType = z.infer<typeof insertCustomerTypeSchema>;
+export type InsertMeetingType = z.infer<typeof insertMeetingTypeSchema>;
+export type InsertMeetingCancellationReason = z.infer<typeof insertMeetingCancellationReasonSchema>;
+export type InsertPaymentMethod = z.infer<typeof insertPaymentMethodSchema>;
+export type InsertPaymentItem = z.infer<typeof insertPaymentItemSchema>;

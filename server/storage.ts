@@ -2,13 +2,16 @@ import {
   tenants, users, roles, permissions, rolePermissions, tenantUsers, refreshTokens,
   companies, products, leads, contacts, salesStages, deals, activities, leadSources,
   activityTypes, salesPipelines, interestLevels, productTypes, productCategories, productVariations, productOffers, customers,
+  customerTypes, meetingTypes, meetingCancellationReasons, paymentMethods, paymentItems,
   type Tenant, type User, type Role, type Permission, type TenantUser, type RefreshToken,
   type Company, type Product, type Lead, type Contact, type SalesStage, type Deal, type Activity, type LeadSource,
   type ActivityType, type SalesPipeline, type InterestLevel, type ProductType, type ProductCategory, type ProductVariation, type ProductOffer, type Customer,
+  type CustomerType, type MeetingType, type MeetingCancellationReason, type PaymentMethod, type PaymentItem,
   type InsertTenant, type InsertUser, type InsertRole, type InsertPermission, type InsertTenantUser, type InsertRefreshToken,
   type InsertCompany, type InsertProduct, type InsertLead, type InsertContact, 
   type InsertSalesStage, type InsertDeal, type InsertActivity, type InsertLeadSource, type InsertActivityType, type InsertSalesPipeline, type InsertInterestLevel,
-  type InsertProductType, type InsertProductCategory, type InsertProductVariation, type InsertProductOffer, type InsertCustomer
+  type InsertProductType, type InsertProductCategory, type InsertProductVariation, type InsertProductOffer, type InsertCustomer,
+  type InsertCustomerType, type InsertMeetingType, type InsertMeetingCancellationReason, type InsertPaymentMethod, type InsertPaymentItem
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, and, desc, count, or, ilike, sql } from "drizzle-orm";
@@ -157,6 +160,36 @@ export interface IStorage {
   // ==================== CRM - INTEREST LEVELS ====================
   getInterestLevels(tenantId: number): Promise<InterestLevel[]>;
   createInterestLevel(interestLevel: InsertInterestLevel): Promise<InterestLevel>;
+  
+  // ==================== CRM - CUSTOMER TYPES ====================
+  getCustomerTypes(tenantId: number): Promise<CustomerType[]>;
+  createCustomerType(customerType: InsertCustomerType): Promise<CustomerType>;
+  updateCustomerType(id: number, customerType: Partial<InsertCustomerType>, tenantId: number): Promise<CustomerType | undefined>;
+  deleteCustomerType(id: number, tenantId: number): Promise<boolean>;
+  
+  // ==================== CRM - MEETING TYPES ====================
+  getMeetingTypes(tenantId: number): Promise<MeetingType[]>;
+  createMeetingType(meetingType: InsertMeetingType): Promise<MeetingType>;
+  updateMeetingType(id: number, meetingType: Partial<InsertMeetingType>, tenantId: number): Promise<MeetingType | undefined>;
+  deleteMeetingType(id: number, tenantId: number): Promise<boolean>;
+  
+  // ==================== CRM - MEETING CANCELLATION REASONS ====================
+  getMeetingCancellationReasons(tenantId: number): Promise<MeetingCancellationReason[]>;
+  createMeetingCancellationReason(reason: InsertMeetingCancellationReason): Promise<MeetingCancellationReason>;
+  updateMeetingCancellationReason(id: number, reason: Partial<InsertMeetingCancellationReason>, tenantId: number): Promise<MeetingCancellationReason | undefined>;
+  deleteMeetingCancellationReason(id: number, tenantId: number): Promise<boolean>;
+  
+  // ==================== CRM - PAYMENT METHODS ====================
+  getPaymentMethods(tenantId: number): Promise<PaymentMethod[]>;
+  createPaymentMethod(method: InsertPaymentMethod): Promise<PaymentMethod>;
+  updatePaymentMethod(id: number, method: Partial<InsertPaymentMethod>, tenantId: number): Promise<PaymentMethod | undefined>;
+  deletePaymentMethod(id: number, tenantId: number): Promise<boolean>;
+  
+  // ==================== CRM - PAYMENT ITEMS ====================
+  getPaymentItems(tenantId: number): Promise<PaymentItem[]>;
+  createPaymentItem(item: InsertPaymentItem): Promise<PaymentItem>;
+  updatePaymentItem(id: number, item: Partial<InsertPaymentItem>, tenantId: number): Promise<PaymentItem | undefined>;
+  deletePaymentItem(id: number, tenantId: number): Promise<boolean>;
   
   // ==================== DASHBOARD ====================
   getDashboardMetrics(tenantId: number): Promise<{
@@ -915,6 +948,131 @@ export class DbStorage implements IStorage {
   async createInterestLevel(interestLevel: InsertInterestLevel): Promise<InterestLevel> {
     const [newLevel] = await db.insert(interestLevels).values(interestLevel).returning();
     return newLevel;
+  }
+  
+  // ==================== CRM - CUSTOMER TYPES ====================
+  
+  async getCustomerTypes(tenantId: number): Promise<CustomerType[]> {
+    return await db.select().from(customerTypes).where(eq(customerTypes.tenantId, tenantId));
+  }
+  
+  async createCustomerType(customerType: InsertCustomerType): Promise<CustomerType> {
+    const [newType] = await db.insert(customerTypes).values(customerType).returning();
+    return newType;
+  }
+  
+  async updateCustomerType(id: number, customerType: Partial<InsertCustomerType>, tenantId: number): Promise<CustomerType | undefined> {
+    const [updated] = await db.update(customerTypes)
+      .set({ ...customerType, updatedAt: new Date() })
+      .where(and(eq(customerTypes.id, id), eq(customerTypes.tenantId, tenantId)))
+      .returning();
+    return updated;
+  }
+  
+  async deleteCustomerType(id: number, tenantId: number): Promise<boolean> {
+    const result = await db.delete(customerTypes)
+      .where(and(eq(customerTypes.id, id), eq(customerTypes.tenantId, tenantId)));
+    return result.rowCount ? result.rowCount > 0 : false;
+  }
+  
+  // ==================== CRM - MEETING TYPES ====================
+  
+  async getMeetingTypes(tenantId: number): Promise<MeetingType[]> {
+    return await db.select().from(meetingTypes).where(eq(meetingTypes.tenantId, tenantId));
+  }
+  
+  async createMeetingType(meetingType: InsertMeetingType): Promise<MeetingType> {
+    const [newType] = await db.insert(meetingTypes).values(meetingType).returning();
+    return newType;
+  }
+  
+  async updateMeetingType(id: number, meetingType: Partial<InsertMeetingType>, tenantId: number): Promise<MeetingType | undefined> {
+    const [updated] = await db.update(meetingTypes)
+      .set({ ...meetingType, updatedAt: new Date() })
+      .where(and(eq(meetingTypes.id, id), eq(meetingTypes.tenantId, tenantId)))
+      .returning();
+    return updated;
+  }
+  
+  async deleteMeetingType(id: number, tenantId: number): Promise<boolean> {
+    const result = await db.delete(meetingTypes)
+      .where(and(eq(meetingTypes.id, id), eq(meetingTypes.tenantId, tenantId)));
+    return result.rowCount ? result.rowCount > 0 : false;
+  }
+  
+  // ==================== CRM - MEETING CANCELLATION REASONS ====================
+  
+  async getMeetingCancellationReasons(tenantId: number): Promise<MeetingCancellationReason[]> {
+    return await db.select().from(meetingCancellationReasons).where(eq(meetingCancellationReasons.tenantId, tenantId));
+  }
+  
+  async createMeetingCancellationReason(reason: InsertMeetingCancellationReason): Promise<MeetingCancellationReason> {
+    const [newReason] = await db.insert(meetingCancellationReasons).values(reason).returning();
+    return newReason;
+  }
+  
+  async updateMeetingCancellationReason(id: number, reason: Partial<InsertMeetingCancellationReason>, tenantId: number): Promise<MeetingCancellationReason | undefined> {
+    const [updated] = await db.update(meetingCancellationReasons)
+      .set({ ...reason, updatedAt: new Date() })
+      .where(and(eq(meetingCancellationReasons.id, id), eq(meetingCancellationReasons.tenantId, tenantId)))
+      .returning();
+    return updated;
+  }
+  
+  async deleteMeetingCancellationReason(id: number, tenantId: number): Promise<boolean> {
+    const result = await db.delete(meetingCancellationReasons)
+      .where(and(eq(meetingCancellationReasons.id, id), eq(meetingCancellationReasons.tenantId, tenantId)));
+    return result.rowCount ? result.rowCount > 0 : false;
+  }
+  
+  // ==================== CRM - PAYMENT METHODS ====================
+  
+  async getPaymentMethods(tenantId: number): Promise<PaymentMethod[]> {
+    return await db.select().from(paymentMethods).where(eq(paymentMethods.tenantId, tenantId));
+  }
+  
+  async createPaymentMethod(method: InsertPaymentMethod): Promise<PaymentMethod> {
+    const [newMethod] = await db.insert(paymentMethods).values(method).returning();
+    return newMethod;
+  }
+  
+  async updatePaymentMethod(id: number, method: Partial<InsertPaymentMethod>, tenantId: number): Promise<PaymentMethod | undefined> {
+    const [updated] = await db.update(paymentMethods)
+      .set({ ...method, updatedAt: new Date() })
+      .where(and(eq(paymentMethods.id, id), eq(paymentMethods.tenantId, tenantId)))
+      .returning();
+    return updated;
+  }
+  
+  async deletePaymentMethod(id: number, tenantId: number): Promise<boolean> {
+    const result = await db.delete(paymentMethods)
+      .where(and(eq(paymentMethods.id, id), eq(paymentMethods.tenantId, tenantId)));
+    return result.rowCount ? result.rowCount > 0 : false;
+  }
+  
+  // ==================== CRM - PAYMENT ITEMS ====================
+  
+  async getPaymentItems(tenantId: number): Promise<PaymentItem[]> {
+    return await db.select().from(paymentItems).where(eq(paymentItems.tenantId, tenantId));
+  }
+  
+  async createPaymentItem(item: InsertPaymentItem): Promise<PaymentItem> {
+    const [newItem] = await db.insert(paymentItems).values(item).returning();
+    return newItem;
+  }
+  
+  async updatePaymentItem(id: number, item: Partial<InsertPaymentItem>, tenantId: number): Promise<PaymentItem | undefined> {
+    const [updated] = await db.update(paymentItems)
+      .set({ ...item, updatedAt: new Date() })
+      .where(and(eq(paymentItems.id, id), eq(paymentItems.tenantId, tenantId)))
+      .returning();
+    return updated;
+  }
+  
+  async deletePaymentItem(id: number, tenantId: number): Promise<boolean> {
+    const result = await db.delete(paymentItems)
+      .where(and(eq(paymentItems.id, id), eq(paymentItems.tenantId, tenantId)));
+    return result.rowCount ? result.rowCount > 0 : false;
   }
   
   // ==================== DASHBOARD ====================
