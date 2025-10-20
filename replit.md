@@ -178,6 +178,15 @@ Preferred communication style: Simple, everyday language.
   - Pending Approval: Review and manage commissions awaiting approval with status updates
   - Commission Reports: Comprehensive reporting with search, filtering, and analytics
   - 12 API endpoints for complete commission lifecycle management
+- **Production-Ready Demo Data Seeding** (October 20, 2025):
+  - Idempotent seeding script: `scripts/seed-demo-data.ts` safely creates or reuses tenant/user/pipeline
+  - Complete demo tenant: "Comfort Urban Residence" with realistic real estate data
+  - 4 property products: Studio (1.9M), 1 Bed (2.95M), 2 Bed Convertible (9M), 3 Bed Premium (11M)
+  - 7-stage sales pipeline: Lead Generation → Qualification → Site Visit → Negotiation → Reservation → Documentation → Handover
+  - 15 contacts, 8 companies, 12 deals distributed across pipeline stages
+  - All setup tables populated: 10 lead sources, 13 activity types, 4 customer types, 4 meeting types, 4 payment methods
+  - Demo credentials: hello@epesicloud.com / Hello123???
+  - Foreign key integrity verified: All products linked to pipeline, all deals linked to users and products
 - **Unified Professional Sidebar**: All CRM pages now use ProfessionalSidebar component
   - Consistent navigation across all pages
   - Products menu with submenu: All Products, Product Types, Categories, Offers & Deals
