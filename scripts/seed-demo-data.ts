@@ -26,84 +26,118 @@ async function seed() {
   console.log('🌱 Starting demo data seeding...');
 
   try {
-    // 1. Create Tenant
-    console.log('Creating tenant: Comfort Urban Residence');
-    const [tenant] = await db.insert(tenants).values({
-      name: 'Comfort Urban Residence',
-      subdomain: 'comfort-urban',
-    }).returning();
+    // 1. Create or Get Tenant
+    console.log('Checking for existing tenant: Comfort Urban Residence');
+    let tenant = await db.select().from(tenants).where(eq(tenants.subdomain, 'comfort-urban')).limit(1);
     
-    const tenantId = tenant.id;
-    console.log(`✓ Tenant created with ID: ${tenantId}`);
-
-    // 2. Create Super Admin Role
-    console.log('Creating Super Admin role');
-    const [role] = await db.insert(roles).values({
-      name: 'Super Admin',
-      level: 100,
-      permissions: ['manage_users', 'manage_roles', 'view_reports', 'manage_deals', 'manage_contacts', 'manage_products'],
-      description: 'Full system access',
-      modules: ['crm', 'sales', 'setup', 'reports'],
-      isActive: true,
-      tenantId,
-    }).returning();
-    
-    console.log(`✓ Role created with ID: ${role.id}`);
-
-    // 3. Create User
-    console.log('Creating user: hello@epesicloud.com');
-    const hashedPassword = await bcrypt.hash('Hello123???', 10);
-    
-    const [user] = await db.insert(users).values({
-      username: 'hello',
-      password: hashedPassword,
-      email: 'hello@epesicloud.com',
-      firstName: 'Demo',
-      lastName: 'User',
-      roleId: role.id,
-      isActive: true,
-      tenantId,
-      department: 'Sales',
-      phone: '+1-555-0100',
-    }).returning();
-    
-    console.log(`✓ User created with ID: ${user.id}`);
-
-    // 4. Link User to Tenant
-    await db.insert(tenantUsers).values({
-      tenantId,
-      userId: user.id,
-      roleId: role.id,
-    });
-    console.log('✓ User linked to tenant');
-
-    // 5. Create Sales Pipeline with 7 Stages
-    console.log('Creating sales pipeline with 7 stages');
-    const [pipeline] = await db.insert(salesPipelines).values({
-      title: 'Real Estate Sales Pipeline',
-      description: 'Standard real estate sales workflow',
-      isDefault: true,
-      tenantId,
-    }).returning();
-
-    const stages = [
-      { title: 'Lead Generation', order: 1 },
-      { title: 'Lead Qualification', order: 2 },
-      { title: 'Property Presentation', order: 3 },
-      { title: 'Negotiation', order: 4 },
-      { title: 'Contract Signing', order: 5 },
-      { title: 'Payment & Closing', order: 6 },
-      { title: 'Referral & Reinvestment', order: 7 },
-    ];
-
-    for (const stage of stages) {
-      await db.insert(salesStages).values({
-        ...stage,
-        salePipelineId: pipeline.id,
-        tenantId,
-      });
+    if (tenant.length === 0) {
+      console.log('Creating new tenant: Comfort Urban Residence');
+      const [newTenant] = await db.insert(tenants).values({
+        name: 'Comfort Urban Residence',
+        subdomain: 'comfort-urban',
+      }).returning();
+      tenant = [newTenant];
+      console.log(`✓ Tenant created with ID: ${newTenant.id}`);
+    } else {
+      console.log(`✓ Using existing tenant with ID: ${tenant[0].id}`);
     }
-    console.log(`✓ Created ${stages.length} sales stages`);
+    
+    const tenantId = tenant[0].id;
+
+    // 2. Create or Get Super Admin Role
+    console.log('Checking for Super Admin role');
+    let role = await db.select().from(roles).where(eq(roles.name, 'Super Admin')).where(eq(roles.tenantId, tenantId)).limit(1);
+    
+    if (role.length === 0) {
+      console.log('Creating Super Admin role');
+      const [newRole] = await db.insert(roles).values({
+        name: 'Super Admin',
+        level: 100,
+        permissions: ['manage_users', 'manage_roles', 'view_reports', 'manage_deals', 'manage_contacts', 'manage_products'],
+        description: 'Full system access',
+        modules: ['crm', 'sales', 'setup', 'reports'],
+        isActive: true,
+        tenantId,
+      }).returning();
+      role = [newRole];
+      console.log(`✓ Role created with ID: ${newRole.id}`);
+    } else {
+      console.log(`✓ Using existing role with ID: ${role[0].id}`);
+    }
+
+    // 3. Create or Get User
+    console.log('Checking for user: hello@epesicloud.com');
+    let user = await db.select().from(users).where(eq(users.email, 'hello@epesicloud.com')).limit(1);
+    
+    if (user.length === 0) {
+      console.log('Creating user: hello@epesicloud.com');
+      const hashedPassword = await bcrypt.hash('Hello123???', 10);
+      
+      const [newUser] = await db.insert(users).values({
+        username: 'hello',
+        password: hashedPassword,
+        email: 'hello@epesicloud.com',
+        firstName: 'Demo',
+        lastName: 'User',
+        roleId: role[0].id,
+        isActive: true,
+        tenantId,
+        department: 'Sales',
+        phone: '+1-555-0100',
+      }).returning();
+      user = [newUser];
+      console.log(`✓ User created with ID: ${newUser.id}`);
+
+      // 4. Link User to Tenant
+      await db.insert(tenantUsers).values({
+        tenantId,
+        userId: newUser.id,
+        roleId: role[0].id,
+      });
+      console.log('✓ User linked to tenant');
+    } else {
+      console.log(`✓ Using existing user with ID: ${user[0].id}`);
+    }
+
+    // 5. Create or Get Sales Pipeline with 7 Stages
+    console.log('Checking for sales pipeline');
+    let pipeline = await db.select().from(salesPipelines)
+      .where(eq(salesPipelines.tenantId, tenantId))
+      .where(eq(salesPipelines.isDefault, true))
+      .limit(1);
+    
+    if (pipeline.length === 0) {
+      console.log('Creating sales pipeline with 7 stages');
+      const [newPipeline] = await db.insert(salesPipelines).values({
+        title: 'Real Estate Sales Pipeline',
+        description: 'Standard real estate sales workflow',
+        isDefault: true,
+        tenantId,
+      }).returning();
+      pipeline = [newPipeline];
+      console.log(`✓ Pipeline created with ID: ${newPipeline.id}`);
+
+      const stages = [
+        { title: 'Lead Generation', order: 1 },
+        { title: 'Lead Qualification', order: 2 },
+        { title: 'Property Presentation', order: 3 },
+        { title: 'Negotiation', order: 4 },
+        { title: 'Contract Signing', order: 5 },
+        { title: 'Payment & Closing', order: 6 },
+        { title: 'Referral & Reinvestment', order: 7 },
+      ];
+
+      for (const stage of stages) {
+        await db.insert(salesStages).values({
+          ...stage,
+          salePipelineId: pipeline[0].id,
+          tenantId,
+        });
+      }
+      console.log(`✓ Created ${stages.length} sales stages`);
+    } else {
+      console.log(`✓ Using existing pipeline with ID: ${pipeline[0].id}`);
+    }
 
     // 6. Create Product Types
     console.log('Creating product types');
@@ -138,7 +172,7 @@ async function seed() {
         salePrice: '1900000.00',
         categoryId: createdCategories[0].id,
         productTypeId: createdProductTypes[0].id,
-        salesPipelineId: pipeline.id,
+        salesPipelineId: pipeline[0].id,
         description: 'Compact studio unit with modern amenities, perfect for singles or young professionals',
         tenantId,
       },
@@ -149,7 +183,7 @@ async function seed() {
         salePrice: '2950000.00',
         categoryId: createdCategories[1].id,
         productTypeId: createdProductTypes[0].id,
-        salesPipelineId: pipeline.id,
+        salesPipelineId: pipeline[0].id,
         description: 'Spacious one-bedroom unit with balcony and premium finishes',
         tenantId,
       },
@@ -160,7 +194,7 @@ async function seed() {
         salePrice: '9000000.00',
         categoryId: createdCategories[2].id,
         productTypeId: createdProductTypes[0].id,
-        salesPipelineId: pipeline.id,
+        salesPipelineId: pipeline[0].id,
         description: 'Flexible two-bedroom convertible unit with panoramic city views',
         tenantId,
       },
@@ -171,7 +205,7 @@ async function seed() {
         salePrice: '11000000.00',
         categoryId: createdCategories[3].id,
         productTypeId: createdProductTypes[0].id,
-        salesPipelineId: pipeline.id,
+        salesPipelineId: pipeline[0].id,
         description: 'Luxury three-bedroom unit with master suite and home office space',
         tenantId,
       },
@@ -306,17 +340,163 @@ async function seed() {
     const createdContacts = await db.insert(contacts).values(contactData).returning();
     console.log(`✓ Created ${createdContacts.length} contacts`);
 
-    // 17. Get sales stages for deal creation
-    const pipelineStages = await db.select().from(salesStages).where(eq(salesStages.salePipelineId, pipeline.id));
+    // 17. Create Dummy Deals
+    console.log('Creating dummy deals');
+    // Query pipeline stages with explicit ordering to ensure consistent indexing
+    const pipelineStages = await db.select().from(salesStages)
+      .where(eq(salesStages.salePipelineId, pipeline[0].id))
+      .orderBy(salesStages.order);
+    
+    const dealData = [
+      {
+        title: 'Studio Unit - John Anderson',
+        value: '1900000.00',
+        stageId: pipelineStages[3].id, // Negotiation
+        contactId: createdContacts[0].id,
+        productId: createdProducts[0].id,
+        probability: 75,
+        assignedToId: user[0].id,
+        expectedCloseDate: new Date(Date.now() + 15 * 24 * 60 * 60 * 1000), // 15 days
+        tenantId,
+      },
+      {
+        title: '1 Bed Unit - Sarah Mitchell',
+        value: '2950000.00',
+        stageId: pipelineStages[4].id, // Contract Signing
+        contactId: createdContacts[1].id,
+        productId: createdProducts[1].id,
+        probability: 90,
+        assignedToId: user[0].id,
+        expectedCloseDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // 7 days
+        tenantId,
+      },
+      {
+        title: '2 Bed Convertible - Robert Smith',
+        value: '9000000.00',
+        stageId: pipelineStages[2].id, // Property Presentation
+        contactId: createdContacts[2].id,
+        productId: createdProducts[2].id,
+        probability: 60,
+        assignedToId: user[0].id,
+        expectedCloseDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // 30 days
+        tenantId,
+      },
+      {
+        title: '3 Bed Premium - Emily Johnson',
+        value: '11000000.00',
+        stageId: pipelineStages[1].id, // Lead Qualification
+        contactId: createdContacts[3].id,
+        productId: createdProducts[3].id,
+        probability: 40,
+        assignedToId: user[0].id,
+        expectedCloseDate: new Date(Date.now() + 45 * 24 * 60 * 60 * 1000), // 45 days
+        tenantId,
+      },
+      {
+        title: 'Studio Unit - Michael Brown',
+        value: '1900000.00',
+        stageId: pipelineStages[5].id, // Payment & Closing
+        contactId: createdContacts[4].id,
+        productId: createdProducts[0].id,
+        probability: 95,
+        assignedToId: user[0].id,
+        expectedCloseDate: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000), // 3 days
+        tenantId,
+      },
+      {
+        title: '1 Bed Unit - Jennifer Davis',
+        value: '2950000.00',
+        stageId: pipelineStages[0].id, // Lead Generation
+        contactId: createdContacts[5].id,
+        productId: createdProducts[1].id,
+        probability: 30,
+        assignedToId: user[0].id,
+        expectedCloseDate: new Date(Date.now() + 60 * 24 * 60 * 60 * 1000), // 60 days
+        tenantId,
+      },
+      {
+        title: '2 Bed Convertible - David Wilson',
+        value: '9000000.00',
+        stageId: pipelineStages[3].id, // Negotiation
+        contactId: createdContacts[6].id,
+        productId: createdProducts[2].id,
+        probability: 70,
+        assignedToId: user[0].id,
+        expectedCloseDate: new Date(Date.now() + 20 * 24 * 60 * 60 * 1000), // 20 days
+        tenantId,
+      },
+      {
+        title: '3 Bed Premium - Lisa Taylor',
+        value: '11000000.00',
+        stageId: pipelineStages[2].id, // Property Presentation
+        contactId: createdContacts[7].id,
+        productId: createdProducts[3].id,
+        probability: 55,
+        assignedToId: user[0].id,
+        expectedCloseDate: new Date(Date.now() + 35 * 24 * 60 * 60 * 1000), // 35 days
+        tenantId,
+      },
+      {
+        title: 'Studio Unit - James Martinez',
+        value: '1900000.00',
+        stageId: pipelineStages[1].id, // Lead Qualification
+        contactId: createdContacts[8].id,
+        productId: createdProducts[0].id,
+        probability: 45,
+        assignedToId: user[0].id,
+        expectedCloseDate: new Date(Date.now() + 40 * 24 * 60 * 60 * 1000), // 40 days
+        tenantId,
+      },
+      {
+        title: '1 Bed Unit - Patricia Garcia',
+        value: '2950000.00',
+        stageId: pipelineStages[4].id, // Contract Signing
+        contactId: createdContacts[9].id,
+        productId: createdProducts[1].id,
+        probability: 85,
+        assignedToId: user[0].id,
+        expectedCloseDate: new Date(Date.now() + 10 * 24 * 60 * 60 * 1000), // 10 days
+        tenantId,
+      },
+      {
+        title: '2 Bed Convertible - Christopher Rodriguez',
+        value: '9000000.00',
+        stageId: pipelineStages[0].id, // Lead Generation
+        contactId: createdContacts[10].id,
+        productId: createdProducts[2].id,
+        probability: 25,
+        assignedToId: user[0].id,
+        expectedCloseDate: new Date(Date.now() + 75 * 24 * 60 * 60 * 1000), // 75 days
+        tenantId,
+      },
+      {
+        title: '3 Bed Premium - Linda Hernandez',
+        value: '11000000.00',
+        stageId: pipelineStages[3].id, // Negotiation
+        contactId: createdContacts[11].id,
+        productId: createdProducts[3].id,
+        probability: 65,
+        assignedToId: user[0].id,
+        expectedCloseDate: new Date(Date.now() + 25 * 24 * 60 * 60 * 1000), // 25 days
+        tenantId,
+      },
+    ];
+    
+    const createdDeals = await db.insert(deals).values(dealData).returning();
+    console.log(`✓ Created ${createdDeals.length} deals`);
+    
+    // Get final stage count
+    const finalStageCount = await db.select().from(salesStages).where(eq(salesStages.salePipelineId, pipeline[0].id));
     
     console.log('✓ Setup complete!');
     console.log('\n📊 Summary:');
-    console.log(`   Tenant: ${tenant.name} (ID: ${tenantId})`);
-    console.log(`   User: ${user.email}`);
+    console.log(`   Tenant: ${tenant[0].name} (ID: ${tenantId})`);
+    console.log(`   User: ${user[0].email}`);
     console.log(`   Products: ${createdProducts.length}`);
     console.log(`   Companies: ${createdCompanies.length}`);
     console.log(`   Contacts: ${createdContacts.length}`);
-    console.log(`   Sales Stages: ${stages.length}`);
+    console.log(`   Deals: ${createdDeals.length}`);
+    console.log(`   Sales Stages: ${finalStageCount.length}`);
     console.log('\n✅ Demo data seeding complete!');
     console.log('\n🔐 Login Credentials:');
     console.log('   Email: hello@epesicloud.com');
