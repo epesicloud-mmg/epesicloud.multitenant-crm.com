@@ -15,6 +15,8 @@ import meetingTypesRouter from "../../../api/meeting-types.js";
 import cancellationReasonsRouter from "../../../api/cancellation-reasons.js";
 import paymentMethodsRouter from "../../../api/payment-methods.js";
 import paymentItemsRouter from "../../../api/payment-items.js";
+import paymentsRouter from "../../../api/payments.js";
+import commissionsRouter from "../../../api/commissions.js";
 
 const crmRouter = Router();
 
@@ -35,6 +37,8 @@ crmRouter.use("/meeting-types", meetingTypesRouter);
 crmRouter.use("/cancellation-reasons", cancellationReasonsRouter);
 crmRouter.use("/payment-methods", paymentMethodsRouter);
 crmRouter.use("/payment-items", paymentItemsRouter);
+crmRouter.use("/payments", paymentsRouter);
+crmRouter.use("/commissions", commissionsRouter);
 
 // CRM-specific endpoints
 crmRouter.get("/health", (req, res) => {
