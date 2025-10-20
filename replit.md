@@ -28,6 +28,8 @@ Preferred communication style: Simple, everyday language.
 - **Runtime**: Node.js with Express.js server
 - **Language**: TypeScript with ES modules
 - **Authentication**: JWT-based authentication with access and refresh tokens
+  - **Centralized Authentication**: All CRM API routes protected via `authenticateToken` middleware applied at the CRM router level
+  - **Tenant Context**: `req.tenantId` and `req.userId` automatically extracted from JWT token and set on all authenticated requests
 - **Authorization**: Role-based access control (RBAC) with permission middleware
 - **API Structure**: RESTful APIs for CRM entities
 - **Database ORM**: Drizzle ORM for type-safe database operations

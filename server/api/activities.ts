@@ -2,12 +2,8 @@ import express from "express";
 import { storage } from "../storage";
 import { insertActivitySchema } from "@shared/schema";
 import { z } from "zod";
-import { authenticateToken } from "../auth";
 
 const router = express.Router();
-
-// Apply authentication first
-router.use(authenticateToken);
 
 // Middleware for tenant context
 const ensureContext = (req: any, res: any, next: any) => {

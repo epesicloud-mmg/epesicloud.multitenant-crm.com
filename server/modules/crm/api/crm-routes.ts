@@ -1,4 +1,5 @@
 import { Router } from "express";
+import { authenticateToken } from "../../../auth.js";
 import dealsRouter from "../../../api/deals.js";
 import contactsRouter from "../../../api/contacts.js";
 import companiesRouter from "../../../api/companies.js";
@@ -19,6 +20,9 @@ import paymentsRouter from "../../../api/payments.js";
 import commissionsRouter from "../../../api/commissions.js";
 
 const crmRouter = Router();
+
+// Apply authentication to ALL CRM routes
+crmRouter.use(authenticateToken);
 
 // Mount all CRM-related APIs
 crmRouter.use("/deals", dealsRouter);
