@@ -212,18 +212,18 @@ export default function UserManagement() {
     return <Badge variant="default">Active</Badge>;
   };
 
-    <MainLayout>
   if (usersError) {
     return (
-      <div className="flex items-center justify-center h-64">
-        <div className="text-center">
-          <p className="text-muted-foreground">Failed to load user data</p>
-          <Button onClick={() => window.location.reload()} className="mt-2">
-            Retry
-          </Button>
-    </MainLayout>
+      <MainLayout>
+        <div className="flex items-center justify-center h-64">
+          <div className="text-center">
+            <p className="text-muted-foreground">Failed to load user data</p>
+            <Button onClick={() => window.location.reload()} className="mt-2">
+              Retry
+            </Button>
+          </div>
         </div>
-      </div>
+      </MainLayout>
     );
   }
 
@@ -603,4 +603,6 @@ export default function UserManagement() {
         </Card>
       )}
     </div>
+    </MainLayout>
   );
+};
