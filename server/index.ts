@@ -12,16 +12,24 @@ app.use(express.urlencoded({ extended: false }));
 app.use(eventTrackingMiddleware());
 app.use(auditLogger());
 
-// Middleware to set tenantId and userId from headers
+// Middleware to set tenantId and userId from headers OR auth payload
 app.use((req: any, res, next) => {
   const tenantIdHeader = req.headers['x-tenant-id'];
   const userIdHeader = req.headers['x-user-id'];
   
-  if (tenantIdHeader) {
+  // Priority 1: Get from JWT auth payload (set by authenticateToken middleware)
+  if (req.auth?.tenantId) {
+    req.tenantId = req.auth.tenantId;
+  } 
+  // Priority 2: Fall back to headers for backward compatibility
+  else if (tenantIdHeader) {
     req.tenantId = parseInt(tenantIdHeader as string);
   }
   
-  if (userIdHeader) {
+  // Same for userId
+  if (req.auth?.userId) {
+    req.userId = req.auth.userId;
+  } else if (userIdHeader) {
     req.userId = parseInt(userIdHeader as string);
   }
   
