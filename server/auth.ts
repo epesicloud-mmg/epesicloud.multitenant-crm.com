@@ -70,6 +70,11 @@ export async function authenticateToken(
   }
 
   req.auth = payload;
+  
+  // Set tenantId and userId on request for downstream middleware/routes
+  (req as any).tenantId = payload.tenantId;
+  (req as any).userId = payload.userId;
+  
   next();
 }
 
