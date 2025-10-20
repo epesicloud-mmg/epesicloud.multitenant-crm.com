@@ -1,0 +1,380 @@
+## Sales Pipeline
+
+Comfort Urban Residence - Structured process that moves prospects from awareness to purchase—generating leads, qualifying buyers, presenting the project, securing bookings, closing sales, handing over units, and encouraging referrals.
+
+Built to deliver a seamless property journey—from the first contact to closing—using local expertise, data-driven insights, and transparent communication to maximize client satisfaction and value
+
+1. **Lead Generation** : Awareness/ Discovery Stage
+
+Create visibility and attract qualified prospects.
+Digital Marketing
+Offline Marketing
+Referrals
+Partnerships
+
+2.   **Lead Qualification** : Interest Stage
+Prequalification form with budget range, financing type, and desired unit
+
+3.   **Presentation & Engagement** :Consideration Stage
+Site visits
+Vitual Tours
+Proposal acceptance
+
+1. **Booking & Reservation** -Decision Stage
+
+Communication on timelines and construction milestones.
+
+5. **Sale Closure** -Commitment Stage
+
+Legal documentation: sales agreement, KYC, title verification.
+
+6. **Post-Sale Service & Handover** - Fulfillment Stage
+
+Regular construction progress updates
+
+1. **Referral & Reinvestment** -Advocacy Stage
+
+“Refer & Earn” program
+
+Exclusive networking events for investors.
+
+### Target Audience
+
+Young Urban Professionals
+
+Middle-Income Families
+
+Kenyan Diaspora Investors
+
+Buy-to-Let Property Investors
+
+### Lead Source Categories
+
+### 1. **Online Sources**
+
+Digital or internet-based channels used for lead generation.
+
+- Website Inquiry
+- Social Media
+- Google Ads / Paid Campaigns
+- Property Portals
+- Email Campaigns
+- SMS / WhatsApp Campaigns
+- Online Chat / Chatbot
+- Landing Page / Microsite
+- Video / YouTube Ads
+- Influencer / Content Marketing
+
+---
+
+### 2. **Offline Sources**
+
+Physical or direct interaction channels.
+
+- Walk-In
+- Phone Call
+- Event / Expo
+- Hoardings / Outdoor Advertising
+- Direct Mail
+- Cold Calling / Prospecting
+
+---
+
+### 3. **Partner-Based Sources**
+
+Leads generated through external networks or intermediaries.
+
+- Broker / Channel Partner
+- Referral
+- Corporate Tie-ups
+
+---
+
+### 4. **Internal / CRM-Driven Sources**
+
+Leads that originate from within the organization’s own database or re-engagement efforts.
+
+- Re-engaged / Old Database
+- Internal Staff Leads
+
+### **Lead Sources**
+
+- **Website Inquiry**
+    
+    Leads submitted through the company’s official website via contact forms, property inquiry forms, or chat widgets.
+    
+- **Walk-In**
+    
+    Leads generated when a prospective buyer or tenant physically visits the office or a project site.
+    
+- **Phone Call**
+    
+    Leads that come through direct phone calls to sales representatives, call centers, or listed business numbers.
+    
+- **Referral**
+    
+    Leads referred by existing clients, business associates, friends, or internal employees.
+    
+- **Social Media**
+    
+    Leads originating from social platforms such as Facebook, Instagram, LinkedIn, or Twitter via posts, ads, or messages.
+    
+- **Google Ads / Paid Campaigns**
+    
+    Leads generated through paid online marketing campaigns, including Google Ads, PPC, or other search engine ads.
+    
+- **Email Campaigns**
+
+Leads generated through targeted email marketing campaigns or newsletters sent to prospective buyers.
+
+- **Hoardings / Outdoor Advertising**
+
+Leads sourced from outdoor marketing materials such as billboards, banners, or transit advertisements.
+
+- **Cold Calling / Prospecting**
+
+Leads identified and contacted by sales teams proactively through cold calls or outreach efforts.
+
+- **Influencer / Content Marketing**
+
+Leads attracted through influencer collaborations, blogs, or real estate content marketing initiatives.
+
+### Interraction Types
+
+### 1. **Call**
+
+Direct phone communication between sales representative and lead.
+
+Used to discuss inquiries, follow-ups, or property details.
+
+### 2. **Email**
+
+Interaction via email communication, including responses to inquiries, proposal sharing, or follow-up messages.
+
+### 3. **SMS / WhatsApp Message**
+
+Text-based interactions used for quick communication, reminders, or property updates.
+
+### 4. **Site Visit**
+
+Physical meeting at the project or property location where the lead visits to view the property.
+
+### 5. **Walk-In**
+
+Unscheduled in-person visit by a prospective client to the office or project site.
+
+### 6. **Meeting (In-Person / Virtual)**
+
+Scheduled discussions between the lead and sales representative either face-to-face or through video call (Zoom, Teams, etc.).
+
+### 7. **Chat / Online Inquiry**
+
+Interaction through website chat tools, social media DMs, or chatbot engagement.
+
+### 8. **Referral Communication**
+
+Interaction initiated through a referrer or partner introducing the lead.
+
+### 9. **Follow-Up**
+
+Any repeated contact attempt made to maintain engagement or progress a lead through the sales funnel.
+
+### 10. **Document / Proposal Sharing**
+
+Interaction involving the sending or receiving of property brochures, pricing sheets, or booking documents.
+
+### 11. **Feedback / Response**
+
+Collection of lead feedback post-visit, after proposal sharing, or upon closing a conversation.
+
+### 12. **Booking / Transaction Discussion**
+
+Interaction related to booking confirmation, payment terms, or agreement signing.
+
+### 13. **Post-Sales / Customer Support**
+
+Engagement after booking or handover, such as support queries or relationship management.
+
+### Customer types
+
+### 1. **Buyer**
+
+An individual or entity interested in purchasing a property (residential or commercial).
+
+Includes both first-time and repeat buyers.
+
+### 2. **Investor**
+
+A customer primarily interested in property for investment purposes, focusing on ROI, appreciation, or rental income.
+
+### 4. **Seller**
+
+A property owner seeking to list or sell their property through the company’s platform or agents.
+
+### 5. **Broker**
+
+An external agent, broker, or partner who brings potential buyers or tenants in exchange for commission.
+
+### 6. **Corporate Client**
+
+An organization or business entity looking for bulk property purchases, commercial spaces, or corporate housing.
+
+### 7. **Referral Lead**
+
+A customer referred by an existing client, employee, or business associate.
+
+### 8. **Existing Customer**
+
+A person who has already completed one or more transactions (purchase, rent, or investment) with the company.
+
+### 9. **Prospect**
+
+A potential customer who has shown initial interest but has not yet progressed to site visit or booking stages.
+
+### 10. **Cold Lead**
+
+A lead that has become inactive or unresponsive after initial contact but still exists in the CRM for future re-engagement.
+
+### 11. **Repeat Customer**
+
+A previous buyer returning to purchase or invest again, often due to satisfaction with earlier experience.
+
+### 12. **Institutional Investor**
+
+Banks, funds, or investment firms purchasing real estate as part of portfolio diversification.
+
+### Meeting types
+
+### 1. **Initial Meeting / Introduction**
+
+First interaction between the sales representative and the lead to understand requirements, budget, and preferences.
+
+### 2. **Site Visit**
+
+Meeting conducted at the project or property location where the lead physically inspects the property.
+
+### 3. **Office Meeting**
+
+In-person meeting held at the company’s sales office to discuss offerings, pricing, or documentation.
+
+### 4. **Virtual Meeting**
+
+Online meeting conducted through video conferencing tools (Zoom, Google Meet, Teams, etc.) to present project details remotely.
+
+### 5. **Follow-Up Meeting**
+
+A subsequent meeting after initial interaction to address questions, negotiate, or push toward closure.
+
+### 6. **Negotiation Meeting**
+
+Meeting focused on discussing pricing, payment plans, or offer terms before finalizing a deal.
+
+### 7. **Booking / Closure Meeting**
+
+Meeting where booking forms, agreements, or final documentation are reviewed and signed by the customer.
+
+## Meeting Cancelation Reasons
+
+### 1. **Customer Not Available**
+
+The customer was unreachable or did not answer calls/messages to confirm or attend the meeting.
+
+### 2. **Customer Requested Reschedule**
+
+The customer asked to postpone or change the meeting date or time due to personal or work-related reasons.
+
+### 3. **Customer Lost Interest**
+
+The customer is no longer interested in the property or project and declined the meeting.
+
+### 4. **Budget Mismatch**
+
+The customer realized the property is beyond their financial range and canceled before the meeting.
+
+### 5. **Property Not Matching Requirement**
+
+The available options did not meet the customer’s expectations (size, type, amenities, etc.).
+
+### 6. **Lead Not Responding**
+
+Multiple attempts were made to confirm the meeting, but the lead remained unresponsive.
+
+### 7. **Internal Scheduling Conflict**
+
+Sales representative or company staff was unavailable due to overlapping meetings or internal priorities.
+
+### 8. **Health / Emergency**
+
+Customer or sales representative canceled due to illness, emergency, or unforeseen personal reasons.
+
+### 9. **Project Availability Issue**
+
+Meeting canceled because the discussed property or unit was sold, unavailable, or under revision.
+
+### 10. **Duplicate / Wrong Lead**
+
+Meeting canceled after realizing the lead information was incorrect, duplicate, or not genuine.
+
+### 11. **Decision Pending**
+
+Customer postponed or canceled the meeting until further internal or family discussions are completed.
+
+### 12. **Other / Miscellaneous**
+
+Any other valid but uncommon reason not covered in the above categories.
+
+### Payment Method
+
+### 1. **Cash**
+
+Payment made in physical currency, usually for booking amounts or smaller transactions, as per legal limits.
+
+### 2. **Cheque**
+
+Payment made through a personal, company, or post-dated cheque issued to the developer or agency.
+
+### 3. **Bank Transfer**
+
+Electronic transfer of funds directly from the customer’s bank account to the company’s account through standard banking channels.
+
+### 4. **Demand Draft (DD) / Pay Order**
+
+Bank-issued instrument guaranteeing payment to the developer or agency. Common for secure or high-value payments.
+
+### 5. **Loan / Bank Finance**
+
+Payment made through bank disbursement as part of a sanctioned home loan or mortgage process.
+
+### 6. **Installment / Payment Plan**
+
+Scheduled part payments made according to an agreed payment plan or construction-linked plan.
+
+### 7. **Foreign Remittance**
+
+Payment received from overseas clients via international bank transfer or foreign exchange channels.
+
+### Payment Items
+
+### 1. **Booking Amount**
+
+Initial token or advance payment made by the customer to reserve a specific property unit.
+
+### 2. **Down Payment/ Deposit**
+
+Lump sum payment made at the time of agreement, usually a percentage of the total property value before loan disbursement or construction payments.
+
+### 3. **Installment Payment**
+
+Scheduled payments made according to a construction-linked or time-linked payment plan.
+
+### 4.  Full **Amount**
+
+Payment made at the time of executing the Sale Agreement or Builder-Buyer Agreement.
+
+### 5. **Cancellation Charges**
+
+Amount deducted or paid during booking cancellation as per company policy.
+
+### 6. **Other Charges**
+
+Any additional or project-specific payments not covered in standard heads
