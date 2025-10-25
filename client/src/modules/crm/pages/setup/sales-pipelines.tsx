@@ -3,8 +3,6 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Plus, GitBranch, Edit, Trash2, ArrowUp, ArrowDown, Star, Search } from "lucide-react";
-import { Sidebar } from "@/components/layout/sidebar";
-import { TopBar } from "@/components/layout/topbar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -132,7 +130,11 @@ export default function SalesPipelines() {
       })));
     } else {
       setEditingPipeline(null);
-      form.reset();
+      form.reset({
+        title: "",
+        description: "",
+        isDefault: false,
+      });
       setStages([
         { title: "Prospecting", description: "Identifying potential customers", order: 1 },
         { title: "Qualification", description: "Qualifying the lead", order: 2 },
@@ -211,11 +213,7 @@ export default function SalesPipelines() {
   };
 
   return (
-    <div className="flex h-screen bg-slate-50">
-      <Sidebar />
-      <main className="flex-1 overflow-hidden">
-        <TopBar />
-        <div className="p-6">
+    <div className="p-6">
           <div className="flex justify-between items-center mb-6">
             <div>
               <h1 className="text-2xl font-bold text-slate-900">Sales Pipelines</h1>
@@ -331,8 +329,6 @@ export default function SalesPipelines() {
               </Button>
             </div>
           )}
-        </div>
-      </main>
 
       {/* Modal */}
       <Dialog open={isModalOpen} onOpenChange={closeModal}>
