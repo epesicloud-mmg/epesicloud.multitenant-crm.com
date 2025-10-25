@@ -182,7 +182,12 @@ export default function SalesPipelines() {
   };
 
   const onSubmit = (data: SalesPipelineFormData) => {
+    console.log('onSubmit called with data:', data);
+    console.log('Form errors:', form.formState.errors);
+    console.log('Stages:', stages);
+    
     if (stages.length === 0) {
+      console.log('No stages error');
       toast({
         title: "Error",
         description: "Please add at least one stage to the pipeline",
@@ -191,6 +196,7 @@ export default function SalesPipelines() {
       return;
     }
 
+    console.log('Calling mutation...');
     if (editingPipeline) {
       updateMutation.mutate({ pipeline: { ...data, id: editingPipeline.id }, stages });
     } else {
@@ -461,6 +467,11 @@ export default function SalesPipelines() {
                 <Button 
                   type="submit" 
                   disabled={createMutation.isPending || updateMutation.isPending}
+                  onClick={() => {
+                    console.log('Submit button clicked');
+                    console.log('Current form values:', form.getValues());
+                    console.log('Form errors:', form.formState.errors);
+                  }}
                 >
                   {createMutation.isPending || updateMutation.isPending ? "Saving..." : "Save Pipeline"}
                 </Button>
