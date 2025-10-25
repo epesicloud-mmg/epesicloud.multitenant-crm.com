@@ -55,6 +55,11 @@ export function PermissionsProvider({ children }: PermissionsProviderProps) {
   }, [currentUser]);
 
   const hasPermission = (permission: string): boolean => {
+    // Super admins have all permissions
+    const userRole = localStorage.getItem('userRole') || '';
+    if (userRole === 'super admin' || userRole === 'admin') {
+      return true;
+    }
     return permissions.includes(permission);
   };
 
