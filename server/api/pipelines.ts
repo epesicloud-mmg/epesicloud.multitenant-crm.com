@@ -147,11 +147,8 @@ router.get("/:id/stages", async (req: any, res) => {
       return res.status(400).json({ error: "Invalid pipeline ID" });
     }
     
-    // For now, get deal stages (legacy method)
-    // TODO: Implement getSalesStages in storage
-    const stages = await storage.getDealStages(req.tenantId);
-    const filtered = stages.filter((s: any) => s.salePipelineId === pipelineId);
-    res.json(filtered);
+    const stages = await storage.getSalesStages(req.tenantId, pipelineId);
+    res.json(stages);
   } catch (error) {
     console.error("Error fetching pipeline stages:", error);
     res.status(500).json({ error: "Failed to fetch pipeline stages" });
