@@ -754,8 +754,9 @@ export const insertCompanySchema = createInsertSchema(companies).omit({ id: true
 export const insertContactSchema = createInsertSchema(contacts).omit({ id: true, createdAt: true, updatedAt: true });
 export const insertLeadSchema = createInsertSchema(leads).omit({ id: true, createdAt: true, updatedAt: true });
 export const insertDealSchema = createInsertSchema(deals).omit({ id: true, createdAt: true, updatedAt: true }).extend({
-  value: z.union([z.string(), z.number()]).transform(val => 
-    typeof val === 'number' ? val.toString() : val
+  value: z.preprocess(
+    (val) => typeof val === 'number' ? val.toString() : val,
+    z.string()
   ),
 });
 export const insertActivitySchema = createInsertSchema(activities).omit({ id: true, createdAt: true, updatedAt: true });
@@ -767,19 +768,22 @@ export const insertSalesStageSchema = createInsertSchema(salesStages).omit({ id:
 export const insertProductTypeSchema = createInsertSchema(productTypes).omit({ id: true, createdAt: true, tenantId: true });
 export const insertProductCategorySchema = createInsertSchema(productCategories).omit({ id: true, createdAt: true, tenantId: true });
 export const insertProductSchema = createInsertSchema(products).omit({ id: true, createdAt: true, updatedAt: true, tenantId: true }).extend({
-  salePrice: z.union([z.string(), z.number(), z.null()]).transform(val => 
-    val === null ? null : (typeof val === 'number' ? val.toString() : val)
-  ).nullable().optional(),
+  salePrice: z.preprocess(
+    (val) => val === null || val === undefined ? val : (typeof val === 'number' ? val.toString() : val),
+    z.string().nullable().optional()
+  ),
 });
 export const insertProductVariationSchema = createInsertSchema(productVariations).omit({ id: true, createdAt: true, updatedAt: true, tenantId: true }).extend({
-  price: z.union([z.string(), z.number(), z.null()]).transform(val => 
-    val === null ? null : (typeof val === 'number' ? val.toString() : val)
-  ).nullable().optional(),
+  price: z.preprocess(
+    (val) => val === null || val === undefined ? val : (typeof val === 'number' ? val.toString() : val),
+    z.string().nullable().optional()
+  ),
 });
 export const insertProductOfferSchema = createInsertSchema(productOffers).omit({ id: true, createdAt: true, updatedAt: true, tenantId: true }).extend({
-  discountValue: z.union([z.string(), z.number(), z.null()]).transform(val => 
-    val === null ? null : (typeof val === 'number' ? val.toString() : val)
-  ).nullable().optional(),
+  discountValue: z.preprocess(
+    (val) => val === null || val === undefined ? val : (typeof val === 'number' ? val.toString() : val),
+    z.string().nullable().optional()
+  ),
 });
 export const insertCustomerSchema = createInsertSchema(customers).omit({ id: true, createdAt: true, updatedAt: true, tenantId: true });
 export const insertEventSchema = createInsertSchema(events).omit({ id: true, createdAt: true, tenantId: true });
@@ -789,43 +793,53 @@ export const insertMeetingCancellationReasonSchema = createInsertSchema(meetingC
 export const insertPaymentMethodSchema = createInsertSchema(paymentMethods).omit({ id: true, createdAt: true, updatedAt: true, tenantId: true });
 export const insertPaymentItemSchema = createInsertSchema(paymentItems).omit({ id: true, createdAt: true, updatedAt: true, tenantId: true });
 export const insertPaymentPlanSchema = createInsertSchema(paymentPlans).omit({ id: true, createdAt: true, updatedAt: true, tenantId: true }).extend({
-  totalAmount: z.union([z.string(), z.number()]).transform(val => 
-    typeof val === 'number' ? val.toString() : val
+  totalAmount: z.preprocess(
+    (val) => typeof val === 'number' ? val.toString() : val,
+    z.string()
   ),
-  paidAmount: z.union([z.string(), z.number()]).transform(val => 
-    typeof val === 'number' ? val.toString() : val
-  ).optional(),
-  balanceAmount: z.union([z.string(), z.number()]).transform(val => 
-    typeof val === 'number' ? val.toString() : val
+  paidAmount: z.preprocess(
+    (val) => typeof val === 'number' ? val.toString() : val,
+    z.string().optional()
   ),
-  installmentAmount: z.union([z.string(), z.number()]).transform(val => 
-    typeof val === 'number' ? val.toString() : val
+  balanceAmount: z.preprocess(
+    (val) => typeof val === 'number' ? val.toString() : val,
+    z.string()
+  ),
+  installmentAmount: z.preprocess(
+    (val) => typeof val === 'number' ? val.toString() : val,
+    z.string()
   ),
 });
 export const insertPaymentSchema = createInsertSchema(payments).omit({ id: true, createdAt: true, updatedAt: true, tenantId: true }).extend({
-  amount: z.union([z.string(), z.number()]).transform(val => 
-    typeof val === 'number' ? val.toString() : val
+  amount: z.preprocess(
+    (val) => typeof val === 'number' ? val.toString() : val,
+    z.string()
   ),
 });
 export const insertCommissionStatusSchema = createInsertSchema(commissionStatuses).omit({ id: true, createdAt: true, updatedAt: true, tenantId: true });
 export const insertCommissionSchema = createInsertSchema(commissions).omit({ id: true, createdAt: true, updatedAt: true, tenantId: true }).extend({
-  totalAmount: z.union([z.string(), z.number()]).transform(val => 
-    typeof val === 'number' ? val.toString() : val
+  totalAmount: z.preprocess(
+    (val) => typeof val === 'number' ? val.toString() : val,
+    z.string()
   ),
-  commissionRate: z.union([z.string(), z.number(), z.null()]).transform(val => 
-    val === null ? null : (typeof val === 'number' ? val.toString() : val)
-  ).nullable().optional(),
-  baseAmount: z.union([z.string(), z.number(), z.null()]).transform(val => 
-    val === null ? null : (typeof val === 'number' ? val.toString() : val)
-  ).nullable().optional(),
+  commissionRate: z.preprocess(
+    (val) => val === null || val === undefined ? val : (typeof val === 'number' ? val.toString() : val),
+    z.string().nullable().optional()
+  ),
+  baseAmount: z.preprocess(
+    (val) => val === null || val === undefined ? val : (typeof val === 'number' ? val.toString() : val),
+    z.string().nullable().optional()
+  ),
 });
 export const insertCommissionItemSchema = createInsertSchema(commissionItems).omit({ id: true, createdAt: true, updatedAt: true, tenantId: true }).extend({
-  amount: z.union([z.string(), z.number()]).transform(val => 
-    typeof val === 'number' ? val.toString() : val
+  amount: z.preprocess(
+    (val) => typeof val === 'number' ? val.toString() : val,
+    z.string()
   ),
-  percentage: z.union([z.string(), z.number(), z.null()]).transform(val => 
-    val === null ? null : (typeof val === 'number' ? val.toString() : val)
-  ).nullable().optional(),
+  percentage: z.preprocess(
+    (val) => val === null || val === undefined ? val : (typeof val === 'number' ? val.toString() : val),
+    z.string().nullable().optional()
+  ),
 });
 
 // ====================
