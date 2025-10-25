@@ -753,7 +753,11 @@ export const insertRefreshTokenSchema = createInsertSchema(refreshTokens).omit({
 export const insertCompanySchema = createInsertSchema(companies).omit({ id: true, createdAt: true, updatedAt: true });
 export const insertContactSchema = createInsertSchema(contacts).omit({ id: true, createdAt: true, updatedAt: true });
 export const insertLeadSchema = createInsertSchema(leads).omit({ id: true, createdAt: true, updatedAt: true });
-export const insertDealSchema = createInsertSchema(deals).omit({ id: true, createdAt: true, updatedAt: true });
+export const insertDealSchema = createInsertSchema(deals).omit({ id: true, createdAt: true, updatedAt: true }).extend({
+  value: z.union([z.string(), z.number()]).transform(val => 
+    typeof val === 'number' ? val.toString() : val
+  ),
+});
 export const insertActivitySchema = createInsertSchema(activities).omit({ id: true, createdAt: true, updatedAt: true });
 export const insertLeadSourceSchema = createInsertSchema(leadSources).omit({ id: true, createdAt: true, updatedAt: true, tenantId: true });
 export const insertActivityTypeSchema = createInsertSchema(activityTypes).omit({ id: true, createdAt: true, tenantId: true });
@@ -762,9 +766,21 @@ export const insertSalesPipelineSchema = createInsertSchema(salesPipelines).omit
 export const insertSalesStageSchema = createInsertSchema(salesStages).omit({ id: true, createdAt: true, updatedAt: true, tenantId: true });
 export const insertProductTypeSchema = createInsertSchema(productTypes).omit({ id: true, createdAt: true, tenantId: true });
 export const insertProductCategorySchema = createInsertSchema(productCategories).omit({ id: true, createdAt: true, tenantId: true });
-export const insertProductSchema = createInsertSchema(products).omit({ id: true, createdAt: true, updatedAt: true, tenantId: true });
-export const insertProductVariationSchema = createInsertSchema(productVariations).omit({ id: true, createdAt: true, updatedAt: true, tenantId: true });
-export const insertProductOfferSchema = createInsertSchema(productOffers).omit({ id: true, createdAt: true, updatedAt: true, tenantId: true });
+export const insertProductSchema = createInsertSchema(products).omit({ id: true, createdAt: true, updatedAt: true, tenantId: true }).extend({
+  salePrice: z.union([z.string(), z.number(), z.null()]).transform(val => 
+    val === null ? null : (typeof val === 'number' ? val.toString() : val)
+  ).nullable().optional(),
+});
+export const insertProductVariationSchema = createInsertSchema(productVariations).omit({ id: true, createdAt: true, updatedAt: true, tenantId: true }).extend({
+  price: z.union([z.string(), z.number(), z.null()]).transform(val => 
+    val === null ? null : (typeof val === 'number' ? val.toString() : val)
+  ).nullable().optional(),
+});
+export const insertProductOfferSchema = createInsertSchema(productOffers).omit({ id: true, createdAt: true, updatedAt: true, tenantId: true }).extend({
+  discountValue: z.union([z.string(), z.number(), z.null()]).transform(val => 
+    val === null ? null : (typeof val === 'number' ? val.toString() : val)
+  ).nullable().optional(),
+});
 export const insertCustomerSchema = createInsertSchema(customers).omit({ id: true, createdAt: true, updatedAt: true, tenantId: true });
 export const insertEventSchema = createInsertSchema(events).omit({ id: true, createdAt: true, tenantId: true });
 export const insertCustomerTypeSchema = createInsertSchema(customerTypes).omit({ id: true, createdAt: true, updatedAt: true, tenantId: true });
@@ -772,11 +788,45 @@ export const insertMeetingTypeSchema = createInsertSchema(meetingTypes).omit({ i
 export const insertMeetingCancellationReasonSchema = createInsertSchema(meetingCancellationReasons).omit({ id: true, createdAt: true, updatedAt: true, tenantId: true });
 export const insertPaymentMethodSchema = createInsertSchema(paymentMethods).omit({ id: true, createdAt: true, updatedAt: true, tenantId: true });
 export const insertPaymentItemSchema = createInsertSchema(paymentItems).omit({ id: true, createdAt: true, updatedAt: true, tenantId: true });
-export const insertPaymentPlanSchema = createInsertSchema(paymentPlans).omit({ id: true, createdAt: true, updatedAt: true, tenantId: true });
-export const insertPaymentSchema = createInsertSchema(payments).omit({ id: true, createdAt: true, updatedAt: true, tenantId: true });
+export const insertPaymentPlanSchema = createInsertSchema(paymentPlans).omit({ id: true, createdAt: true, updatedAt: true, tenantId: true }).extend({
+  totalAmount: z.union([z.string(), z.number()]).transform(val => 
+    typeof val === 'number' ? val.toString() : val
+  ),
+  paidAmount: z.union([z.string(), z.number()]).transform(val => 
+    typeof val === 'number' ? val.toString() : val
+  ).optional(),
+  balanceAmount: z.union([z.string(), z.number()]).transform(val => 
+    typeof val === 'number' ? val.toString() : val
+  ),
+  installmentAmount: z.union([z.string(), z.number()]).transform(val => 
+    typeof val === 'number' ? val.toString() : val
+  ),
+});
+export const insertPaymentSchema = createInsertSchema(payments).omit({ id: true, createdAt: true, updatedAt: true, tenantId: true }).extend({
+  amount: z.union([z.string(), z.number()]).transform(val => 
+    typeof val === 'number' ? val.toString() : val
+  ),
+});
 export const insertCommissionStatusSchema = createInsertSchema(commissionStatuses).omit({ id: true, createdAt: true, updatedAt: true, tenantId: true });
-export const insertCommissionSchema = createInsertSchema(commissions).omit({ id: true, createdAt: true, updatedAt: true, tenantId: true });
-export const insertCommissionItemSchema = createInsertSchema(commissionItems).omit({ id: true, createdAt: true, updatedAt: true, tenantId: true });
+export const insertCommissionSchema = createInsertSchema(commissions).omit({ id: true, createdAt: true, updatedAt: true, tenantId: true }).extend({
+  totalAmount: z.union([z.string(), z.number()]).transform(val => 
+    typeof val === 'number' ? val.toString() : val
+  ),
+  commissionRate: z.union([z.string(), z.number(), z.null()]).transform(val => 
+    val === null ? null : (typeof val === 'number' ? val.toString() : val)
+  ).nullable().optional(),
+  baseAmount: z.union([z.string(), z.number(), z.null()]).transform(val => 
+    val === null ? null : (typeof val === 'number' ? val.toString() : val)
+  ).nullable().optional(),
+});
+export const insertCommissionItemSchema = createInsertSchema(commissionItems).omit({ id: true, createdAt: true, updatedAt: true, tenantId: true }).extend({
+  amount: z.union([z.string(), z.number()]).transform(val => 
+    typeof val === 'number' ? val.toString() : val
+  ),
+  percentage: z.union([z.string(), z.number(), z.null()]).transform(val => 
+    val === null ? null : (typeof val === 'number' ? val.toString() : val)
+  ).nullable().optional(),
+});
 
 // ====================
 // SELECT TYPES
