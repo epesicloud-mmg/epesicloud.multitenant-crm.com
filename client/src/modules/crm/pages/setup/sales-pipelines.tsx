@@ -393,6 +393,7 @@ export default function SalesPipelines() {
                         placeholder="Brief description of this sales pipeline..."
                         className="min-h-[80px]"
                         {...field}
+                        value={field.value || ""}
                       />
                     </FormControl>
                     <FormMessage />
@@ -442,7 +443,7 @@ export default function SalesPipelines() {
                         />
                         <Input
                           placeholder="Stage description"
-                          value={stage.description}
+                          value={stage.description || ""}
                           onChange={(e) => updateStage(index, 'description', e.target.value)}
                         />
                       </div>
