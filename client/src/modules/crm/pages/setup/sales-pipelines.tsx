@@ -1,88 +1,93 @@
 import { useState } from "react";
-import { useQuery, useMutation } from "@tanstack/react-query";
-import { queryClient, apiRequest } from "@/lib/queryClient";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { Plus, GitBranch, Edit, Trash2, ArrowUp, ArrowDown, Star, Search } from "lucide-react";
+import { Sidebar } from "@/components/layout/sidebar";
+import { TopBar } from "@/components/layout/topbar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Badge } from "@/components/ui/badge";
-import { Plus, Edit2, Trash2, GripVertical, X } from "lucide-react";
-import { useToast } from "@/hooks/use-toast";
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Switch } from "@/components/ui/switch";
-import { Label } from "@/components/ui/label";
+import { Badge } from "@/components/ui/badge";
+import { useToast } from "@/hooks/use-toast";
+import { apiRequest } from "@/lib/queryClient";
+import { insertSalesPipelineSchema, insertSalesStageSchema, type SalesPipeline, type SalesStage } from "@shared/schema";
+import { z } from "zod";
 
-interface Stage {
-  id?: number;
-  title: string;
-  description: string;
-  order: number;
+type SalesPipelineFormData = z.infer<typeof insertSalesPipelineSchema>;
+type SalesStageFormData = z.infer<typeof insertSalesStageSchema>;
+
+interface SalesPipelineWithStages extends SalesPipeline {
+  stages: SalesStage[];
 }
 
-interface Pipeline {
-  id?: number;
-  title: string;
-  description: string;
-  offerDetails: string;
-  valueProposition: string;
-  isDefault: boolean;
-  stages: Stage[];
-}
-
-export default function SalesPipelinesSetup() {
-  const { toast } = useToast();
+export default function SalesPipelines() {
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [editingPipeline, setEditingPipeline] = useState<Pipeline | null>(null);
-  const [formData, setFormData] = useState<Pipeline>({
-    title: "",
-    description: "",
-    offerDetails: "",
-    valueProposition: "",
-    isDefault: false,
-    stages: []
-  });
+  const [editingPipeline, setEditingPipeline] = useState<SalesPipelineWithStages | null>(null);
+  const [stages, setStages] = useState<Omit<SalesStageFormData, 'salePipelineId' | 'tenantId'>[]>([]);
+  const [searchTerm, setSearchTerm] = useState("");
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
 
-  const { data: pipelines = [], isLoading } = useQuery({
+  const { data: pipelines = [], isLoading } = useQuery<SalesPipelineWithStages[]>({
     queryKey: ["/api/pipelines"],
   });
 
+  const form = useForm<SalesPipelineFormData>({
+    resolver: zodResolver(insertSalesPipelineSchema),
+    defaultValues: {
+      title: "",
+      description: "",
+      isDefault: false,
+    },
+  });
+
   const createMutation = useMutation({
-    mutationFn: async (data: any) => {
-      return apiRequest("/api/pipelines", "POST", data);
+    mutationFn: async (data: { pipeline: SalesPipelineFormData; stages: Omit<SalesStageFormData, 'salePipelineId' | 'tenantId'>[] }) => {
+      return apiRequest("POST", "/api/pipelines", data);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/pipelines"] });
+      setIsModalOpen(false);
+      form.reset();
+      setStages([]);
       toast({
         title: "Success",
-        description: "Pipeline created successfully",
+        description: "Sales pipeline created successfully",
       });
-      closeModal();
     },
     onError: () => {
       toast({
         title: "Error",
-        description: "Failed to create pipeline",
+        description: "Failed to create sales pipeline",
         variant: "destructive",
       });
     },
   });
 
   const updateMutation = useMutation({
-    mutationFn: async ({ id, data }: { id: number; data: any }) => {
-      return apiRequest(`/api/pipelines/${id}`, "PUT", data);
+    mutationFn: async (data: { pipeline: SalesPipelineFormData & { id: number }; stages: (SalesStageFormData | Omit<SalesStageFormData, 'salePipelineId' | 'tenantId'>)[] }) => {
+      return apiRequest("PATCH", `/api/pipelines/${data.pipeline.id}`, data);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/pipelines"] });
+      setIsModalOpen(false);
+      setEditingPipeline(null);
+      form.reset();
+      setStages([]);
       toast({
         title: "Success",
-        description: "Pipeline updated successfully",
+        description: "Sales pipeline updated successfully",
       });
-      closeModal();
     },
     onError: () => {
       toast({
         title: "Error",
-        description: "Failed to update pipeline",
+        description: "Failed to update sales pipeline",
         variant: "destructive",
       });
     },
@@ -90,381 +95,374 @@ export default function SalesPipelinesSetup() {
 
   const deleteMutation = useMutation({
     mutationFn: async (id: number) => {
-      return apiRequest(`/api/pipelines/${id}`, "DELETE");
+      return apiRequest("DELETE", `/api/pipelines/${id}`);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/pipelines"] });
       toast({
         title: "Success",
-        description: "Pipeline deleted successfully",
+        description: "Sales pipeline deleted successfully",
       });
     },
     onError: () => {
       toast({
         title: "Error",
-        description: "Failed to delete pipeline",
+        description: "Failed to delete sales pipeline",
         variant: "destructive",
       });
     },
   });
 
-  const openCreateModal = () => {
-    setEditingPipeline(null);
-    setFormData({
-      title: "",
-      description: "",
-      offerDetails: "",
-      valueProposition: "",
-      isDefault: false,
-      stages: [
-        { title: "Closed Lost", description: "Closed Lost - Lost Deal", order: 0 },
-        { title: "Closed Won", description: "Closed Won", order: 1 },
-        { title: "Negotiation", description: "Negotiate & Pending Decision", order: 2 },
-        { title: "Initial Presentation of Solution", description: "Product Demonstrations and Presentations", order: 3 },
-        { title: "Qualification - Opportunity Assessed", description: "Opportunity Assessed After Appointment", order: 4 },
-        { title: "Initial Contact - Book Appointment", description: "Initial Contact Made - Call, Email or Walk-ins", order: 5 },
-        { title: "Research/Discovery", description: "Prospect Identification", order: 6 },
-      ]
-    });
-    setIsModalOpen(true);
-  };
-
-  const openEditModal = (pipeline: any) => {
-    setEditingPipeline(pipeline);
-    setFormData({
-      title: pipeline.title || "",
-      description: pipeline.description || "",
-      offerDetails: pipeline.offerDetails || "",
-      valueProposition: pipeline.valueProposition || "",
-      isDefault: pipeline.isDefault || false,
-      stages: pipeline.stages || []
-    });
+  const openModal = (pipeline?: SalesPipelineWithStages) => {
+    if (pipeline) {
+      setEditingPipeline(pipeline);
+      form.reset({
+        title: pipeline.title,
+        description: pipeline.description || "",
+        isDefault: pipeline.isDefault,
+      });
+      setStages(pipeline.stages.map(stage => ({
+        title: stage.title,
+        description: stage.description || "",
+        order: stage.order,
+      })));
+    } else {
+      setEditingPipeline(null);
+      form.reset();
+      setStages([
+        { title: "Prospecting", description: "Identifying potential customers", order: 1 },
+        { title: "Qualification", description: "Qualifying the lead", order: 2 },
+        { title: "Proposal", description: "Preparing and presenting proposal", order: 3 },
+        { title: "Negotiation", description: "Negotiating terms and conditions", order: 4 },
+        { title: "Closed Won", description: "Successfully closed deal", order: 5 },
+        { title: "Closed Lost", description: "Deal was lost", order: 6 },
+      ]);
+    }
     setIsModalOpen(true);
   };
 
   const closeModal = () => {
     setIsModalOpen(false);
     setEditingPipeline(null);
-    setFormData({
+    form.reset();
+    setStages([]);
+  };
+
+  const addStage = () => {
+    setStages([...stages, {
       title: "",
       description: "",
-      offerDetails: "",
-      valueProposition: "",
-      isDefault: false,
-      stages: []
-    });
+      order: stages.length + 1,
+    }]);
   };
 
-  const handleAddStage = () => {
-    setFormData({
-      ...formData,
-      stages: [
-        ...formData.stages,
-        { title: "", description: "", order: formData.stages.length }
-      ]
-    });
+  const removeStage = (index: number) => {
+    const newStages = stages.filter((_, i) => i !== index);
+    setStages(newStages.map((stage, i) => ({ ...stage, order: i + 1 })));
   };
 
-  const handleRemoveStage = (index: number) => {
-    const newStages = formData.stages.filter((_, i) => i !== index);
-    const reorderedStages = newStages.map((stage, i) => ({ ...stage, order: i }));
-    setFormData({ ...formData, stages: reorderedStages });
+  const moveStage = (index: number, direction: 'up' | 'down') => {
+    const newStages = [...stages];
+    const newIndex = direction === 'up' ? index - 1 : index + 1;
+    
+    if (newIndex >= 0 && newIndex < stages.length) {
+      [newStages[index], newStages[newIndex]] = [newStages[newIndex], newStages[index]];
+      setStages(newStages.map((stage, i) => ({ ...stage, order: i + 1 })));
+    }
   };
 
-  const handleStageChange = (index: number, field: keyof Stage, value: string) => {
-    const newStages = [...formData.stages];
+  const updateStage = (index: number, field: keyof typeof stages[0], value: string) => {
+    const newStages = [...stages];
     newStages[index] = { ...newStages[index], [field]: value };
-    setFormData({ ...formData, stages: newStages });
+    setStages(newStages);
   };
 
-  const handleSave = () => {
-    if (!formData.title.trim()) {
+  const onSubmit = (data: SalesPipelineFormData) => {
+    if (stages.length === 0) {
       toast({
-        title: "Validation Error",
-        description: "Pipeline name is required",
+        title: "Error",
+        description: "Please add at least one stage to the pipeline",
         variant: "destructive",
       });
       return;
     }
 
-    const payload = {
-      title: formData.title,
-      description: formData.description,
-      offerDetails: formData.offerDetails,
-      valueProposition: formData.valueProposition,
-      isDefault: formData.isDefault,
-      stages: formData.stages.filter(s => s.title.trim() !== "")
-    };
-
-    if (editingPipeline?.id) {
-      updateMutation.mutate({ id: editingPipeline.id, data: payload });
+    if (editingPipeline) {
+      updateMutation.mutate({ pipeline: { ...data, id: editingPipeline.id }, stages });
     } else {
-      createMutation.mutate(payload);
+      createMutation.mutate({ pipeline: data, stages });
     }
   };
 
   const handleDelete = (id: number) => {
-    if (confirm("Are you sure you want to delete this pipeline?")) {
+    if (confirm("Are you sure you want to delete this sales pipeline? This will affect all associated products.")) {
       deleteMutation.mutate(id);
     }
   };
 
   return (
-    <div className="p-6">
-      <div className="flex justify-between items-center mb-6">
-        <div>
-          <h1 className="text-2xl font-bold text-slate-900" data-testid="text-page-title">
-            Sales Pipeline Setup
-          </h1>
-          <p className="text-sm text-slate-600 mt-1">
-            Manage your sales pipelines and stages
-          </p>
-        </div>
-        <Button 
-          onClick={openCreateModal}
-          className="bg-primary hover:bg-primary/90"
-          data-testid="button-create-pipeline"
-        >
-          <Plus className="w-4 h-4 mr-2" />
-          Create Pipeline
-        </Button>
-      </div>
+    <div className="flex h-screen bg-slate-50">
+      <Sidebar />
+      <main className="flex-1 overflow-hidden">
+        <TopBar />
+        <div className="p-6">
+          <div className="flex justify-between items-center mb-6">
+            <div>
+              <h1 className="text-2xl font-bold text-slate-900">Sales Pipelines</h1>
+              <p className="text-slate-600">Manage sales pipelines and their stages</p>
+            </div>
+            <Button onClick={() => openModal()} className="flex items-center space-x-2">
+              <Plus className="w-4 h-4" />
+              <span>Add Pipeline</span>
+            </Button>
+          </div>
 
-      {isLoading ? (
-        <div className="flex items-center justify-center h-64">
-          <div className="text-slate-600">Loading pipelines...</div>
-        </div>
-      ) : pipelines.length === 0 ? (
-        <div className="text-center py-12 bg-white rounded-lg border border-slate-200">
-          <p className="text-slate-600 mb-4">No pipelines found</p>
-          <Button onClick={openCreateModal} variant="outline" data-testid="button-create-first-pipeline">
-            <Plus className="w-4 h-4 mr-2" />
-            Create Your First Pipeline
-          </Button>
-        </div>
-      ) : (
-        <div className="bg-white rounded-lg border border-slate-200 overflow-hidden">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Pipeline Name</TableHead>
-                <TableHead>Description</TableHead>
-                <TableHead>Stages</TableHead>
-                <TableHead>Default</TableHead>
-                <TableHead className="text-right">Actions</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {pipelines.map((pipeline: any) => (
-                <TableRow key={pipeline.id} data-testid={`row-pipeline-${pipeline.id}`}>
-                  <TableCell className="font-medium">{pipeline.title}</TableCell>
-                  <TableCell className="text-slate-600">
-                    {pipeline.description || "No description"}
-                  </TableCell>
-                  <TableCell>
-                    <Badge variant="secondary">
-                      {pipeline.stages?.length || 0} stages
-                    </Badge>
-                  </TableCell>
-                  <TableCell>
-                    {pipeline.isDefault && (
-                      <Badge className="bg-green-100 text-green-800 hover:bg-green-100">
-                        Default
-                      </Badge>
-                    )}
-                  </TableCell>
-                  <TableCell className="text-right">
-                    <div className="flex justify-end gap-2">
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => openEditModal(pipeline)}
-                        data-testid={`button-edit-pipeline-${pipeline.id}`}
-                      >
-                        <Edit2 className="w-4 h-4" />
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => handleDelete(pipeline.id)}
-                        className="text-red-600 hover:text-red-700 hover:bg-red-50"
-                        data-testid={`button-delete-pipeline-${pipeline.id}`}
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </Button>
+          {/* Search */}
+          <div className="relative mb-6">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400 w-4 h-4" />
+            <Input
+              placeholder="Search sales pipelines..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="pl-10"
+            />
+          </div>
+
+          {isLoading ? (
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              {[...Array(4)].map((_, i) => (
+                <Card key={i} className="animate-pulse">
+                  <CardContent className="p-6">
+                    <div className="h-4 bg-slate-200 rounded w-3/4 mb-2"></div>
+                    <div className="h-3 bg-slate-200 rounded w-full mb-4"></div>
+                    <div className="space-y-2">
+                      {[...Array(3)].map((_, j) => (
+                        <div key={j} className="h-3 bg-slate-200 rounded w-1/2"></div>
+                      ))}
                     </div>
-                  </TableCell>
-                </TableRow>
+                  </CardContent>
+                </Card>
               ))}
-            </TableBody>
-          </Table>
-        </div>
-      )}
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              {pipelines.filter(pipeline => 
+                pipeline.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                pipeline.description?.toLowerCase().includes(searchTerm.toLowerCase())
+              ).map((pipeline) => (
+                <Card key={pipeline.id} className="hover:shadow-md transition-shadow">
+                  <CardHeader className="pb-4">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center space-x-3">
+                        <div className="p-2 bg-blue-100 rounded-lg">
+                          <GitBranch className="w-5 h-5 text-blue-600" />
+                        </div>
+                        <div>
+                          <CardTitle className="text-lg flex items-center space-x-2">
+                            <span>{pipeline.title}</span>
+                            {pipeline.isDefault && (
+                              <Badge variant="secondary" className="flex items-center space-x-1">
+                                <Star className="w-3 h-3" />
+                                <span>Default</span>
+                              </Badge>
+                            )}
+                          </CardTitle>
+                        </div>
+                      </div>
+                      <div className="flex space-x-1">
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => openModal(pipeline)}
+                        >
+                          <Edit className="w-4 h-4" />
+                        </Button>
+                        {!pipeline.isDefault && (
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => handleDelete(pipeline.id)}
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </Button>
+                        )}
+                      </div>
+                    </div>
+                  </CardHeader>
+                  <CardContent className="pt-0">
+                    <p className="text-slate-600 mb-4">{pipeline.description}</p>
+                    <div className="space-y-2">
+                      <h4 className="font-medium text-slate-900">Stages ({pipeline.stages.length}):</h4>
+                      <div className="flex flex-wrap gap-2">
+                        {pipeline.stages.map((stage) => (
+                          <Badge key={stage.id} variant="outline" className="text-xs">
+                            {stage.order}. {stage.title}
+                          </Badge>
+                        ))}
+                      </div>
+                    </div>
+                    <p className="text-xs text-slate-400 mt-4">
+                      Created: {new Date(pipeline.createdAt).toLocaleDateString()}
+                    </p>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          )}
 
-      <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
+          {pipelines.length === 0 && !isLoading && (
+            <div className="text-center py-12">
+              <GitBranch className="w-12 h-12 text-slate-400 mx-auto mb-4" />
+              <h3 className="text-lg font-medium text-slate-900 mb-2">No sales pipelines found</h3>
+              <p className="text-slate-500 mb-4">Get started by creating your first sales pipeline</p>
+              <Button onClick={() => openModal()}>
+                <Plus className="w-4 h-4 mr-2" />
+                Add Pipeline
+              </Button>
+            </div>
+          )}
+        </div>
+      </main>
+
+      {/* Modal */}
+      <Dialog open={isModalOpen} onOpenChange={closeModal}>
         <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>
-              {editingPipeline ? "Edit Pipeline" : "Create New Pipeline"}
+              {editingPipeline ? "Edit Sales Pipeline" : "Add New Sales Pipeline"}
             </DialogTitle>
           </DialogHeader>
-
-          <div className="space-y-6 py-4">
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="pipeline-name">Pipeline Name *</Label>
-                <Input
-                  id="pipeline-name"
-                  placeholder="EpesiRealty Sales Pipeline"
-                  value={formData.title}
-                  onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-                  data-testid="input-pipeline-name"
+          <Form {...form}>
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+              {/* Pipeline Details */}
+              <div className="grid grid-cols-2 gap-4">
+                <FormField
+                  control={form.control}
+                  name="title"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Pipeline Title</FormLabel>
+                      <FormControl>
+                        <Input placeholder="e.g., General Pipeline" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                
+                <FormField
+                  control={form.control}
+                  name="isDefault"
+                  render={({ field }) => (
+                    <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm">
+                      <div className="space-y-0.5">
+                        <FormLabel>Default Pipeline</FormLabel>
+                        <div className="text-sm text-muted-foreground">
+                          Use as default for new products
+                        </div>
+                      </div>
+                      <FormControl>
+                        <Switch
+                          checked={field.value}
+                          onCheckedChange={field.onChange}
+                        />
+                      </FormControl>
+                    </FormItem>
+                  )}
                 />
               </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="description">Description *</Label>
-                <Input
-                  id="description"
-                  placeholder="EpesiRealty Sales Pipeline"
-                  value={formData.description}
-                  onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                  data-testid="input-pipeline-description"
-                />
-              </div>
-            </div>
-
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="offer-details">Offer Details *</Label>
-                <Textarea
-                  id="offer-details"
-                  placeholder="Enter Offer Details"
-                  value={formData.offerDetails}
-                  onChange={(e) => setFormData({ ...formData, offerDetails: e.target.value })}
-                  rows={3}
-                  data-testid="input-offer-details"
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="value-proposition">Value Proposition</Label>
-                <Textarea
-                  id="value-proposition"
-                  placeholder="Enter Value Proposition"
-                  value={formData.valueProposition}
-                  onChange={(e) => setFormData({ ...formData, valueProposition: e.target.value })}
-                  rows={3}
-                  data-testid="input-value-proposition"
-                />
-              </div>
-            </div>
-
-            <div className="flex items-center space-x-2">
-              <Switch
-                id="is-default"
-                checked={formData.isDefault}
-                onCheckedChange={(checked) => setFormData({ ...formData, isDefault: checked })}
-                data-testid="switch-is-default"
+              <FormField
+                control={form.control}
+                name="description"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Description</FormLabel>
+                    <FormControl>
+                      <Textarea 
+                        placeholder="Brief description of this sales pipeline..."
+                        className="min-h-[80px]"
+                        {...field}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
               />
-              <Label htmlFor="is-default" className="cursor-pointer">
-                Set as Default Pipeline
-              </Label>
-            </div>
 
-            <div className="border-t pt-6">
-              <div className="flex justify-between items-center mb-4">
-                <h3 className="text-lg font-semibold">Pipeline Stages</h3>
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  onClick={handleAddStage}
-                  data-testid="button-add-stage"
-                >
-                  <Plus className="w-4 h-4 mr-2" />
-                  Add New Sale_Stage
-                </Button>
-              </div>
-
-              <div className="space-y-3">
-                <div className="grid grid-cols-12 gap-2 text-sm font-medium text-slate-600 px-2">
-                  <div className="col-span-5">Stage Name</div>
-                  <div className="col-span-6">Description</div>
-                  <div className="col-span-1 text-center">Action</div>
+              {/* Stages Section */}
+              <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <h3 className="text-lg font-medium">Pipeline Stages</h3>
+                  <Button type="button" variant="outline" size="sm" onClick={addStage}>
+                    <Plus className="w-4 h-4 mr-2" />
+                    Add Stage
+                  </Button>
                 </div>
 
-                {formData.stages.map((stage, index) => (
-                  <div
-                    key={index}
-                    className="grid grid-cols-12 gap-2 items-center bg-slate-50 p-2 rounded-md"
-                    data-testid={`stage-row-${index}`}
-                  >
-                    <div className="col-span-5">
-                      <Input
-                        placeholder="Stage Name"
-                        value={stage.title}
-                        onChange={(e) => handleStageChange(index, "title", e.target.value)}
-                        data-testid={`input-stage-name-${index}`}
-                      />
-                    </div>
-                    <div className="col-span-6">
-                      <Input
-                        placeholder="Description"
-                        value={stage.description}
-                        onChange={(e) => handleStageChange(index, "description", e.target.value)}
-                        data-testid={`input-stage-description-${index}`}
-                      />
-                    </div>
-                    <div className="col-span-1 flex justify-center">
+                <div className="space-y-3 max-h-60 overflow-y-auto">
+                  {stages.map((stage, index) => (
+                    <div key={index} className="flex items-center space-x-3 p-3 border rounded-lg">
+                      <div className="flex flex-col space-y-1">
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => moveStage(index, 'up')}
+                          disabled={index === 0}
+                        >
+                          <ArrowUp className="w-3 h-3" />
+                        </Button>
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => moveStage(index, 'down')}
+                          disabled={index === stages.length - 1}
+                        >
+                          <ArrowDown className="w-3 h-3" />
+                        </Button>
+                      </div>
+                      
+                      <div className="flex-1 grid grid-cols-2 gap-3">
+                        <Input
+                          placeholder="Stage title"
+                          value={stage.title}
+                          onChange={(e) => updateStage(index, 'title', e.target.value)}
+                        />
+                        <Input
+                          placeholder="Stage description"
+                          value={stage.description}
+                          onChange={(e) => updateStage(index, 'description', e.target.value)}
+                        />
+                      </div>
+                      
                       <Button
                         type="button"
                         variant="ghost"
                         size="sm"
-                        onClick={() => handleRemoveStage(index)}
-                        className="text-red-600 hover:text-red-700 hover:bg-red-50 h-8 w-8 p-0"
-                        data-testid={`button-delete-stage-${index}`}
+                        onClick={() => removeStage(index)}
                       >
                         <Trash2 className="w-4 h-4" />
                       </Button>
                     </div>
-                  </div>
-                ))}
+                  ))}
+                </div>
               </div>
-            </div>
-          </div>
-
-          <DialogFooter className="flex justify-between">
-            <Button
-              type="button"
-              variant="outline"
-              onClick={closeModal}
-              data-testid="button-close-modal"
-            >
-              Close
-            </Button>
-            <div className="flex gap-2">
-              <Button
-                type="button"
-                variant="outline"
-                className="bg-blue-600 text-white hover:bg-blue-700"
-                onClick={handleSave}
-                disabled={createMutation.isPending || updateMutation.isPending}
-                data-testid="button-save-pipeline"
-              >
-                {createMutation.isPending || updateMutation.isPending ? "Saving..." : "Save"}
-              </Button>
-              <Button
-                type="button"
-                className="bg-blue-600 text-white hover:bg-blue-700"
-                onClick={handleSave}
-                disabled={createMutation.isPending || updateMutation.isPending}
-                data-testid="button-next-pipeline"
-              >
-                {createMutation.isPending || updateMutation.isPending ? "Saving..." : "Next"}
-              </Button>
-            </div>
-          </DialogFooter>
+              
+              <div className="flex justify-end space-x-2 pt-4">
+                <Button type="button" variant="outline" onClick={closeModal}>
+                  Cancel
+                </Button>
+                <Button 
+                  type="submit" 
+                  disabled={createMutation.isPending || updateMutation.isPending}
+                >
+                  {createMutation.isPending || updateMutation.isPending ? "Saving..." : "Save Pipeline"}
+                </Button>
+              </div>
+            </form>
+          </Form>
         </DialogContent>
       </Dialog>
     </div>
