@@ -109,16 +109,11 @@ export function ProductSetupModal({ open, onOpenChange, product }: ProductSetupM
 
   const createProductSetupMutation = useMutation({
     mutationFn: async (data: SetupProductFormData) => {
-      const salePriceNum = parseFloat(data.salePrice);
-      if (isNaN(salePriceNum)) {
-        throw new Error("Invalid sale price");
-      }
-      
       const payload = {
         name: data.name,
         title: data.title,
         description: data.description || null,
-        salePrice: salePriceNum,
+        salePrice: data.salePrice,
         salesPipelineId: data.salesPipelineId ?? null,
         categoryId: data.categoryId ?? null,
         productTypeId: data.productTypeId ?? null,

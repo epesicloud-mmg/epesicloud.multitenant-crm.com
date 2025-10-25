@@ -904,7 +904,6 @@ export type InsertSalesPipeline = z.infer<typeof insertSalesPipelineSchema>;
 export type InsertSalesStage = z.infer<typeof insertSalesStageSchema>;
 export type InsertProductType = z.infer<typeof insertProductTypeSchema>;
 export type InsertProductCategory = z.infer<typeof insertProductCategorySchema>;
-export type InsertProductGroup = z.infer<typeof insertProductGroupSchema>;
 export type InsertProduct = z.infer<typeof insertProductSchema>;
 export type InsertProductVariation = z.infer<typeof insertProductVariationSchema>;
 export type InsertProductOffer = z.infer<typeof insertProductOfferSchema>;
