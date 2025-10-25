@@ -49,15 +49,10 @@ router.get("/:id", async (req: any, res) => {
 // POST /api/products - Create new product
 router.post("/", async (req: any, res) => {
   try {
-    console.log("req.tenantId:", req.tenantId);
-    console.log("req.body:", req.body);
-    
     const validatedData = insertProductSchema.parse({
       ...req.body,
       tenantId: req.tenantId,
     });
-    
-    console.log("validatedData:", validatedData);
     
     const product = await storage.createProduct(validatedData);
     res.status(201).json(product);

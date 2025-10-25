@@ -220,16 +220,18 @@ export function ProductSetupModal({ open, onOpenChange, product }: ProductSetupM
                 name="salesPipelineId"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Sales Pipeline</FormLabel>
-                    <Select onValueChange={(value) => field.onChange(Number(value))} value={field.value?.toString()}>
+                    <FormLabel>Sales Pipeline (Optional)</FormLabel>
+                    <Select 
+                      onValueChange={(value) => field.onChange(value === "none" ? undefined : Number(value))} 
+                      value={field.value?.toString() || "none"}
+                    >
                       <FormControl>
                         <SelectTrigger>
                           <SelectValue placeholder="Select Sales Pipeline" />
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        <SelectItem value="1">Default Pipeline</SelectItem>
-                        <SelectItem value="2">Enterprise Pipeline</SelectItem>
+                        <SelectItem value="none">None</SelectItem>
                       </SelectContent>
                     </Select>
                     <FormMessage />
