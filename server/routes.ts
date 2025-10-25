@@ -5,6 +5,8 @@ import { createServer, type Server } from "http";
 import authRouter from "./routes/auth";
 import tenantsRouter from "./routes/tenants";
 import crmRouter from "./modules/crm/api/crm-routes.js";
+import financeRouter from "./modules/finance/api/finance-routes.js";
+import hrRouter from "./modules/hr/api/hr-routes.js";
 
 // Extend Request interface for authentication
 declare global {
@@ -31,8 +33,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Tenant management routes (protected)
   app.use("/api/tenants", tenantsRouter);
 
-  // CRM API routes (protected)
-  app.use("/api", crmRouter);
+  // Module routes (protected)
+  app.use("/api/crm", crmRouter);
+  
+  // Finance and HR modules - NOT YET IMPLEMENTED
+  // Reason: Database schemas for Finance/HR tables not yet created
+  // Required tables: invoices, expenses, accounts, budgets, departments, employees, etc.
+  // app.use("/api/finance", financeRouter);
+  // app.use("/api/hr", hrRouter);
 
   const server = createServer(app);
   return server;
