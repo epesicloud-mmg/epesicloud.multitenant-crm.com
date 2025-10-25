@@ -767,7 +767,7 @@ export const insertSalesPipelineSchema = createInsertSchema(salesPipelines).omit
 export const insertSalesStageSchema = createInsertSchema(salesStages).omit({ id: true, createdAt: true, updatedAt: true, tenantId: true });
 export const insertProductTypeSchema = createInsertSchema(productTypes).omit({ id: true, createdAt: true, tenantId: true });
 export const insertProductCategorySchema = createInsertSchema(productCategories).omit({ id: true, createdAt: true, tenantId: true });
-export const insertProductSchema = createInsertSchema(products).omit({ id: true, createdAt: true, updatedAt: true, tenantId: true }).extend({
+export const insertProductSchema = createInsertSchema(products).omit({ id: true, createdAt: true, updatedAt: true }).extend({
   salePrice: z.preprocess(
     (val) => val === null || val === undefined ? val : (typeof val === 'number' ? val.toString() : val),
     z.string().nullable().optional()
