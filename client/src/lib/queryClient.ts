@@ -20,6 +20,69 @@ function getAuthHeaders() {
   return headers;
 }
 
+// Token refresh function
+let isRefreshing = false;
+let refreshPromise: Promise<string | null> | null = null;
+
+async function refreshAccessToken(): Promise<string | null> {
+  if (isRefreshing && refreshPromise) {
+    return refreshPromise;
+  }
+
+  isRefreshing = true;
+  refreshPromise = (async () => {
+    try {
+      const refreshToken = localStorage.getItem('refreshToken');
+      if (!refreshToken) {
+        console.warn('No refresh token available, redirecting to login');
+        localStorage.removeItem('accessToken');
+        localStorage.removeItem('refreshToken');
+        localStorage.removeItem('user');
+        localStorage.removeItem('tenantId');
+        window.location.href = '/login';
+        return null;
+      }
+
+      const response = await fetch('/api/auth/refresh', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ refreshToken }),
+        credentials: 'include',
+      });
+
+      if (!response.ok) {
+        console.warn('Token refresh failed, redirecting to login');
+        localStorage.removeItem('accessToken');
+        localStorage.removeItem('refreshToken');
+        localStorage.removeItem('user');
+        localStorage.removeItem('tenantId');
+        window.location.href = '/login';
+        return null;
+      }
+
+      const data = await response.json();
+      localStorage.setItem('accessToken', data.accessToken);
+      localStorage.setItem('refreshToken', data.refreshToken);
+      return data.accessToken;
+    } catch (error) {
+      console.error('Token refresh error:', error);
+      localStorage.removeItem('accessToken');
+      localStorage.removeItem('refreshToken');
+      localStorage.removeItem('user');
+      localStorage.removeItem('tenantId');
+      window.location.href = '/login';
+      return null;
+    } finally {
+      isRefreshing = false;
+      refreshPromise = null;
+    }
+  })();
+
+  return refreshPromise;
+}
+
 export async function apiRequest(
   method: string,
   url: string,
@@ -33,12 +96,27 @@ export async function apiRequest(
     headers["Content-Type"] = "application/json";
   }
 
-  const res = await fetch(url, {
+  let res = await fetch(url, {
     method,
     headers,
     body: data ? JSON.stringify(data) : undefined,
     credentials: "include",
   });
+
+  // If we get a 403, try to refresh the token and retry
+  if (res.status === 403) {
+    const newToken = await refreshAccessToken();
+    if (newToken) {
+      // Retry the request with the new token
+      headers["Authorization"] = `Bearer ${newToken}`;
+      res = await fetch(url, {
+        method,
+        headers,
+        body: data ? JSON.stringify(data) : undefined,
+        credentials: "include",
+      });
+    }
+  }
 
   await throwIfResNotOk(res);
   return res;
@@ -50,15 +128,30 @@ export const getQueryFn: <T>(options: {
 }) => QueryFunction<T> =
   ({ on401: unauthorizedBehavior }) =>
   async ({ queryKey }) => {
-    const res = await fetch(queryKey[0] as string, {
-      headers: {
-        ...getAuthHeaders(),
-      },
+    const headers: Record<string, string> = {
+      ...getAuthHeaders(),
+    };
+
+    let res = await fetch(queryKey[0] as string, {
+      headers,
       credentials: "include",
     });
 
     if (unauthorizedBehavior === "returnNull" && res.status === 401) {
       return null;
+    }
+
+    // If we get a 403, try to refresh the token and retry
+    if (res.status === 403) {
+      const newToken = await refreshAccessToken();
+      if (newToken) {
+        // Retry the request with the new token
+        headers["Authorization"] = `Bearer ${newToken}`;
+        res = await fetch(queryKey[0] as string, {
+          headers,
+          credentials: "include",
+        });
+      }
     }
 
     await throwIfResNotOk(res);
