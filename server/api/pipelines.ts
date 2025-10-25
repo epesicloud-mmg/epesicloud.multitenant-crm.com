@@ -3,6 +3,15 @@ import { storage } from "../storage";
 import { insertSalesPipelineSchema, insertSalesStageSchema } from "@shared/schema";
 import { z } from "zod";
 
+// Server-only schema that includes tenantId
+const insertSalesPipelineWithTenantSchema = insertSalesPipelineSchema.extend({ 
+  tenantId: z.number().int() 
+});
+
+const insertSalesStageWithTenantSchema = insertSalesStageSchema.extend({ 
+  tenantId: z.number().int() 
+});
+
 const router = express.Router();
 
 // Middleware for tenant context
@@ -51,8 +60,8 @@ router.post("/", async (req: any, res) => {
   try {
     const { pipeline, stages } = req.body;
     
-    // Validate pipeline data
-    const validatedPipeline = insertSalesPipelineSchema.parse({
+    // Validate pipeline data with tenant context
+    const validatedPipeline = insertSalesPipelineWithTenantSchema.parse({
       ...pipeline,
       tenantId: req.tenantId,
     });
@@ -63,7 +72,7 @@ router.post("/", async (req: any, res) => {
     // Create stages if provided
     if (stages && Array.isArray(stages) && stages.length > 0) {
       for (const stage of stages) {
-        const validatedStage = insertSalesStageSchema.parse({
+        const validatedStage = insertSalesStageWithTenantSchema.parse({
           ...stage,
           salePipelineId: createdPipeline.id,
           tenantId: req.tenantId,
