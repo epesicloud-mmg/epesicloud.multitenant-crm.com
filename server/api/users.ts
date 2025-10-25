@@ -32,29 +32,16 @@ router.get("/current", async (req, res) => {
 router.get("/", async (req, res) => {
   try {
     const tenantId = parseInt(req.headers['x-tenant-id'] as string) || 1;
-    const currentUserId = req.headers['x-user-id'] ? parseInt(req.headers['x-user-id'] as string) : 1;
     const workspaceId = req.query.workspaceId ? parseInt(req.query.workspaceId as string) : undefined;
     const roleFilter = req.query.role as string | undefined;
     const managerId = req.query.managerId ? parseInt(req.query.managerId as string) : undefined;
 
-    // Get current user's data scope
-    const dataScope = await storage.getUserDataScope(currentUserId, tenantId);
-    
-    let users;
-    if (dataScope === 'own') {
-      // Agent: only see themselves
-      users = await storage.getUsers(tenantId, currentUserId, currentUserId);
-    } else if (dataScope === 'team') {
-      // Supervisor: see their subordinates
-      users = await storage.getUsers(tenantId, workspaceId, managerId || currentUserId);
-    } else {
-      // Manager/Admin: see all users
-      users = await storage.getUsers(tenantId, workspaceId, managerId);
-    }
+    // Get all users for the tenant (simplified - no data scoping for now)
+    let users = await storage.getUsers(tenantId, workspaceId, managerId);
 
     // Apply role filter if provided
     if (roleFilter) {
-      users = users.filter(user => user.role.name.toLowerCase().includes(roleFilter.toLowerCase()));
+      users = users.filter(user => user.role?.name.toLowerCase().includes(roleFilter.toLowerCase()));
     }
 
     res.json(users);

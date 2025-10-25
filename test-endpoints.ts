@@ -219,9 +219,9 @@ const pipelineData = {
     description: 'Test pipeline'
   },
   stages: [
-    { name: 'Prospecting', order: 1 },
-    { name: 'Qualification', order: 2 },
-    { name: 'Proposal', order: 3 }
+    { title: 'Prospecting', order: 1 },
+    { title: 'Qualification', order: 2 },
+    { title: 'Proposal', order: 3 }
   ]
 };
 
@@ -261,9 +261,10 @@ if (deal?.id) {
 console.log('\n📋 Category: CRM - Activities\n');
 
 const activityData = {
-  title: `Meeting ${timestamp}`,
+  type: 'meeting',
+  subject: `Meeting ${timestamp}`,
   description: 'Test meeting',
-  activityType: 'meeting',
+  userId: ctx.userId || 1,
   scheduledAt: new Date().toISOString(),
   contactId: ctx.testData.get('contactId')
 };
@@ -281,6 +282,7 @@ console.log('\n📋 Category: CRM - Products\n');
 
 const productData = {
   name: `Product ${timestamp}`,
+  title: `Product ${timestamp}`,
   sku: `SKU-${timestamp}`,
   salePrice: 99.99,
   description: 'Test product'
@@ -331,8 +333,8 @@ console.log('\n📋 Category: CRM - Payments\n');
 await testEndpoint('/api/payments', 'GET', 200);
 const payment = await testEndpoint('/api/payments', 'POST', [200, 201], {
   amount: 1000,
-  paymentDate: new Date().toISOString(),
-  paymentMethod: 'credit_card',
+  paymentDate: new Date(),
+  paymentMethodId: 1,
   contactId: ctx.testData.get('contactId')
 });
 

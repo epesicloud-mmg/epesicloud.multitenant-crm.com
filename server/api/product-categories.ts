@@ -49,12 +49,12 @@ router.get("/:id", async (req: any, res) => {
 // POST /api/product-categories - Create new product category
 router.post("/", async (req: any, res) => {
   try {
-    const validatedData = insertProductCategorySchema.parse({
-      ...req.body,
+    const validatedData = insertProductCategorySchema.parse(req.body);
+    
+    const category = await storage.createProductCategory({
+      ...validatedData,
       tenantId: req.tenantId,
     });
-    
-    const category = await storage.createProductCategory(validatedData);
     res.status(201).json(category);
   } catch (error) {
     if (error instanceof z.ZodError) {
