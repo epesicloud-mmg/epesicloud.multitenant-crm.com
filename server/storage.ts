@@ -797,11 +797,22 @@ export class DbStorage implements IStorage {
     return await db.select().from(salesPipelines).where(eq(salesPipelines.tenantId, tenantId));
   }
   
-  async getSalesPipeline(id: number, tenantId: number): Promise<SalesPipeline | undefined> {
+  async getSalesPipeline(id: number, tenantId: number): Promise<any> {
     const [pipeline] = await db.select().from(salesPipelines)
       .where(and(eq(salesPipelines.id, id), eq(salesPipelines.tenantId, tenantId)))
       .limit(1);
-    return pipeline;
+    
+    if (!pipeline) {
+      return undefined;
+    }
+    
+    // Fetch associated stages
+    const stages = await this.getSalesStages(tenantId, id);
+    
+    return {
+      ...pipeline,
+      stages
+    };
   }
   
   async createSalesPipeline(pipeline: InsertSalesPipeline): Promise<SalesPipeline> {

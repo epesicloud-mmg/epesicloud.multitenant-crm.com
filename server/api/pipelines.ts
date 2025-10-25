@@ -46,16 +46,35 @@ router.get("/:id", async (req: any, res) => {
   }
 });
 
-// POST /api/pipelines - Create new sales pipeline
+// POST /api/pipelines - Create new sales pipeline with stages
 router.post("/", async (req: any, res) => {
   try {
-    const validatedData = insertSalesPipelineSchema.parse({
-      ...req.body,
+    const { pipeline, stages } = req.body;
+    
+    // Validate pipeline data
+    const validatedPipeline = insertSalesPipelineSchema.parse({
+      ...pipeline,
       tenantId: req.tenantId,
     });
     
-    const pipeline = await storage.createSalesPipeline(validatedData);
-    res.status(201).json(pipeline);
+    // Create the pipeline
+    const createdPipeline = await storage.createSalesPipeline(validatedPipeline);
+    
+    // Create stages if provided
+    if (stages && Array.isArray(stages) && stages.length > 0) {
+      for (const stage of stages) {
+        const validatedStage = insertSalesStageSchema.parse({
+          ...stage,
+          salePipelineId: createdPipeline.id,
+          tenantId: req.tenantId,
+        });
+        await storage.createSalesStage(validatedStage);
+      }
+    }
+    
+    // Fetch the complete pipeline with stages
+    const pipelineWithStages = await storage.getSalesPipeline(createdPipeline.id, req.tenantId);
+    res.status(201).json(pipelineWithStages);
   } catch (error) {
     if (error instanceof z.ZodError) {
       return res.status(400).json({ 

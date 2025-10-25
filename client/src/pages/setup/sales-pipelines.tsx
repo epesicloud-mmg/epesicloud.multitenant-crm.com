@@ -34,7 +34,7 @@ export default function SalesPipelines() {
   const queryClient = useQueryClient();
 
   const { data: pipelines = [], isLoading } = useQuery<SalesPipelineWithStages[]>({
-    queryKey: ["/api/sales-pipelines"],
+    queryKey: ["/api/pipelines"],
   });
 
   const form = useForm<SalesPipelineFormData>({
@@ -43,19 +43,18 @@ export default function SalesPipelines() {
       title: "",
       description: "",
       isDefault: false,
-      tenantId: 1,
     },
   });
 
   const createMutation = useMutation({
     mutationFn: async (data: { pipeline: SalesPipelineFormData; stages: Omit<SalesStageFormData, 'salePipelineId' | 'tenantId'>[] }) => {
-      return apiRequest("/api/sales-pipelines", {
+      return apiRequest("/api/pipelines", {
         method: "POST",
         body: JSON.stringify(data),
       });
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/sales-pipelines"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/pipelines"] });
       setIsModalOpen(false);
       form.reset();
       setStages([]);
@@ -75,13 +74,13 @@ export default function SalesPipelines() {
 
   const updateMutation = useMutation({
     mutationFn: async (data: { pipeline: SalesPipelineFormData & { id: number }; stages: (SalesStageFormData | Omit<SalesStageFormData, 'salePipelineId' | 'tenantId'>)[] }) => {
-      return apiRequest(`/api/sales-pipelines/${data.pipeline.id}`, {
+      return apiRequest(`/api/pipelines/${data.pipeline.id}`, {
         method: "PATCH",
         body: JSON.stringify(data),
       });
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/sales-pipelines"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/pipelines"] });
       setIsModalOpen(false);
       setEditingPipeline(null);
       form.reset();
@@ -102,12 +101,12 @@ export default function SalesPipelines() {
 
   const deleteMutation = useMutation({
     mutationFn: async (id: number) => {
-      return apiRequest(`/api/sales-pipelines/${id}`, {
+      return apiRequest(`/api/pipelines/${id}`, {
         method: "DELETE",
       });
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/sales-pipelines"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/pipelines"] });
       toast({
         title: "Success",
         description: "Sales pipeline deleted successfully",
@@ -129,7 +128,6 @@ export default function SalesPipelines() {
         title: pipeline.title,
         description: pipeline.description || "",
         isDefault: pipeline.isDefault,
-        tenantId: pipeline.tenantId,
       });
       setStages(pipeline.stages.map(stage => ({
         title: stage.title,
