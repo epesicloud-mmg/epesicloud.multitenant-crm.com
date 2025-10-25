@@ -48,10 +48,7 @@ export default function SalesPipelines() {
 
   const createMutation = useMutation({
     mutationFn: async (data: { pipeline: SalesPipelineFormData; stages: Omit<SalesStageFormData, 'salePipelineId' | 'tenantId'>[] }) => {
-      return apiRequest("/api/pipelines", {
-        method: "POST",
-        body: JSON.stringify(data),
-      });
+      return apiRequest("POST", "/api/pipelines", data);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/pipelines"] });
@@ -74,10 +71,7 @@ export default function SalesPipelines() {
 
   const updateMutation = useMutation({
     mutationFn: async (data: { pipeline: SalesPipelineFormData & { id: number }; stages: (SalesStageFormData | Omit<SalesStageFormData, 'salePipelineId' | 'tenantId'>)[] }) => {
-      return apiRequest(`/api/pipelines/${data.pipeline.id}`, {
-        method: "PATCH",
-        body: JSON.stringify(data),
-      });
+      return apiRequest("PATCH", `/api/pipelines/${data.pipeline.id}`, data);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/pipelines"] });
@@ -101,9 +95,7 @@ export default function SalesPipelines() {
 
   const deleteMutation = useMutation({
     mutationFn: async (id: number) => {
-      return apiRequest(`/api/pipelines/${id}`, {
-        method: "DELETE",
-      });
+      return apiRequest("DELETE", `/api/pipelines/${id}`);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/pipelines"] });
