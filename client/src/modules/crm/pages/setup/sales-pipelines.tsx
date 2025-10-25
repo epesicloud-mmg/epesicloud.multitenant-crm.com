@@ -48,7 +48,10 @@ export default function SalesPipelines() {
 
   const createMutation = useMutation({
     mutationFn: async (data: { pipeline: SalesPipelineFormData; stages: Omit<SalesStageFormData, 'salePipelineId' | 'tenantId'>[] }) => {
-      return apiRequest("POST", "/api/pipelines", data);
+      console.log('Creating pipeline with data:', data);
+      const response = await apiRequest("POST", "/api/pipelines", data);
+      console.log('Pipeline creation response:', response);
+      return response;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/pipelines"] });
@@ -60,10 +63,11 @@ export default function SalesPipelines() {
         description: "Sales pipeline created successfully",
       });
     },
-    onError: () => {
+    onError: (error: any) => {
+      console.error('Pipeline creation error:', error);
       toast({
         title: "Error",
-        description: "Failed to create sales pipeline",
+        description: error?.message || "Failed to create sales pipeline",
         variant: "destructive",
       });
     },
