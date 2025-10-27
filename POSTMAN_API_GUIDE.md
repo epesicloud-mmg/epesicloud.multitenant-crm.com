@@ -2,8 +2,36 @@
 
 ## Base URL
 ```
-http://localhost:5000
+Production: https://epesicloudmultitenant-crmcom-pureplayplatfor.replit.app
+Development: http://localhost:5000
 ```
+
+## 🚀 Quick Start Guide
+
+1. **Register a new user** - Saves your `accessToken` and `tenantId`
+2. **Add headers to all protected endpoints:**
+   - `Authorization: Bearer YOUR_ACCESS_TOKEN`
+   - `X-Tenant-Id: YOUR_TENANT_ID`
+3. **Create resources in the proper order** to avoid foreign key errors (see below)
+
+## ⚠️ Important: Avoiding Foreign Key Errors
+
+**Always create parent resources before child resources:**
+
+✅ **Correct Order:**
+1. Create Company → then Create Contact with `companyId`
+2. Create Contact → then Create Deal with `contactId`
+3. Create Pipeline → then Create Deal with `pipelineId`
+4. Create Product → then link it in deals
+
+❌ **Common Mistakes:**
+- Creating a contact with `companyId: 1` when no company exists yet
+- Creating a deal with `contactId: 5` when that contact doesn't exist
+- Using hardcoded IDs without creating the resources first
+
+💡 **Pro Tip:** You can always create contacts, deals, and activities WITHOUT specifying optional foreign keys. Only add them after you've created the parent resource.
+
+---
 
 ## Authentication Flow
 
@@ -157,7 +185,7 @@ Content-Type: application/json
 
 ---
 
-#### Create Contact
+#### Create Contact (Without Company) - RECOMMENDED
 **POST** `/api/crm/contacts`
 
 **Request Body:**
@@ -167,13 +195,7 @@ Content-Type: application/json
   "lastName": "Smith",
   "email": "jane@example.com",
   "phone": "+1234567890",
-  "companyId": 1,
-  "position": "CTO",
-  "address": "123 Main St",
-  "city": "San Francisco",
-  "state": "CA",
-  "country": "USA",
-  "zipCode": "94102"
+  "jobTitle": "CTO"
 }
 ```
 
@@ -185,6 +207,45 @@ Content-Type: application/json
   "lastName": "Smith",
   "email": "jane@example.com",
   "phone": "+1234567890",
+  "jobTitle": "CTO",
+  "companyId": null,
+  "tenantId": 1,
+  "createdAt": "2025-10-25T10:00:00.000Z"
+}
+```
+
+✅ **This is the safest option** - no foreign key errors!
+
+---
+
+#### Create Contact (With Company)
+**POST** `/api/crm/contacts`
+
+⚠️ **IMPORTANT:** You MUST create a company first using the "Create Company" endpoint below, then use the returned company ID here.
+
+**Request Body:**
+```json
+{
+  "firstName": "John",
+  "lastName": "Doe",
+  "email": "john@example.com",
+  "phone": "+1234567890",
+  "jobTitle": "CEO",
+  "companyId": 1
+}
+```
+
+**Note:** Replace `1` with the actual ID returned from creating a company.
+
+**Response (201):**
+```json
+{
+  "id": 2,
+  "firstName": "John",
+  "lastName": "Doe",
+  "email": "john@example.com",
+  "phone": "+1234567890",
+  "jobTitle": "CEO",
   "companyId": 1,
   "tenantId": 1,
   "createdAt": "2025-10-25T10:00:00.000Z"
@@ -447,8 +508,31 @@ Example: `/api/crm/contacts/1`
 
 ---
 
-#### Create Deal
+#### Create Deal (Basic) - RECOMMENDED
 **POST** `/api/crm/deals`
+
+**Request Body:**
+```json
+{
+  "title": "Enterprise Software Deal",
+  "value": 50000,
+  "status": "open",
+  "probability": 75,
+  "expectedCloseDate": "2025-12-31"
+}
+```
+
+✅ **This version works without any dependencies!**
+
+---
+
+#### Create Deal (With References)
+**POST** `/api/crm/deals`
+
+⚠️ **IMPORTANT:** Create these resources FIRST before referencing them:
+- Create a Contact (to get `contactId`)
+- Create a Company (to get `companyId`)
+- Create a Pipeline (to get `pipelineId` and `stageId`)
 
 **Request Body:**
 ```json
@@ -465,6 +549,8 @@ Example: `/api/crm/contacts/1`
   "description": "Large enterprise software implementation"
 }
 ```
+
+**Note:** Replace the IDs with actual values from your created resources.
 
 **Response (201):**
 ```json
@@ -528,7 +614,7 @@ Example: `/api/crm/contacts/1`
 
 ---
 
-#### Create Activity
+#### Create Activity (Basic) - RECOMMENDED
 **POST** `/api/crm/activities`
 
 **Request Body:**
@@ -537,7 +623,28 @@ Example: `/api/crm/contacts/1`
   "type": "meeting",
   "subject": "Product Demo",
   "description": "Demo of enterprise features",
-  "userId": 1,
+  "scheduledAt": "2025-10-26T14:00:00.000Z",
+  "duration": 60,
+  "location": "Zoom",
+  "status": "scheduled"
+}
+```
+
+✅ **This version works without any dependencies!**
+
+---
+
+#### Create Activity (With References)
+**POST** `/api/crm/activities`
+
+⚠️ **IMPORTANT:** Create Contact and Deal first if you want to reference them.
+
+**Request Body:**
+```json
+{
+  "type": "meeting",
+  "subject": "Product Demo",
+  "description": "Demo of enterprise features",
   "contactId": 1,
   "dealId": 1,
   "scheduledAt": "2025-10-26T14:00:00.000Z",
@@ -546,6 +653,8 @@ Example: `/api/crm/contacts/1`
   "status": "scheduled"
 }
 ```
+
+**Note:** Replace the IDs with actual values from your created resources.
 
 **Response (201):**
 ```json
@@ -867,17 +976,34 @@ Create these variables in Postman for easier testing:
 
 ## Testing Workflow
 
+### Option 1: Quick Testing (No Dependencies)
 1. **Register/Login** to get your access token and tenant ID
-2. **Set environment variables** in Postman
-3. **Create test data** in this order:
-   - Company
-   - Contact (link to company)
-   - Pipeline (with stages)
-   - Deal (link to contact, company, pipeline)
-   - Activity (link to deal, contact)
-   - Product
-4. **Test CRUD operations** for each entity
-5. **Clean up** by deleting test data (in reverse order)
+2. Create Contact (without company)
+3. Create Deal (basic version)
+4. Create Activity (basic version)
+5. Create Product
+6. Test CRUD operations
+
+### Option 2: Full Testing (With Relationships)
+1. **Register/Login** to get your access token and tenant ID
+2. **Create test data IN THIS EXACT ORDER:**
+   - ✅ Create Company (save the `id` from response)
+   - ✅ Create Contact with `companyId` from step above
+   - ✅ Create Pipeline with stages (save `pipelineId` and `stageId`)
+   - ✅ Create Deal with `contactId`, `companyId`, `pipelineId`
+   - ✅ Create Activity with `contactId` and `dealId`
+   - ✅ Create Product
+3. **Test CRUD operations** for each entity
+4. **Clean up** by deleting test data (in reverse order)
+
+### Common Testing Errors and Solutions
+
+| Error | Cause | Solution |
+|-------|-------|----------|
+| `Foreign key constraint violated` | Referenced resource doesn't exist | Create parent resource first |
+| `Invalid or expired token` | Token expired (15 min) | Register a new user or refresh token |
+| `User already exists` | Duplicate email | Use a different email address |
+| `Access token required` | Missing Authorization header | Add `Authorization: Bearer TOKEN` |
 
 ---
 
