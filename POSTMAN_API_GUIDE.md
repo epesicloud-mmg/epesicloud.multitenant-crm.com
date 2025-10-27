@@ -146,7 +146,7 @@ Content-Type: application/json
     "id": 1,
     "firstName": "Jane",
     "lastName": "Smith",
-    "email": "jane@example.com",
+    "email": "jane@e/xample.com",
     "phone": "+1234567890",
     "companyId": 1,
     "tenantId": 1,
