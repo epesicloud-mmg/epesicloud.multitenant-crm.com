@@ -253,21 +253,29 @@ export function eventTrackingMiddleware() {
       return next();
     }
 
+    // Skip tracking for auth endpoints (no tenant context during registration/login)
+    if (req.path.startsWith('/api/auth/')) {
+      return next();
+    }
+
     // Track API calls
     if (req.path.startsWith('/api/')) {
       const userId = req.user?.id;
-      const tenantId = parseInt(req.headers['x-tenant-id'] as string) || 1;
+      const tenantId = parseInt(req.headers['x-tenant-id'] as string);
       
-      await EventTracker.track({
-        eventName: 'api.call',
-        userId,
-        tenantId,
-        req,
-        properties: {
-          endpoint: req.path,
-          method: req.method,
-        }
-      });
+      // Only track if we have a valid tenantId
+      if (tenantId) {
+        await EventTracker.track({
+          eventName: 'api.call',
+          userId,
+          tenantId,
+          req,
+          properties: {
+            endpoint: req.path,
+            method: req.method,
+          }
+        });
+      }
     }
 
     next();
