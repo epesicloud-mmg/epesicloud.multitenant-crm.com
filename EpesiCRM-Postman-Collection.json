@@ -1,13 +1,13 @@
 {
   "info": {
     "name": "EpesiCRM API - Complete Collection",
-    "description": "Complete API collection for testing EpesiCRM multi-tenant application",
+    "description": "Complete API collection for testing EpesiCRM multi-tenant application\n\n🚀 QUICK START GUIDE:\n\n1. First, run 'Register New User' - this will automatically save your accessToken and tenantId\n2. The collection will auto-populate {{accessToken}} and {{tenantId}} variables\n3. Now you can test any protected endpoint!\n\n⚠️ IMPORTANT TIPS:\n\n- Access tokens expire in 15 minutes - just register a new user or use the refresh endpoint\n- Always create parent resources first (e.g., Company before Contact with companyId)\n- Use {{$timestamp}} in emails/usernames to avoid duplicates\n- Foreign key errors? Create the referenced resource first or omit the ID field\n\n📋 PROPER ORDER FOR RELATED RESOURCES:\n\n1. Create Company → then create Contact with that companyId\n2. Create Contact → then create Deal with that contactId\n3. Create Product → then create Deal with that productId\n\nThe collection variables will save IDs automatically as you create resources!",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "variable": [
     {
       "key": "baseUrl",
-      "value": "http://localhost:5000",
+      "value": "https://epesicloudmultitenant-crmcom-pureplayplatfor.replit.app",
       "type": "string"
     },
     {
@@ -171,7 +171,7 @@
           }
         },
         {
-          "name": "Create Contact",
+          "name": "Create Contact (Without Company)",
           "event": [
             {
               "listen": "test",
@@ -180,6 +180,7 @@
                   "if (pm.response.code === 201) {",
                   "    const response = pm.response.json();",
                   "    pm.collectionVariables.set('contactId', response.id);",
+                  "    console.log('✅ Contact created with ID:', response.id);",
                   "}"
                 ]
               }
@@ -203,13 +204,58 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"firstName\": \"Jane\",\n  \"lastName\": \"Smith\",\n  \"email\": \"jane{{$timestamp}}@example.com\",\n  \"phone\": \"+1234567890\",\n  \"position\": \"CTO\",\n  \"city\": \"San Francisco\",\n  \"state\": \"CA\",\n  \"country\": \"USA\"\n}"
+              "raw": "{\n  \"firstName\": \"Jane\",\n  \"lastName\": \"Smith\",\n  \"email\": \"jane{{$timestamp}}@example.com\",\n  \"phone\": \"+1234567890\",\n  \"jobTitle\": \"CTO\"\n}"
             },
             "url": {
               "raw": "{{baseUrl}}/api/crm/contacts",
               "host": ["{{baseUrl}}"],
               "path": ["api", "crm", "contacts"]
+            },
+            "description": "Creates a contact without linking to a company. This is the safest option and won't cause foreign key errors."
+          }
+        },
+        {
+          "name": "Create Contact (With Company)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 201) {",
+                  "    const response = pm.response.json();",
+                  "    pm.collectionVariables.set('contactId', response.id);",
+                  "    console.log('✅ Contact created with ID:', response.id);",
+                  "}"
+                ]
+              }
             }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              },
+              {
+                "key": "X-Tenant-Id",
+                "value": "{{tenantId}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"firstName\": \"John\",\n  \"lastName\": \"Doe\",\n  \"email\": \"john{{$timestamp}}@example.com\",\n  \"phone\": \"+1234567890\",\n  \"jobTitle\": \"CEO\",\n  \"companyId\": {{companyId}}\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/crm/contacts",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "crm", "contacts"]
+            },
+            "description": "Creates a contact linked to a company. IMPORTANT: Run 'Create Company' first to set the {{companyId}} variable, otherwise you'll get a foreign key error."
           }
         },
         {
