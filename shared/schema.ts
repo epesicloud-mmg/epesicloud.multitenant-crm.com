@@ -758,6 +758,14 @@ export const insertDealSchema = createInsertSchema(deals).omit({ id: true, creat
     (val) => typeof val === 'number' ? val.toString() : val,
     z.string()
   ),
+  expectedCloseDate: z.preprocess(
+    (val) => typeof val === 'string' ? new Date(val) : val,
+    z.date()
+  ).optional(),
+  actualCloseDate: z.preprocess(
+    (val) => typeof val === 'string' ? new Date(val) : val,
+    z.date()
+  ).optional(),
 });
 export const insertActivitySchema = createInsertSchema(activities).omit({ id: true, createdAt: true, updatedAt: true });
 export const insertLeadSourceSchema = createInsertSchema(leadSources).omit({ id: true, createdAt: true, updatedAt: true, tenantId: true });
