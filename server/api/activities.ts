@@ -50,6 +50,11 @@ router.get("/:id", async (req: any, res) => {
 // POST /api/activities - Create new activity
 router.post("/", async (req: any, res) => {
   try {
+    console.log("=== CREATE ACTIVITY REQUEST ===");
+    console.log("Request body:", JSON.stringify(req.body, null, 2));
+    console.log("Tenant ID:", req.tenantId);
+    console.log("User:", req.user);
+    
     // Prepare data with tenant and user info
     const activityData = {
       ...req.body,
@@ -57,18 +62,27 @@ router.post("/", async (req: any, res) => {
       userId: req.body.userId || req.user?.id || 44, // Use provided userId or fallback to 44
     };
     
+    console.log("Activity data before validation:", JSON.stringify(activityData, null, 2));
+    
     const validatedData = insertActivitySchema.parse(activityData);
     
+    console.log("Validated data:", JSON.stringify(validatedData, null, 2));
+    
     const activity = await storage.createActivity(validatedData);
+    
+    console.log("Created activity:", JSON.stringify(activity, null, 2));
+    
     res.status(201).json(activity);
   } catch (error) {
     if (error instanceof z.ZodError) {
+      console.error("Validation error:", JSON.stringify(error.errors, null, 2));
       return res.status(400).json({ 
         error: "Validation failed", 
         details: error.errors 
       });
     }
-    console.error("Error creating activity:", error);
+    console.error("Error creating activity - Full error:", error);
+    console.error("Error stack:", error instanceof Error ? error.stack : 'No stack trace');
     res.status(500).json({ error: "Failed to create activity" });
   }
 });
