@@ -292,6 +292,9 @@ export const activities = pgTable("activities", {
   tenantId: integer("tenant_id").notNull().references(() => tenants.id),
   scheduledAt: timestamp("scheduled_at"),
   completedAt: timestamp("completed_at"),
+  duration: integer("duration"),
+  location: text("location"),
+  status: text("status").default('scheduled'),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
