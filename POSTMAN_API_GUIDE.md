@@ -114,6 +114,48 @@ Content-Type: application/json
 
 ---
 
+### 3. Refresh Access Token
+**POST** `/api/auth/refresh`
+
+**Headers:**
+```
+Content-Type: application/json
+```
+
+**Request Body:**
+```json
+{
+  "refreshToken": "YOUR_REFRESH_TOKEN"
+}
+```
+
+**Response (200):**
+```json
+{
+  "user": {
+    "id": 1,
+    "username": "johndoe",
+    "email": "john@example.com",
+    "firstName": "John",
+    "lastName": "Doe"
+  },
+  "tenant": {
+    "id": 1,
+    "name": "John Doe's Tenant"
+  },
+  "accessToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+  "refreshToken": "new-refresh-token-string"
+}
+```
+
+**📝 Note:** 
+- Access tokens expire every **15 minutes**
+- Use this endpoint to get a new access token without logging in again
+- The response includes tenant information to ensure proper context
+- Save the new tokens from the response for subsequent requests
+
+---
+
 ## Required Headers for All CRM Endpoints
 
 For all endpoints below, include these headers:
@@ -319,7 +361,7 @@ Example: `/api/crm/contacts/1`
 ### Companies Management
 
 #### List All Companies
-**GET** `/api/crm/companies`
+  **GET** `/api/crm/companies`
 
 **Response (200):**
 ```json

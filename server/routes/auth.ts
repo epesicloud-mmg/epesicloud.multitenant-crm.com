@@ -244,13 +244,34 @@ router.post('/refresh', async (req, res) => {
     }
 
     // Use last tenant
-    const tenantId = user.lastTenantId || null;
+    const tenantId = user.lastTenantId;
+
+    // If user has no lastTenantId, try to get their first tenant
+    if (!tenantId) {
+      const userTenants = await storage.getUserTenants(user.id);
+      if (userTenants.length === 0) {
+        return res.status(400).json({ 
+          error: 'User has no associated tenant. Please contact support.' 
+        });
+      }
+      // Use first tenant and update lastTenantId
+      const firstTenant = userTenants[0];
+      await storage.updateUserLastTenant(user.id, firstTenant.id);
+      // Reload user to get updated lastTenantId
+      const updatedUser = await storage.getUser(user.id);
+      if (!updatedUser) {
+        return res.status(500).json({ error: 'Failed to update user tenant' });
+      }
+    }
+
+    // Get tenant details
+    const tenant = tenantId ? await storage.getTenant(tenantId) : null;
 
     // Generate new access token
     const accessToken = generateAccessToken({
       userId: user.id,
       email: user.email,
-      tenantId,
+      tenantId: tenantId || null,
     });
 
     // Optionally rotate refresh token
@@ -270,6 +291,17 @@ router.post('/refresh', async (req, res) => {
     });
 
     return res.json({
+      user: {
+        id: user.id,
+        username: user.username,
+        email: user.email,
+        firstName: user.firstName,
+        lastName: user.lastName,
+      },
+      tenant: tenant ? {
+        id: tenant.id,
+        name: tenant.name,
+      } : null,
       accessToken,
       refreshToken: newRefreshTokenValue,
     });

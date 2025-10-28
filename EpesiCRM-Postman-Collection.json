@@ -16,6 +16,11 @@
       "type": "string"
     },
     {
+      "key": "refreshToken",
+      "value": "",
+      "type": "string"
+    },
+    {
       "key": "tenantId",
       "value": "",
       "type": "string"
@@ -35,9 +40,10 @@
                   "if (pm.response.code === 201) {",
                   "    const response = pm.response.json();",
                   "    pm.collectionVariables.set('accessToken', response.accessToken);",
+                  "    pm.collectionVariables.set('refreshToken', response.refreshToken);",
                   "    pm.collectionVariables.set('tenantId', response.tenant.id);",
                   "    pm.collectionVariables.set('userId', response.user.id);",
-                  "    console.log('✅ Token and Tenant ID saved to collection variables');",
+                  "    console.log('✅ Registration successful! Tokens and Tenant ID saved.');",
                   "}"
                 ]
               }
@@ -72,7 +78,9 @@
                   "if (pm.response.code === 200) {",
                   "    const response = pm.response.json();",
                   "    pm.collectionVariables.set('accessToken', response.accessToken);",
+                  "    pm.collectionVariables.set('refreshToken', response.refreshToken);",
                   "    pm.collectionVariables.set('tenantId', response.tenant.id);",
+                  "    console.log('✅ Login successful. Token and Tenant ID saved.');",
                   "}"
                 ]
               }
@@ -95,6 +103,48 @@
               "host": ["{{baseUrl}}"],
               "path": ["api", "auth", "login"]
             }
+          }
+        },
+        {
+          "name": "Refresh Access Token",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    const response = pm.response.json();",
+                  "    pm.collectionVariables.set('accessToken', response.accessToken);",
+                  "    pm.collectionVariables.set('refreshToken', response.refreshToken);",
+                  "    if (response.tenant && response.tenant.id) {",
+                  "        pm.collectionVariables.set('tenantId', response.tenant.id);",
+                  "        console.log('✅ Token refreshed successfully. New tenantId:', response.tenant.id);",
+                  "    } else {",
+                  "        console.log('✅ Token refreshed. Using existing tenantId.');",
+                  "    }",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"refreshToken\": \"{{refreshToken}}\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/refresh",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "auth", "refresh"]
+            },
+            "description": "Use this endpoint when your access token expires (every 15 minutes). It will give you a new access token and preserve your tenant context."
           }
         }
       ]
