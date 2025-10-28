@@ -53,13 +53,13 @@ router.post("/", async (req: any, res) => {
     console.log("=== CREATE ACTIVITY REQUEST ===");
     console.log("Request body:", JSON.stringify(req.body, null, 2));
     console.log("Tenant ID:", req.tenantId);
-    console.log("User:", req.user);
+    console.log("User ID from auth:", req.userId);
     
-    // Prepare data with tenant and user info
+    // Prepare data with tenant and user info  
     const activityData = {
       ...req.body,
       tenantId: req.tenantId,
-      userId: req.body.userId || req.user?.id || 44, // Use provided userId or fallback to 44
+      userId: req.body.userId || req.userId, // Use userId from body or from auth token
     };
     
     console.log("Activity data before validation:", JSON.stringify(activityData, null, 2));
