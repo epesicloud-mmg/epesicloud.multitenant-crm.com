@@ -835,6 +835,14 @@ export class DbStorage implements IStorage {
   }
   
   async deleteSalesPipeline(id: number, tenantId: number): Promise<boolean> {
+    // First, delete all associated stages to avoid foreign key constraint errors
+    await db.delete(salesStages)
+      .where(and(
+        eq(salesStages.salePipelineId, id),
+        eq(salesStages.tenantId, tenantId)
+      ));
+    
+    // Then delete the pipeline
     const result = await db.delete(salesPipelines)
       .where(and(eq(salesPipelines.id, id), eq(salesPipelines.tenantId, tenantId)));
     return result.rowCount ? result.rowCount > 0 : false;
