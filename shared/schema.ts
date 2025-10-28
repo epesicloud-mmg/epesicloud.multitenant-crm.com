@@ -752,7 +752,12 @@ export const insertTenantUserSchema = createInsertSchema(tenantUsers).omit({ id:
 export const insertRefreshTokenSchema = createInsertSchema(refreshTokens).omit({ id: true, createdAt: true });
 export const insertCompanySchema = createInsertSchema(companies).omit({ id: true, createdAt: true, updatedAt: true });
 export const insertContactSchema = createInsertSchema(contacts).omit({ id: true, createdAt: true, updatedAt: true });
-export const insertLeadSchema = createInsertSchema(leads).omit({ id: true, createdAt: true, updatedAt: true });
+export const insertLeadSchema = createInsertSchema(leads).omit({ id: true, createdAt: true, updatedAt: true }).extend({
+  assignedAt: z.preprocess(
+    (val) => typeof val === 'string' ? new Date(val) : val,
+    z.date()
+  ).optional(),
+});
 export const insertDealSchema = createInsertSchema(deals).omit({ id: true, createdAt: true, updatedAt: true }).extend({
   value: z.preprocess(
     (val) => typeof val === 'number' ? val.toString() : val,
@@ -767,7 +772,16 @@ export const insertDealSchema = createInsertSchema(deals).omit({ id: true, creat
     z.date()
   ).optional(),
 });
-export const insertActivitySchema = createInsertSchema(activities).omit({ id: true, createdAt: true, updatedAt: true });
+export const insertActivitySchema = createInsertSchema(activities).omit({ id: true, createdAt: true, updatedAt: true }).extend({
+  scheduledAt: z.preprocess(
+    (val) => typeof val === 'string' ? new Date(val) : val,
+    z.date()
+  ).optional(),
+  completedAt: z.preprocess(
+    (val) => typeof val === 'string' ? new Date(val) : val,
+    z.date()
+  ).optional(),
+});
 export const insertLeadSourceSchema = createInsertSchema(leadSources).omit({ id: true, createdAt: true, updatedAt: true, tenantId: true });
 export const insertActivityTypeSchema = createInsertSchema(activityTypes).omit({ id: true, createdAt: true, tenantId: true });
 export const insertInterestLevelSchema = createInsertSchema(interestLevels).omit({ id: true, createdAt: true, tenantId: true });
@@ -792,6 +806,14 @@ export const insertProductOfferSchema = createInsertSchema(productOffers).omit({
     (val) => val === null || val === undefined ? val : (typeof val === 'number' ? val.toString() : val),
     z.string().nullable().optional()
   ),
+  startDate: z.preprocess(
+    (val) => typeof val === 'string' ? new Date(val) : val,
+    z.date()
+  ).optional(),
+  endDate: z.preprocess(
+    (val) => typeof val === 'string' ? new Date(val) : val,
+    z.date()
+  ).optional(),
 });
 export const insertCustomerSchema = createInsertSchema(customers).omit({ id: true, createdAt: true, updatedAt: true, tenantId: true });
 export const insertEventSchema = createInsertSchema(events).omit({ id: true, createdAt: true, tenantId: true });
@@ -817,11 +839,23 @@ export const insertPaymentPlanSchema = createInsertSchema(paymentPlans).omit({ i
     (val) => typeof val === 'number' ? val.toString() : val,
     z.string()
   ),
+  startDate: z.preprocess(
+    (val) => typeof val === 'string' ? new Date(val) : val,
+    z.date()
+  ),
+  endDate: z.preprocess(
+    (val) => typeof val === 'string' ? new Date(val) : val,
+    z.date()
+  ).optional(),
 });
 export const insertPaymentSchema = createInsertSchema(payments).omit({ id: true, createdAt: true, updatedAt: true, tenantId: true }).extend({
   amount: z.preprocess(
     (val) => typeof val === 'number' ? val.toString() : val,
     z.string()
+  ),
+  paymentDate: z.preprocess(
+    (val) => typeof val === 'string' ? new Date(val) : val,
+    z.date()
   ),
 });
 export const insertCommissionStatusSchema = createInsertSchema(commissionStatuses).omit({ id: true, createdAt: true, updatedAt: true, tenantId: true });

@@ -50,12 +50,11 @@ router.get("/:id", async (req: any, res) => {
 // POST /api/activities - Create new activity
 router.post("/", async (req: any, res) => {
   try {
-    // Prepare data with proper type conversion
+    // Prepare data with tenant and user info
     const activityData = {
       ...req.body,
       tenantId: req.tenantId,
       userId: req.body.userId || req.user?.id || 44, // Use provided userId or fallback to 44
-      scheduledAt: req.body.scheduledAt ? new Date(req.body.scheduledAt) : null,
     };
     
     const validatedData = insertActivitySchema.parse(activityData);
