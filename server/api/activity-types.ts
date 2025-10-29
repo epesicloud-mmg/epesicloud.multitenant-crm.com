@@ -5,7 +5,7 @@ import { authenticateToken as authenticate, type AuthRequest } from "../auth.js"
 
 const router = Router();
 
-// GET /api/crm/activity-types - Get all activity types for tenant
+// GET /api/activity-types - Get all activity types for tenant
 router.get("/", authenticate, async (req: AuthRequest, res: Response) => {
   try {
     const tenantId = req.auth?.tenantId;
@@ -21,7 +21,7 @@ router.get("/", authenticate, async (req: AuthRequest, res: Response) => {
   }
 });
 
-// POST /api/crm/activity-types - Create new activity type
+// POST /api/activity-types - Create new activity type
 router.post("/", authenticate, async (req: AuthRequest, res: Response) => {
   try {
     const tenantId = req.auth?.tenantId;
@@ -38,11 +38,12 @@ router.post("/", authenticate, async (req: AuthRequest, res: Response) => {
     res.status(201).json(newActivityType);
   } catch (error) {
     console.error("Error creating activity type:", error);
-    res.status(400).json({ error: "Failed to create activity type" });
+    const errorMessage = error instanceof Error ? error.message : "Failed to create activity type";
+    res.status(400).json({ error: errorMessage });
   }
 });
 
-// PATCH /api/crm/activity-types/:id - Update activity type
+// PATCH /api/activity-types/:id - Update activity type
 router.patch("/:id", authenticate, async (req: AuthRequest, res: Response) => {
   try {
     const tenantId = req.auth?.tenantId;
@@ -68,7 +69,7 @@ router.patch("/:id", authenticate, async (req: AuthRequest, res: Response) => {
   }
 });
 
-// DELETE /api/crm/activity-types/:id - Delete activity type
+// DELETE /api/activity-types/:id - Delete activity type
 router.delete("/:id", authenticate, async (req: AuthRequest, res: Response) => {
   try {
     const tenantId = req.auth?.tenantId;

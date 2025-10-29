@@ -282,6 +282,7 @@ export const deals = pgTable("deals", {
 export const activities = pgTable("activities", {
   id: serial("id").primaryKey(),
   type: text("type").notNull(),
+  activityTypeId: integer("activity_type_id").references(() => activityTypes.id),
   subject: text("subject").notNull(),
   description: text("description"),
   contactId: integer("contact_id").references(() => contacts.id),

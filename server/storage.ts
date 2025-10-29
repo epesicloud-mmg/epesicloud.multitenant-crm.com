@@ -1044,6 +1044,20 @@ export class DbStorage implements IStorage {
   }
   
   async createActivityType(activityType: InsertActivityType): Promise<ActivityType> {
+    // Check for duplicate activity type name (case-insensitive) within the same tenant
+    const existing = await db.select().from(activityTypes)
+      .where(
+        and(
+          eq(activityTypes.tenantId, activityType.tenantId),
+          sql`LOWER(${activityTypes.typeName}) = LOWER(${activityType.typeName})`
+        )
+      )
+      .limit(1);
+    
+    if (existing.length > 0) {
+      throw new Error(`Activity type "${activityType.typeName}" already exists`);
+    }
+    
     const [newType] = await db.insert(activityTypes).values(activityType).returning();
     return newType;
   }

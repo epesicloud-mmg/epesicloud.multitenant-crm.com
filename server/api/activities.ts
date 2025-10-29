@@ -55,6 +55,16 @@ router.post("/", async (req: any, res) => {
     console.log("Tenant ID:", req.tenantId);
     console.log("User ID from auth:", req.userId);
     
+    // Validate activity type exists if provided
+    if (req.body.activityTypeId) {
+      const activityTypes = await storage.getActivityTypes(req.tenantId);
+      const activityTypeExists = activityTypes.some(at => at.id === req.body.activityTypeId);
+      
+      if (!activityTypeExists) {
+        return res.status(400).json({ error: `Activity type with ID ${req.body.activityTypeId} does not exist` });
+      }
+    }
+    
     // Prepare data with tenant and user info  
     const activityData = {
       ...req.body,
@@ -93,6 +103,16 @@ router.put("/:id", async (req: any, res) => {
     const activityId = parseInt(req.params.id);
     if (isNaN(activityId)) {
       return res.status(400).json({ error: "Invalid activity ID" });
+    }
+    
+    // Validate activity type exists if provided
+    if (req.body.activityTypeId) {
+      const activityTypes = await storage.getActivityTypes(req.tenantId);
+      const activityTypeExists = activityTypes.some(at => at.id === req.body.activityTypeId);
+      
+      if (!activityTypeExists) {
+        return res.status(400).json({ error: `Activity type with ID ${req.body.activityTypeId} does not exist` });
+      }
     }
     
     const updateData = { ...req.body };
