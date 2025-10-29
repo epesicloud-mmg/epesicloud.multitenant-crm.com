@@ -6,7 +6,7 @@ import { storage } from './storage';
 import { seedRealEstateData } from './seed-real-estate-data';
 
 const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key-change-in-production';
-const ACCESS_TOKEN_EXPIRY = '15m';
+const ACCESS_TOKEN_EXPIRY = '30d';
 const REFRESH_TOKEN_EXPIRY = '30d';
 
 export interface JWTPayload {

@@ -33,8 +33,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Tenant management routes (protected)
   app.use("/api/tenants", tenantsRouter);
 
-  // Module routes (protected)
-  app.use("/api/crm", crmRouter);
+  // CRM routes (protected)
+  app.use("/api", crmRouter);
   
   // Finance and HR modules - NOT YET IMPLEMENTED
   // Reason: Database schemas for Finance/HR tables not yet created
