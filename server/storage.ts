@@ -799,8 +799,21 @@ export class DbStorage implements IStorage {
   
   // ==================== CRM - SALES PIPELINES ====================
   
-  async getSalesPipelines(tenantId: number): Promise<SalesPipeline[]> {
-    return await db.select().from(salesPipelines).where(eq(salesPipelines.tenantId, tenantId));
+  async getSalesPipelines(tenantId: number): Promise<any[]> {
+    const pipelines = await db.select().from(salesPipelines).where(eq(salesPipelines.tenantId, tenantId));
+    
+    // Fetch stages for each pipeline
+    const pipelinesWithStages = await Promise.all(
+      pipelines.map(async (pipeline) => {
+        const stages = await this.getSalesStages(tenantId, pipeline.id);
+        return {
+          ...pipeline,
+          stages
+        };
+      })
+    );
+    
+    return pipelinesWithStages;
   }
   
   async getSalesPipeline(id: number, tenantId: number): Promise<any> {
