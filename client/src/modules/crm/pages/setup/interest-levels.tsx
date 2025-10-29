@@ -37,8 +37,8 @@ export default function InterestLevels() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
-  const { data: interestLevels = [], isLoading } = useQuery<InterestLevel[]>({
-    queryKey: ["/api/crm/interest-levels"],
+  const { data: interestLevels = [], isLoading} = useQuery<InterestLevel[]>({
+    queryKey: ["/api/interest-levels"],
   });
 
   const form = useForm<InterestLevelFormData>({
@@ -52,10 +52,10 @@ export default function InterestLevels() {
 
   const createMutation = useMutation({
     mutationFn: async (data: InterestLevelFormData) => {
-      return apiRequest("POST", "/api/crm/interest-levels", data);
+      return apiRequest("POST", "/api/interest-levels", data);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/crm/interest-levels"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/interest-levels"] });
       setIsModalOpen(false);
       form.reset();
       toast({
@@ -74,10 +74,10 @@ export default function InterestLevels() {
 
   const updateMutation = useMutation({
     mutationFn: async (data: InterestLevelFormData & { id: number }) => {
-      return apiRequest("PATCH", `/api/crm/interest-levels/${data.id}`, data);
+      return apiRequest("PATCH", `/api/interest-levels/${data.id}`, data);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/crm/interest-levels"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/interest-levels"] });
       setIsModalOpen(false);
       setEditingLevel(null);
       form.reset();
@@ -97,10 +97,10 @@ export default function InterestLevels() {
 
   const deleteMutation = useMutation({
     mutationFn: async (id: number) => {
-      return apiRequest("DELETE", `/api/crm/interest-levels/${id}`);
+      return apiRequest("DELETE", `/api/interest-levels/${id}`);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/crm/interest-levels"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/interest-levels"] });
       toast({
         title: "Success",
         description: "Interest level deleted successfully",

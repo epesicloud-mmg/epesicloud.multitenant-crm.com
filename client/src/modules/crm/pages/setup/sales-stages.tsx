@@ -47,11 +47,11 @@ export default function SalesStages() {
   const queryClient = useQueryClient();
 
   const { data: salesStages = [], isLoading } = useQuery<SalesStage[]>({
-    queryKey: ["/api/deal-stages"],
+    queryKey: ["/api/stages"],
   });
 
   const { data: pipelines = [] } = useQuery<SalesPipeline[]>({
-    queryKey: ["/api/sales-pipelines"],
+    queryKey: ["/api/pipelines"],
   });
 
   const form = useForm<SalesStageFormData>({
@@ -68,10 +68,10 @@ export default function SalesStages() {
 
   const createMutation = useMutation({
     mutationFn: async (data: SalesStageFormData) => {
-      return apiRequest("POST", "/api/deal-stages", data);
+      return apiRequest("POST", "/api/stages", data);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/deal-stages"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/stages"] });
       setIsModalOpen(false);
       form.reset();
       toast({
@@ -90,10 +90,10 @@ export default function SalesStages() {
 
   const updateMutation = useMutation({
     mutationFn: async (data: SalesStageFormData & { id: number }) => {
-      return apiRequest("PATCH", `/api/deal-stages/${data.id}`, data);
+      return apiRequest("PATCH", `/api/stages/${data.id}`, data);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/deal-stages"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/stages"] });
       setIsModalOpen(false);
       setEditingStage(null);
       form.reset();
@@ -113,10 +113,10 @@ export default function SalesStages() {
 
   const deleteMutation = useMutation({
     mutationFn: async (id: number) => {
-      return apiRequest("DELETE", `/api/deal-stages/${id}`);
+      return apiRequest("DELETE", `/api/stages/${id}`);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/deal-stages"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/stages"] });
       toast({
         title: "Success",
         description: "Sales stage deleted successfully",
