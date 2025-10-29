@@ -15,7 +15,7 @@ import { insertActivitySchema } from "@shared/schema";
 import { Search, Calendar, Plus, Edit, Trash2, Phone, Mail, Users, FileText, Clock } from "lucide-react";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
-import type { Activity, Contact, Deal } from "@shared/schema";
+import type { Activity, Contact, Deal, ActivityType } from "@shared/schema";
 import { z } from "zod";
 
 const activityFormSchema = insertActivitySchema.omit({ tenantId: true, scheduledAt: true }).extend({
@@ -47,6 +47,10 @@ export default function Activities() {
 
   const { data: deals = [] } = useQuery<Deal[]>({
     queryKey: ["/api/deals"],
+  });
+
+  const { data: activityTypes = [] } = useQuery<ActivityType[]>({
+    queryKey: ["/api/activity-types"],
   });
 
   const createActivityMutation = useMutation({
@@ -157,6 +161,7 @@ export default function Activities() {
       description: "",
       contactId: undefined,
       dealId: undefined,
+      activityTypeId: undefined,
       userId: 44, // Use existing user ID
       scheduledAt: "",
     },
@@ -193,6 +198,7 @@ export default function Activities() {
       description: activity.description || "",
       contactId: activity.contactId || undefined,
       dealId: activity.dealId || undefined,
+      activityTypeId: activity.activityTypeId || undefined,
       userId: activity.userId,
       scheduledAt: activity.scheduledAt ? 
         new Date(activity.scheduledAt).toISOString().slice(0, 16) : "",
@@ -255,6 +261,7 @@ export default function Activities() {
       description: "",
       contactId: undefined,
       dealId: undefined,
+      activityTypeId: undefined,
       userId: 44, // Use existing user ID
       scheduledAt: "",
     });
@@ -465,7 +472,7 @@ export default function Activities() {
                       <FormLabel>Type</FormLabel>
                       <Select onValueChange={field.onChange} value={field.value}>
                         <FormControl>
-                          <SelectTrigger>
+                          <SelectTrigger data-testid="select-activity-type-basic">
                             <SelectValue placeholder="Select type" />
                           </SelectTrigger>
                         </FormControl>
@@ -483,12 +490,43 @@ export default function Activities() {
                 
                 <FormField
                   control={form.control}
+                  name="activityTypeId"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Activity Type</FormLabel>
+                      <Select 
+                        onValueChange={(value) => field.onChange(value === "none" ? undefined : parseInt(value))} 
+                        value={field.value?.toString() || "none"}
+                      >
+                        <FormControl>
+                          <SelectTrigger data-testid="select-activity-type-category">
+                            <SelectValue placeholder="Select activity type" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          <SelectItem value="none">No Activity Type</SelectItem>
+                          {activityTypes.map((activityType: ActivityType) => (
+                            <SelectItem key={activityType.id} value={activityType.id.toString()} data-testid={`activity-type-option-${activityType.id}`}>
+                              {activityType.typeName}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+              
+              <div className="grid grid-cols-2 gap-4">
+                <FormField
+                  control={form.control}
                   name="scheduledAt"
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Scheduled Date & Time</FormLabel>
                       <FormControl>
-                        <Input type="datetime-local" {...field} />
+                        <Input type="datetime-local" {...field} data-testid="input-scheduled-at" />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
