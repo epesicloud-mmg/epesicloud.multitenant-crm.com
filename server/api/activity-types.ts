@@ -29,12 +29,10 @@ router.post("/", authenticate, async (req: AuthRequest, res: Response) => {
       return res.status(401).json({ error: "Tenant not found" });
     }
 
-    const validatedData = insertActivityTypeSchema.parse({
-      ...req.body,
-      tenantId,
-    });
+    const validatedData = insertActivityTypeSchema.parse(req.body);
+    const dataToInsert = { ...validatedData, tenantId };
 
-    const newActivityType = await storage.createActivityType(validatedData);
+    const newActivityType = await storage.createActivityType(dataToInsert);
     res.status(201).json(newActivityType);
   } catch (error) {
     console.error("Error creating activity type:", error);
