@@ -29,12 +29,10 @@ router.post("/", authenticate, async (req: AuthRequest, res: Response) => {
       return res.status(401).json({ error: "Tenant not found" });
     }
 
-    const validatedData = insertCustomerTypeSchema.parse({
-      ...req.body,
-      tenantId,
-    });
+    const validatedData = insertCustomerTypeSchema.parse(req.body);
+    const dataToInsert = { ...validatedData, tenantId };
 
-    const newCustomerType = await storage.createCustomerType(validatedData);
+    const newCustomerType = await storage.createCustomerType(dataToInsert);
     res.status(201).json(newCustomerType);
   } catch (error) {
     console.error("Error creating customer type:", error);

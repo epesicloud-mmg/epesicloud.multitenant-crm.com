@@ -29,12 +29,10 @@ router.post("/", authenticate, async (req: AuthRequest, res: Response) => {
       return res.status(401).json({ error: "Tenant not found" });
     }
 
-    const validatedData = insertMeetingTypeSchema.parse({
-      ...req.body,
-      tenantId,
-    });
+    const validatedData = insertMeetingTypeSchema.parse(req.body);
+    const dataToInsert = { ...validatedData, tenantId };
 
-    const newMeetingType = await storage.createMeetingType(validatedData);
+    const newMeetingType = await storage.createMeetingType(dataToInsert);
     res.status(201).json(newMeetingType);
   } catch (error) {
     console.error("Error creating meeting type:", error);

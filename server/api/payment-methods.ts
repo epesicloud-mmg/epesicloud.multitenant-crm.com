@@ -29,12 +29,10 @@ router.post("/", authenticate, async (req: AuthRequest, res: Response) => {
       return res.status(401).json({ error: "Tenant not found" });
     }
 
-    const validatedData = insertPaymentMethodSchema.parse({
-      ...req.body,
-      tenantId,
-    });
+    const validatedData = insertPaymentMethodSchema.parse(req.body);
+    const dataToInsert = { ...validatedData, tenantId };
 
-    const newMethod = await storage.createPaymentMethod(validatedData);
+    const newMethod = await storage.createPaymentMethod(dataToInsert);
     res.status(201).json(newMethod);
   } catch (error) {
     console.error("Error creating payment method:", error);

@@ -29,12 +29,10 @@ router.post("/", authenticate, async (req: AuthRequest, res: Response) => {
       return res.status(401).json({ error: "Tenant not found" });
     }
 
-    const validatedData = insertInterestLevelSchema.parse({
-      ...req.body,
-      tenantId,
-    });
+    const validatedData = insertInterestLevelSchema.parse(req.body);
+    const dataToInsert = { ...validatedData, tenantId };
 
-    const newInterestLevel = await storage.createInterestLevel(validatedData);
+    const newInterestLevel = await storage.createInterestLevel(dataToInsert);
     res.status(201).json(newInterestLevel);
   } catch (error) {
     console.error("Error creating interest level:", error);

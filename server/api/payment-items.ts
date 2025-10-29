@@ -29,12 +29,10 @@ router.post("/", authenticate, async (req: AuthRequest, res: Response) => {
       return res.status(401).json({ error: "Tenant not found" });
     }
 
-    const validatedData = insertPaymentItemSchema.parse({
-      ...req.body,
-      tenantId,
-    });
+    const validatedData = insertPaymentItemSchema.parse(req.body);
+    const dataToInsert = { ...validatedData, tenantId };
 
-    const newItem = await storage.createPaymentItem(validatedData);
+    const newItem = await storage.createPaymentItem(dataToInsert);
     res.status(201).json(newItem);
   } catch (error) {
     console.error("Error creating payment item:", error);

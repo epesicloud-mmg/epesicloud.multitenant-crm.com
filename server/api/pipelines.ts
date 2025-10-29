@@ -60,24 +60,23 @@ router.post("/", async (req: any, res) => {
   try {
     const { pipeline, stages } = req.body;
     
-    // Validate pipeline data with tenant context
-    const validatedPipeline = insertSalesPipelineWithTenantSchema.parse({
-      ...pipeline,
-      tenantId: req.tenantId,
-    });
+    // Validate pipeline data
+    const validatedPipeline = insertSalesPipelineSchema.parse(pipeline);
+    const pipelineToInsert = { ...validatedPipeline, tenantId: req.tenantId };
     
     // Create the pipeline
-    const createdPipeline = await storage.createSalesPipeline(validatedPipeline);
+    const createdPipeline = await storage.createSalesPipeline(pipelineToInsert);
     
     // Create stages if provided
     if (stages && Array.isArray(stages) && stages.length > 0) {
       for (const stage of stages) {
-        const validatedStage = insertSalesStageWithTenantSchema.parse({
-          ...stage,
+        const validatedStage = insertSalesStageSchema.parse(stage);
+        const stageToInsert = {
+          ...validatedStage,
           salePipelineId: createdPipeline.id,
           tenantId: req.tenantId,
-        });
-        await storage.createSalesStage(validatedStage);
+        };
+        await storage.createSalesStage(stageToInsert);
       }
     }
     

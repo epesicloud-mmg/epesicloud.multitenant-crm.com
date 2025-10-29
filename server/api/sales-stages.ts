@@ -29,12 +29,10 @@ router.post("/", authenticate, async (req: AuthRequest, res: Response) => {
       return res.status(401).json({ error: "Tenant not found" });
     }
 
-    const validatedData = insertSalesStageSchema.parse({
-      ...req.body,
-      tenantId,
-    });
+    const validatedData = insertSalesStageSchema.parse(req.body);
+    const dataToInsert = { ...validatedData, tenantId };
 
-    const newSalesStage = await storage.createSalesStage(validatedData);
+    const newSalesStage = await storage.createSalesStage(dataToInsert);
     res.status(201).json(newSalesStage);
   } catch (error) {
     console.error("Error creating sales stage:", error);

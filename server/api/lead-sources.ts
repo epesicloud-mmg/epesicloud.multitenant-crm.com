@@ -51,12 +51,10 @@ router.post("/", authenticate, async (req: AuthRequest, res: Response) => {
       return res.status(401).json({ error: "Tenant not found" });
     }
 
-    const validatedData = insertLeadSourceSchema.parse({
-      ...req.body,
-      tenantId,
-    });
+    const validatedData = insertLeadSourceSchema.parse(req.body);
+    const dataToInsert = { ...validatedData, tenantId };
 
-    const newLeadSource = await storage.createLeadSource(validatedData);
+    const newLeadSource = await storage.createLeadSource(dataToInsert);
     res.status(201).json(newLeadSource);
   } catch (error) {
     console.error("Error creating lead source:", error);

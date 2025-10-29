@@ -29,12 +29,10 @@ router.post("/", authenticate, async (req: AuthRequest, res: Response) => {
       return res.status(401).json({ error: "Tenant not found" });
     }
 
-    const validatedData = insertMeetingCancellationReasonSchema.parse({
-      ...req.body,
-      tenantId,
-    });
+    const validatedData = insertMeetingCancellationReasonSchema.parse(req.body);
+    const dataToInsert = { ...validatedData, tenantId };
 
-    const newReason = await storage.createMeetingCancellationReason(validatedData);
+    const newReason = await storage.createMeetingCancellationReason(dataToInsert);
     res.status(201).json(newReason);
   } catch (error) {
     console.error("Error creating cancellation reason:", error);
