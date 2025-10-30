@@ -69,8 +69,11 @@ router.post("/", async (req: any, res) => {
     
     // Create stages if provided
     if (stages && Array.isArray(stages) && stages.length > 0) {
+      // Create a schema that omits salePipelineId for new stage creation
+      const newStageSchema = insertSalesStageSchema.omit({ salePipelineId: true });
+      
       for (const stage of stages) {
-        const validatedStage = insertSalesStageSchema.parse(stage);
+        const validatedStage = newStageSchema.parse(stage);
         const stageToInsert = {
           ...validatedStage,
           salePipelineId: createdPipeline.id,
