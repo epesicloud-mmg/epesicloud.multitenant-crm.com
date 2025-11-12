@@ -32,24 +32,22 @@ export default function MeetingCancellationReasons() {
     defaultValues: {
       reason: "",
       description: "",
-      tenantId: 1,
     },
   });
 
   const createMutation = useMutation({
     mutationFn: async (data: MeetingCancellationReasonFormData) => {
-      return apiRequest("/api/cancellation-reasons", {
-        method: "POST",
-        body: JSON.stringify(data),
-      });
+      const response = await apiRequest("POST", "/api/cancellation-reasons", data);
+      return response.json();
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/cancellation-reasons"] });
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: ["/api/cancellation-reasons"] });
+      await queryClient.refetchQueries({ queryKey: ["/api/cancellation-reasons"] });
       setIsModalOpen(false);
       form.reset();
       toast({
         title: "Success",
-        description: "Activity type created successfully",
+        description: "Cancellation reason created successfully",
       });
     },
     onError: () => {
@@ -63,19 +61,18 @@ export default function MeetingCancellationReasons() {
 
   const updateMutation = useMutation({
     mutationFn: async (data: MeetingCancellationReasonFormData & { id: number }) => {
-      return apiRequest(`/api/cancellation-reasons/${data.id}`, {
-        method: "PATCH",
-        body: JSON.stringify(data),
-      });
+      const response = await apiRequest("PATCH", `/api/cancellation-reasons/${data.id}`, data);
+      return response.json();
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/cancellation-reasons"] });
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: ["/api/cancellation-reasons"] });
+      await queryClient.refetchQueries({ queryKey: ["/api/cancellation-reasons"] });
       setIsModalOpen(false);
       setEditingType(null);
       form.reset();
       toast({
         title: "Success",
-        description: "Activity type updated successfully",
+        description: "Cancellation reason updated successfully",
       });
     },
     onError: () => {
@@ -89,15 +86,15 @@ export default function MeetingCancellationReasons() {
 
   const deleteMutation = useMutation({
     mutationFn: async (id: number) => {
-      return apiRequest(`/api/cancellation-reasons/${id}`, {
-        method: "DELETE",
-      });
+      const response = await apiRequest("DELETE", `/api/cancellation-reasons/${id}`);
+      return response.json();
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/cancellation-reasons"] });
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: ["/api/cancellation-reasons"] });
+      await queryClient.refetchQueries({ queryKey: ["/api/cancellation-reasons"] });
       toast({
         title: "Success",
-        description: "Activity type deleted successfully",
+        description: "Cancellation reason deleted successfully",
       });
     },
     onError: () => {
@@ -115,7 +112,6 @@ export default function MeetingCancellationReasons() {
       form.reset({
         reason: type.reason,
         description: type.description || "",
-        tenantId: type.tenantId,
       });
     } else {
       setEditingType(null);
@@ -150,7 +146,7 @@ export default function MeetingCancellationReasons() {
         <div className="flex justify-between items-center mb-6">
           <div>
             <h1 className="text-2xl font-bold text-slate-900">Cancellation Reasons</h1>
-            <p className="text-slate-600">Manage cancellation reasons including Call, Email, Meeting, and Note</p>
+            <p className="text-slate-600">Track and manage reasons for meeting and appointment cancellations</p>
           </div>
           <Button onClick={() => openModal()} className="flex items-center space-x-2" data-testid="button-add-cancellation-reason">
             <Plus className="w-4 h-4" />
@@ -252,9 +248,9 @@ export default function MeetingCancellationReasons() {
                 name="reason"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Type Name</FormLabel>
+                    <FormLabel>Reason</FormLabel>
                     <FormControl>
-                      <Input placeholder="e.g., Call, Email, Meeting" {...field} />
+                      <Input placeholder="e.g., Client Conflict, Emergency, Rescheduled" {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>

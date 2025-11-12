@@ -32,24 +32,22 @@ export default function CustomerTypes() {
     defaultValues: {
       typeName: "",
       description: "",
-      tenantId: 1,
     },
   });
 
   const createMutation = useMutation({
     mutationFn: async (data: CustomerTypeFormData) => {
-      return apiRequest("/api/customer-types", {
-        method: "POST",
-        body: JSON.stringify(data),
-      });
+      const response = await apiRequest("POST", "/api/customer-types", data);
+      return response.json();
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/customer-types"] });
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: ["/api/customer-types"] });
+      await queryClient.refetchQueries({ queryKey: ["/api/customer-types"] });
       setIsModalOpen(false);
       form.reset();
       toast({
         title: "Success",
-        description: "Activity type created successfully",
+        description: "Customer type created successfully",
       });
     },
     onError: () => {
@@ -63,19 +61,18 @@ export default function CustomerTypes() {
 
   const updateMutation = useMutation({
     mutationFn: async (data: CustomerTypeFormData & { id: number }) => {
-      return apiRequest(`/api/customer-types/${data.id}`, {
-        method: "PATCH",
-        body: JSON.stringify(data),
-      });
+      const response = await apiRequest("PATCH", `/api/customer-types/${data.id}`, data);
+      return response.json();
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/customer-types"] });
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: ["/api/customer-types"] });
+      await queryClient.refetchQueries({ queryKey: ["/api/customer-types"] });
       setIsModalOpen(false);
       setEditingType(null);
       form.reset();
       toast({
         title: "Success",
-        description: "Activity type updated successfully",
+        description: "Customer type updated successfully",
       });
     },
     onError: () => {
@@ -89,15 +86,15 @@ export default function CustomerTypes() {
 
   const deleteMutation = useMutation({
     mutationFn: async (id: number) => {
-      return apiRequest(`/api/customer-types/${id}`, {
-        method: "DELETE",
-      });
+      const response = await apiRequest("DELETE", `/api/customer-types/${id}`);
+      return response.json();
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/customer-types"] });
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: ["/api/customer-types"] });
+      await queryClient.refetchQueries({ queryKey: ["/api/customer-types"] });
       toast({
         title: "Success",
-        description: "Activity type deleted successfully",
+        description: "Customer type deleted successfully",
       });
     },
     onError: () => {
@@ -115,7 +112,6 @@ export default function CustomerTypes() {
       form.reset({
         typeName: type.typeName,
         description: type.description || "",
-        tenantId: type.tenantId,
       });
     } else {
       setEditingType(null);
@@ -150,7 +146,7 @@ export default function CustomerTypes() {
         <div className="flex justify-between items-center mb-6">
           <div>
             <h1 className="text-2xl font-bold text-slate-900">Customer Types</h1>
-            <p className="text-slate-600">Manage customer types including Call, Email, Meeting, and Note</p>
+            <p className="text-slate-600">Manage customer type categories for better customer segmentation</p>
           </div>
           <Button onClick={() => openModal()} className="flex items-center space-x-2" data-testid="button-add-customer-type">
             <Plus className="w-4 h-4" />
@@ -254,7 +250,7 @@ export default function CustomerTypes() {
                   <FormItem>
                     <FormLabel>Type Name</FormLabel>
                     <FormControl>
-                      <Input placeholder="e.g., Call, Email, Meeting" {...field} />
+                      <Input placeholder="e.g., Enterprise, SMB, Startup, Partner" {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>

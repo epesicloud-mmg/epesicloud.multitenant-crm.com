@@ -20,12 +20,12 @@ function Router() {
   return (
     <Switch>
       {/* Public Routes */}
-      <Route path="/" component={Landing} />
+      <Route path="/landing" component={Landing} />
       <Route path="/login" component={Login} />
       <Route path="/register" component={Register} />
       
-      {/* CRM Application Routes (Protected) */}
-      <Route path="/crm" component={CRMDashboard} nest />
+      {/* CRM Application Routes (Protected) - Now default */}
+      <Route path="/" component={CRMDashboard} nest />
       
       {/* 404 Not Found */}
       <Route component={NotFound} />

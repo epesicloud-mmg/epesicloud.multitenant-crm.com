@@ -121,6 +121,85 @@ router.put("/:id", async (req: any, res) => {
   }
 });
 
+// PATCH /api/pipelines/:id - Update pipeline with stages
+router.patch("/:id", async (req: any, res) => {
+  try {
+    const pipelineId = parseInt(req.params.id);
+    if (isNaN(pipelineId)) {
+      return res.status(400).json({ error: "Invalid pipeline ID" });
+    }
+    
+    const { pipeline, stages } = req.body;
+    console.log('PATCH /api/pipelines/:id - Request body:', JSON.stringify({ pipeline, stages }, null, 2));
+    
+    // Validate pipeline data
+    const validatedPipeline = insertSalesPipelineSchema.partial().parse(pipeline);
+    console.log('Validated pipeline data:', validatedPipeline);
+    
+    // Update the pipeline
+    const updatedPipeline = await storage.updateSalesPipeline(pipelineId, validatedPipeline, req.tenantId);
+    console.log('Updated pipeline result:', updatedPipeline);
+    if (!updatedPipeline) {
+      return res.status(404).json({ error: "Pipeline not found" });
+    }
+    
+    // Handle stages update if provided
+    if (stages && Array.isArray(stages)) {
+      // Get existing stages
+      const existingStages = await storage.getSalesStages(req.tenantId, pipelineId);
+      const existingStageIds = existingStages.map(s => s.id);
+      console.log('Existing stages:', existingStages.map(s => ({ id: s.id, title: s.title })));
+      console.log('Incoming stages:', stages.map((s: any) => ({ id: s.id, title: s.title })));
+      
+      // Delete stages that are no longer in the list
+      for (const existingStage of existingStages) {
+        const stillExists = stages.some((s: any) => s.id === existingStage.id);
+        if (!stillExists) {
+          console.log('Deleting stage:', existingStage.id, existingStage.title);
+          await storage.deleteSalesStage(existingStage.id, req.tenantId);
+        }
+      }
+      
+      // Update or create stages
+      const newStageSchema = insertSalesStageSchema.omit({ salePipelineId: true });
+      
+      for (const stage of stages) {
+        if (stage.id && existingStageIds.includes(stage.id)) {
+          // Update existing stage
+          const validatedStage = newStageSchema.partial().parse(stage);
+          console.log('Updating stage:', stage.id, validatedStage);
+          await storage.updateSalesStage(stage.id, validatedStage, req.tenantId);
+        } else {
+          // Create new stage
+          const validatedStage = newStageSchema.parse(stage);
+          const stageToInsert = {
+            ...validatedStage,
+            salePipelineId: pipelineId,
+            tenantId: req.tenantId,
+          };
+          console.log('Creating new stage:', stageToInsert);
+          await storage.createSalesStage(stageToInsert);
+        }
+      }
+    }
+    
+    // Fetch the complete pipeline with stages
+    const pipelineWithStages = await storage.getSalesPipeline(pipelineId, req.tenantId);
+    console.log('Final pipeline with stages:', JSON.stringify(pipelineWithStages, null, 2));
+    res.json(pipelineWithStages);
+  } catch (error) {
+    if (error instanceof z.ZodError) {
+      console.error('Validation error:', error.errors);
+      return res.status(400).json({ 
+        error: "Validation failed", 
+        details: error.errors 
+      });
+    }
+    console.error("Error updating pipeline:", error);
+    res.status(500).json({ error: "Failed to update pipeline" });
+  }
+});
+
 // DELETE /api/pipelines/:id - Delete pipeline
 router.delete("/:id", async (req: any, res) => {
   try {

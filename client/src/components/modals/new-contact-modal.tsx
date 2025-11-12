@@ -21,11 +21,15 @@ const contactFormSchema = insertContactSchema.omit({ tenantId: true });
 type ContactFormData = z.infer<typeof contactFormSchema>;
 
 interface NewContactModalProps {
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
   onContactCreated?: () => void;
 }
 
-export function NewContactModal({ onContactCreated }: NewContactModalProps) {
-  const [open, setOpen] = useState(false);
+export function NewContactModal({ open: externalOpen, onOpenChange, onContactCreated }: NewContactModalProps) {
+  const [internalOpen, setInternalOpen] = useState(false);
+  const open = externalOpen !== undefined ? externalOpen : internalOpen;
+  const setOpen = onOpenChange || setInternalOpen;
   const [showQuickCompany, setShowQuickCompany] = useState(false);
   const [newCompanyName, setNewCompanyName] = useState("");
   const { toast } = useToast();

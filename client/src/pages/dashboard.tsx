@@ -14,27 +14,31 @@ export default function Dashboard() {
   const { tenantId } = useTenant();
   const [showAIDashboard, setShowAIDashboard] = useState(false);
 
-  const { data: metrics, isLoading: metricsLoading } = useQuery({
-    queryKey: ['/api/dashboard/metrics'],
-  });
-
-  const { data: deals, isLoading: dealsLoading } = useQuery({
+  const { data: deals = [], isLoading: dealsLoading } = useQuery<any[]>({
     queryKey: ['/api/deals'],
   });
 
-  const { data: activities, isLoading: activitiesLoading } = useQuery({
+  const { data: activities = [], isLoading: activitiesLoading } = useQuery<any[]>({
     queryKey: ['/api/activities'],
   });
 
-  const { data: contacts, isLoading: contactsLoading } = useQuery({
+  const { data: contacts = [], isLoading: contactsLoading } = useQuery<any[]>({
     queryKey: ['/api/contacts'],
   });
 
-  const { data: dealStages } = useQuery({
-    queryKey: ['/api/deal-stages'],
+  const { data: salesStages = [] } = useQuery<any[]>({
+    queryKey: ['/api/sales-stages'],
   });
 
-  if (metricsLoading || dealsLoading || activitiesLoading || contactsLoading) {
+  // Calculate metrics from real data
+  const metrics = {
+    totalContacts: contacts.length,
+    activeDeals: deals.length,
+    pipelineRevenue: deals.reduce((sum: number, deal: any) => sum + parseFloat(deal.value || 0), 0),
+    conversionRate: contacts.length > 0 ? deals.length / contacts.length : 0,
+  };
+
+  if (dealsLoading || activitiesLoading || contactsLoading) {
     return (
       <div className="min-h-screen flex bg-slate-50">
         <Sidebar />
@@ -61,11 +65,11 @@ export default function Dashboard() {
   }
 
   // Process deals data for charts
-  const revenueData = deals ? dealStages?.map((stage: any) => ({
-    name: stage.name,
+  const revenueData = salesStages?.map((stage: any) => ({
+    name: stage.title,
     revenue: deals.filter((deal: any) => deal.stageId === stage.id)
-      .reduce((sum: number, deal: any) => sum + parseFloat(deal.value), 0)
-  })) : [];
+      .reduce((sum: number, deal: any) => sum + parseFloat(deal.value || 0), 0)
+  })) || [];
 
   const activityData = activities ? [
     { name: 'Calls', count: activities.filter((a: any) => a.type === 'call').length },

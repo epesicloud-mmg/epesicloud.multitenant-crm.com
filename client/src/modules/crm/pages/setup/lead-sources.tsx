@@ -31,17 +31,15 @@ export default function LeadSources() {
     resolver: zodResolver(insertLeadSourceSchema),
     defaultValues: {
       sourceName: "",
+      category: "",
       description: "",
-      tenantId: 1,
     },
   });
 
   const createMutation = useMutation({
     mutationFn: async (data: LeadSourceFormData) => {
-      return apiRequest("/api/lead-sources", {
-        method: "POST",
-        body: JSON.stringify(data),
-      });
+      const response = await apiRequest("POST", "/api/lead-sources", data);
+      return response.json();
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/lead-sources"] });
@@ -63,10 +61,8 @@ export default function LeadSources() {
 
   const updateMutation = useMutation({
     mutationFn: async (data: LeadSourceFormData & { id: number }) => {
-      return apiRequest(`/api/lead-sources/${data.id}`, {
-        method: "PATCH",
-        body: JSON.stringify(data),
-      });
+      const response = await apiRequest("PATCH", `/api/lead-sources/${data.id}`, data);
+      return response.json();
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/lead-sources"] });
@@ -89,9 +85,8 @@ export default function LeadSources() {
 
   const deleteMutation = useMutation({
     mutationFn: async (id: number) => {
-      return apiRequest(`/api/lead-sources/${id}`, {
-        method: "DELETE",
-      });
+      const response = await apiRequest("DELETE", `/api/lead-sources/${id}`);
+      return response.json();
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/lead-sources"] });
@@ -114,8 +109,8 @@ export default function LeadSources() {
       setEditingType(type);
       form.reset({
         sourceName: type.sourceName,
+        category: type.category,
         description: type.description || "",
-        tenantId: type.tenantId,
       });
     } else {
       setEditingType(null);
@@ -252,9 +247,23 @@ export default function LeadSources() {
                 name="sourceName"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Type Name</FormLabel>
+                    <FormLabel>Source Name</FormLabel>
                     <FormControl>
-                      <Input placeholder="e.g., Call, Email, Meeting" {...field} />
+                      <Input placeholder="e.g., Website, Referral, Cold Call" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              
+              <FormField
+                control={form.control}
+                name="category"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Category</FormLabel>
+                    <FormControl>
+                      <Input placeholder="e.g., Social Media, Digital Marketing, Offline" {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>

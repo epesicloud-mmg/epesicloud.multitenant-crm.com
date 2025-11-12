@@ -32,24 +32,22 @@ export default function MeetingTypes() {
     defaultValues: {
       typeName: "",
       description: "",
-      tenantId: 1,
     },
   });
 
   const createMutation = useMutation({
     mutationFn: async (data: MeetingTypeFormData) => {
-      return apiRequest("/api/meeting-types", {
-        method: "POST",
-        body: JSON.stringify(data),
-      });
+      const response = await apiRequest("POST", "/api/meeting-types", data);
+      return response.json();
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/meeting-types"] });
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: ["/api/meeting-types"] });
+      await queryClient.refetchQueries({ queryKey: ["/api/meeting-types"] });
       setIsModalOpen(false);
       form.reset();
       toast({
         title: "Success",
-        description: "Activity type created successfully",
+        description: "Meeting type created successfully",
       });
     },
     onError: () => {
@@ -63,19 +61,18 @@ export default function MeetingTypes() {
 
   const updateMutation = useMutation({
     mutationFn: async (data: MeetingTypeFormData & { id: number }) => {
-      return apiRequest(`/api/meeting-types/${data.id}`, {
-        method: "PATCH",
-        body: JSON.stringify(data),
-      });
+      const response = await apiRequest("PATCH", `/api/meeting-types/${data.id}`, data);
+      return response.json();
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/meeting-types"] });
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: ["/api/meeting-types"] });
+      await queryClient.refetchQueries({ queryKey: ["/api/meeting-types"] });
       setIsModalOpen(false);
       setEditingType(null);
       form.reset();
       toast({
         title: "Success",
-        description: "Activity type updated successfully",
+        description: "Meeting type updated successfully",
       });
     },
     onError: () => {
@@ -89,15 +86,15 @@ export default function MeetingTypes() {
 
   const deleteMutation = useMutation({
     mutationFn: async (id: number) => {
-      return apiRequest(`/api/meeting-types/${id}`, {
-        method: "DELETE",
-      });
+      const response = await apiRequest("DELETE", `/api/meeting-types/${id}`);
+      return response.json();
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/meeting-types"] });
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: ["/api/meeting-types"] });
+      await queryClient.refetchQueries({ queryKey: ["/api/meeting-types"] });
       toast({
         title: "Success",
-        description: "Activity type deleted successfully",
+        description: "Meeting type deleted successfully",
       });
     },
     onError: () => {
@@ -115,7 +112,6 @@ export default function MeetingTypes() {
       form.reset({
         typeName: type.typeName,
         description: type.description || "",
-        tenantId: type.tenantId,
       });
     } else {
       setEditingType(null);
@@ -150,7 +146,7 @@ export default function MeetingTypes() {
         <div className="flex justify-between items-center mb-6">
           <div>
             <h1 className="text-2xl font-bold text-slate-900">Meeting Types</h1>
-            <p className="text-slate-600">Manage meeting types including Call, Email, Meeting, and Note</p>
+            <p className="text-slate-600">Manage different types of meetings and appointments</p>
           </div>
           <Button onClick={() => openModal()} className="flex items-center space-x-2" data-testid="button-add-meeting-type">
             <Plus className="w-4 h-4" />
@@ -158,83 +154,83 @@ export default function MeetingTypes() {
           </Button>
         </div>
 
-          {/* Search */}
-          <div className="relative mb-6">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400 w-4 h-4" />
-            <Input
-              placeholder="Search meeting types..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-10"
-            />
+        {/* Search */}
+        <div className="relative mb-6">
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400 w-4 h-4" />
+          <Input
+            placeholder="Search meeting types..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="pl-10"
+          />
+        </div>
+
+        {isLoading ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {[...Array(6)].map((_, i) => (
+              <Card key={i} className="animate-pulse">
+                <CardContent className="p-6">
+                  <div className="h-4 bg-slate-200 rounded w-3/4 mb-2"></div>
+                  <div className="h-3 bg-slate-200 rounded w-full"></div>
+                </CardContent>
+              </Card>
+            ))}
           </div>
-
-          {isLoading ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {[...Array(6)].map((_, i) => (
-                <Card key={i} className="animate-pulse">
-                  <CardContent className="p-6">
-                    <div className="h-4 bg-slate-200 rounded w-3/4 mb-2"></div>
-                    <div className="h-3 bg-slate-200 rounded w-full"></div>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-          ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {meetingTypes.filter(type => 
-                type.typeName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                type.description?.toLowerCase().includes(searchTerm.toLowerCase())
-              ).map((type) => (
-                <Card key={type.id} className="hover:shadow-md transition-shadow">
-                  <CardHeader className="pb-4">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center space-x-3">
-                        <div className="p-2 bg-blue-100 rounded-lg">
-                          <Calendar className="w-5 h-5 text-blue-600" />
-                        </div>
-                        <CardTitle className="text-lg">{type.typeName}</CardTitle>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {meetingTypes.filter(type => 
+              type.typeName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+              type.description?.toLowerCase().includes(searchTerm.toLowerCase())
+            ).map((type) => (
+              <Card key={type.id} className="hover:shadow-md transition-shadow">
+                <CardHeader className="pb-4">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center space-x-3">
+                      <div className="p-2 bg-blue-100 rounded-lg">
+                        <Calendar className="w-5 h-5 text-blue-600" />
                       </div>
-                      <div className="flex space-x-1">
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => openModal(type)}
-                        >
-                          <Edit className="w-4 h-4" />
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => handleDelete(type.id)}
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </Button>
-                      </div>
+                      <CardTitle className="text-lg">{type.typeName}</CardTitle>
                     </div>
-                  </CardHeader>
-                  <CardContent className="pt-0">
-                    <p className="text-slate-600">{type.description}</p>
-                    <p className="text-xs text-slate-400 mt-2">
-                      Created: {new Date(type.createdAt).toLocaleDateString()}
-                    </p>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-          )}
+                    <div className="flex space-x-1">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => openModal(type)}
+                      >
+                        <Edit className="w-4 h-4" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => handleDelete(type.id)}
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </Button>
+                    </div>
+                  </div>
+                </CardHeader>
+                <CardContent className="pt-0">
+                  <p className="text-slate-600">{type.description}</p>
+                  <p className="text-xs text-slate-400 mt-2">
+                    Created: {new Date(type.createdAt).toLocaleDateString()}
+                  </p>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        )}
 
-          {meetingTypes.length === 0 && !isLoading && (
-            <div className="text-center py-12">
-              <Calendar className="w-12 h-12 text-slate-400 mx-auto mb-4" />
-              <h3 className="text-lg font-medium text-slate-900 mb-2">No meeting types found</h3>
-              <p className="text-slate-500 mb-4">Get started by adding your first meeting type</p>
-              <Button onClick={() => openModal()}>
-                <Plus className="w-4 h-4 mr-2" />
-                Add Meeting Type
-              </Button>
-            </div>
-          )}
+        {meetingTypes.length === 0 && !isLoading && (
+          <div className="text-center py-12">
+            <Calendar className="w-12 h-12 text-slate-400 mx-auto mb-4" />
+            <h3 className="text-lg font-medium text-slate-900 mb-2">No meeting types found</h3>
+            <p className="text-slate-500 mb-4">Get started by adding your first meeting type</p>
+            <Button onClick={() => openModal()}>
+              <Plus className="w-4 h-4 mr-2" />
+              Add Meeting Type
+            </Button>
+          </div>
+        )}
       </div>
 
       {/* Modal */}
@@ -254,7 +250,7 @@ export default function MeetingTypes() {
                   <FormItem>
                     <FormLabel>Type Name</FormLabel>
                     <FormControl>
-                      <Input placeholder="e.g., Call, Email, Meeting" {...field} />
+                      <Input placeholder="e.g., Discovery Call, Demo, Follow-up, Consultation" {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>

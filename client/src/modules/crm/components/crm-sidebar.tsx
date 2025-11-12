@@ -4,48 +4,48 @@ import { useState } from "react";
 import { usePermissions } from "@/lib/permissions-context";
 
 const crmNavigation = [
-  { name: "Dashboard", href: "/crm", icon: PieChart, permission: "view_dashboard" },
-  { name: "Deals", href: "/crm/deals", icon: Handshake, permission: "manage_deals" },
-  { name: "Pipelines", href: "/crm/pipelines", icon: GitBranch, permission: "manage_deals" },
-  { name: "Activities", href: "/crm/activities", icon: Clock, permission: "manage_activities" },
-  { name: "Contacts", href: "/crm/contacts", icon: Users, permission: "manage_contacts" },
-  { name: "Companies", href: "/crm/companies", icon: Building, permission: "manage_companies" },
+  { name: "Dashboard", href: "/", icon: PieChart, permission: "view_dashboard" },
+  { name: "Deals", href: "/deals", icon: Handshake, permission: "manage_deals" },
+  { name: "Pipelines", href: "/pipelines", icon: GitBranch, permission: "manage_deals" },
+  { name: "Activities", href: "/activities", icon: Clock, permission: "manage_activities" },
+  { name: "Contacts", href: "/contacts", icon: Users, permission: "manage_contacts" },
+  { name: "Companies", href: "/companies", icon: Building, permission: "manage_companies" },
 ];
 
 const crmReportsSubMenu = [
-  { name: "Sales Performance", href: "/crm/reports/sales", icon: TrendingUp, permission: "view_reports" },
-  { name: "Pipeline Analysis", href: "/crm/reports/pipeline", icon: BarChart, permission: "view_reports" },
-  { name: "Activity Reports", href: "/crm/reports/activities", icon: Calendar, permission: "view_reports" },
-  { name: "Revenue Reports", href: "/crm/reports/revenue", icon: DollarSign, permission: "view_reports" },
-  { name: "Custom Reports", href: "/crm/reports/custom", icon: FileText, permission: "view_reports" },
-  { name: "Event Analytics", href: "/crm/analytics/events", icon: Clock, permission: "manage_admin" },
+  { name: "Sales Performance", href: "/reports/sales", icon: TrendingUp, permission: "view_reports" },
+  { name: "Pipeline Analysis", href: "/reports/pipeline", icon: BarChart, permission: "view_reports" },
+  { name: "Activity Reports", href: "/reports/activities", icon: Calendar, permission: "view_reports" },
+  { name: "Revenue Reports", href: "/reports/revenue", icon: DollarSign, permission: "view_reports" },
+  { name: "Custom Reports", href: "/reports/custom", icon: FileText, permission: "view_reports" },
+  { name: "Event Analytics", href: "/analytics/events", icon: Clock, permission: "manage_admin" },
 ];
 
 const crmToolsSubMenu = [
-  { name: "Import/Export", href: "/crm/import-export", icon: Download, permission: "export_data" },
-  { name: "Assistants", href: "/crm/assistants", icon: Bot, permission: "manage_assistants" },
-  { name: "Instant Search", href: "/crm/instant-search", icon: Search, permission: "manage_products" },
+  { name: "Import/Export", href: "/import-export", icon: Download, permission: "export_data" },
+  { name: "Assistants", href: "/assistants", icon: Bot, permission: "manage_assistants" },
+  { name: "Instant Search", href: "/instant-search", icon: Search, permission: "manage_products" },
 ];
 
 const crmUserManagementSubMenu = [
-  { name: "Users Manager", href: "/crm/user-management", icon: UserCheck, permission: "manage_users" },
-  { name: "Roles Manager", href: "/crm/roles-management", icon: Shield, permission: "manage_roles" },
+  { name: "Users Manager", href: "/user-management", icon: UserCheck, permission: "manage_users" },
+  { name: "Roles Manager", href: "/roles-management", icon: Shield, permission: "manage_roles" },
 ];
 
 const crmProductsSubMenu = [
-  { name: "Products", href: "/crm/products", icon: Package, permission: "manage_products" },
-  { name: "Product Types", href: "/crm/products/types", icon: Tag, permission: "manage_products" },
-  { name: "Categories", href: "/crm/products/categories", icon: Grid3X3, permission: "manage_products" },
-  { name: "Offers & Deals", href: "/crm/products/offers", icon: Percent, permission: "manage_products" },
+  { name: "Products", href: "/products", icon: Package, permission: "manage_products" },
+  { name: "Product Types", href: "/products/types", icon: Tag, permission: "manage_products" },
+  { name: "Categories", href: "/products/categories", icon: Grid3X3, permission: "manage_products" },
+  { name: "Offers & Deals", href: "/products/offers", icon: Percent, permission: "manage_products" },
 ];
 
 const crmSetupSubMenu = [
-  { name: "Projects", href: "/crm/setup/projects", icon: Target, permission: "manage_projects" },
-  { name: "Activity Types", href: "/crm/setup/activity-types", icon: MessageSquare, permission: "manage_interactions" },
-  { name: "Sales Pipelines", href: "/crm/setup/sales-pipelines", icon: GitBranch, permission: "manage_setup" },
-  { name: "Interest Levels", href: "/crm/setup/interest-levels", icon: Thermometer, permission: "manage_setup" },
-  { name: "Customer Types", href: "/crm/setup/customer-types", icon: Users, permission: "manage_customers" },
-  { name: "Lead Sources", href: "/crm/setup/lead-sources", icon: Zap, permission: "manage_leads" },
+  { name: "Projects", href: "/setup/projects", icon: Target, permission: "manage_projects" },
+  { name: "Activity Types", href: "/setup/activity-types", icon: MessageSquare, permission: "manage_interactions" },
+  { name: "Sales Pipelines", href: "/setup/sales-pipelines", icon: GitBranch, permission: "manage_setup" },
+  { name: "Interest Levels", href: "/setup/interest-levels", icon: Thermometer, permission: "manage_setup" },
+  { name: "Customer Types", href: "/setup/customer-types", icon: Users, permission: "manage_customers" },
+  { name: "Lead Sources", href: "/setup/lead-sources", icon: Zap, permission: "manage_leads" },
 ];
 
 export function CRMSidebar() {

@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Upload, Save, X } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -24,7 +24,6 @@ const setupProductSchema = z.object({
   shortDescription: z.string().optional(),
   categoryId: z.number().optional(),
   productTypeId: z.number().optional(),
-  tenantId: z.number(),
 });
 
 type SetupProductFormData = z.infer<typeof setupProductSchema>;
@@ -44,9 +43,10 @@ interface ProductSetupModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   product?: Product | null;
+  onProductCreated?: () => void;
 }
 
-export function ProductSetupModal({ open, onOpenChange, product }: ProductSetupModalProps) {
+export function ProductSetupModal({ open, onOpenChange, product, onProductCreated }: ProductSetupModalProps) {
   const [uploadedFiles, setUploadedFiles] = useState<{ [key: string]: File | null }>({
     prod1: null,
     prod2: null,
@@ -55,6 +55,31 @@ export function ProductSetupModal({ open, onOpenChange, product }: ProductSetupM
   });
   const { toast } = useToast();
   const queryClient = useQueryClient();
+
+  // Fetch sales pipelines
+  const { data: pipelines = [], isLoading: pipelinesLoading, error: pipelinesError, refetch: refetchPipelines } = useQuery<Array<{ id: number; title: string }>>({
+    queryKey: ["/api/pipelines"],
+    enabled: open, // Only fetch when modal is open
+    refetchOnMount: true,
+    refetchOnWindowFocus: false,
+  });
+
+  // Debug logging
+  useEffect(() => {
+    console.log("=== PIPELINES DEBUG ===");
+    console.log("Modal open:", open);
+    console.log("Pipelines data:", pipelines);
+    console.log("Pipelines count:", pipelines?.length || 0);
+    console.log("Pipelines loading:", pipelinesLoading);
+    console.log("Pipelines error:", pipelinesError);
+    console.log("======================");
+    
+    // Try to refetch when modal opens
+    if (open && !pipelinesLoading) {
+      console.log("Attempting to refetch pipelines...");
+      refetchPipelines();
+    }
+  }, [open, pipelines, pipelinesLoading, pipelinesError]);
 
   const form = useForm<SetupProductFormData>({
     resolver: zodResolver(setupProductSchema),
@@ -69,7 +94,6 @@ export function ProductSetupModal({ open, onOpenChange, product }: ProductSetupM
       shortDescription: "",
       categoryId: undefined,
       productTypeId: undefined,
-      tenantId: Number(localStorage.getItem('tenantId')) || 1,
     },
   });
 
@@ -87,7 +111,6 @@ export function ProductSetupModal({ open, onOpenChange, product }: ProductSetupM
           shortDescription: "",
           categoryId: product.categoryId ?? undefined,
           productTypeId: product.productTypeId ?? undefined,
-          tenantId: Number(localStorage.getItem('tenantId')) || 1,
         });
       } else {
         form.reset({
@@ -101,7 +124,6 @@ export function ProductSetupModal({ open, onOpenChange, product }: ProductSetupM
           shortDescription: "",
           categoryId: undefined,
           productTypeId: undefined,
-          tenantId: Number(localStorage.getItem('tenantId')) || 1,
         });
       }
     }
@@ -109,27 +131,49 @@ export function ProductSetupModal({ open, onOpenChange, product }: ProductSetupM
 
   const createProductSetupMutation = useMutation({
     mutationFn: async (data: SetupProductFormData) => {
+      const tenantId = Number(localStorage.getItem('tenantId')) || 1;
       const payload = {
         name: data.name,
         title: data.title,
         description: data.description || null,
-        salePrice: data.salePrice,
+        salePrice: data.salePrice || null,
         salesPipelineId: data.salesPipelineId ?? null,
         categoryId: data.categoryId ?? null,
         productTypeId: data.productTypeId ?? null,
-        tenantId: data.tenantId,
+        tenantId: tenantId,
+        isActive: true,
       };
       
-      if (product?.id) {
-        const response = await apiRequest("PATCH", `/api/products/${product.id}`, payload);
-        return response;
-      } else {
-        const response = await apiRequest("POST", "/api/products", payload);
-        return response;
+      console.log("Submitting product payload:", payload);
+      
+      try {
+        if (product?.id) {
+          const response = await apiRequest("PUT", `/api/products/${product.id}`, payload);
+          const text = await response.text();
+          try {
+            return JSON.parse(text);
+          } catch (e) {
+            console.error("Failed to parse response:", text);
+            throw new Error("Invalid server response");
+          }
+        } else {
+          const response = await apiRequest("POST", "/api/products", payload);
+          const text = await response.text();
+          try {
+            return JSON.parse(text);
+          } catch (e) {
+            console.error("Failed to parse response:", text);
+            throw new Error("Invalid server response");
+          }
+        }
+      } catch (error) {
+        console.error("API request error:", error);
+        throw error;
       }
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/products"] });
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: ["/api/products"] });
+      await queryClient.refetchQueries({ queryKey: ["/api/products"] });
       form.reset();
       setUploadedFiles({ prod1: null, prod2: null, prod3: null, prod4: null });
       onOpenChange(false);
@@ -137,6 +181,9 @@ export function ProductSetupModal({ open, onOpenChange, product }: ProductSetupM
         title: "Success",
         description: product?.id ? "Product updated successfully" : "Product created successfully",
       });
+      if (onProductCreated) {
+        onProductCreated();
+      }
     },
     onError: (error: Error) => {
       toast({
@@ -197,9 +244,40 @@ export function ProductSetupModal({ open, onOpenChange, product }: ProductSetupM
           <DialogTitle className="text-xl font-semibold text-slate-900">
             {product?.id ? "Edit Product" : "Product Setup Configuration"}
           </DialogTitle>
-          <p className="text-sm text-slate-600">
-            Configure your product setup with pipelines, descriptions, and marketing materials
-          </p>
+          <div className="flex items-center justify-between">
+            <p className="text-sm text-slate-600">
+              Configure your product setup with pipelines, descriptions, and marketing materials
+            </p>
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={async () => {
+                console.log("Manual API test - fetching pipelines...");
+                try {
+                  const response = await fetch("/api/pipelines", {
+                    credentials: "include",
+                  });
+                  console.log("Response status:", response.status);
+                  const data = await response.json();
+                  console.log("Raw API response:", data);
+                  toast({
+                    title: "API Test",
+                    description: `Found ${data?.length || 0} pipelines. Check console for details.`,
+                  });
+                } catch (error) {
+                  console.error("API test error:", error);
+                  toast({
+                    title: "API Test Failed",
+                    description: String(error),
+                    variant: "destructive",
+                  });
+                }
+              }}
+            >
+              Test API
+            </Button>
+          </div>
         </DialogHeader>
 
         <Form {...form}>
@@ -224,14 +302,28 @@ export function ProductSetupModal({ open, onOpenChange, product }: ProductSetupM
                     <Select 
                       onValueChange={(value) => field.onChange(value === "none" ? undefined : Number(value))} 
                       value={field.value?.toString() || "none"}
+                      disabled={pipelinesLoading}
                     >
                       <FormControl>
                         <SelectTrigger>
-                          <SelectValue placeholder="Select Sales Pipeline" />
+                          <SelectValue placeholder={pipelinesLoading ? "Loading pipelines..." : "Select Sales Pipeline"} />
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
                         <SelectItem value="none">None</SelectItem>
+                        {pipelines.length > 0 ? (
+                          pipelines.map((pipeline) => (
+                            <SelectItem key={pipeline.id} value={pipeline.id.toString()}>
+                              {pipeline.title}
+                            </SelectItem>
+                          ))
+                        ) : (
+                          !pipelinesLoading && (
+                            <SelectItem value="no-pipelines" disabled>
+                              No pipelines found - Create one in Settings
+                            </SelectItem>
+                          )
+                        )}
                       </SelectContent>
                     </Select>
                     <FormMessage />

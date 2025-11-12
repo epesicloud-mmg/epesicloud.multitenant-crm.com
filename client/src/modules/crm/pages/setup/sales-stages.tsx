@@ -31,10 +31,8 @@ import type { SalesStage, SalesPipeline } from "@shared/schema";
 const salesStageSchema = z.object({
   salePipelineId: z.number().min(1, "Pipeline is required"),
   title: z.string().min(1, "Stage title is required"),
-  position: z.number().min(0, "Position must be 0 or greater"),
-  color: z.string().min(1, "Color is required"),
-  probability: z.number().min(0).max(100),
-  tenantId: z.number(),
+  description: z.string().optional(),
+  order: z.number().min(1, "Order must be 1 or greater"),
 });
 
 type SalesStageFormData = z.infer<typeof salesStageSchema>;
@@ -59,10 +57,8 @@ export default function SalesStages() {
     defaultValues: {
       salePipelineId: 0,
       title: "",
-      position: 0,
-      color: "#3b82f6",
-      probability: 50,
-      tenantId: 1,
+      description: "",
+      order: 1,
     },
   });
 
@@ -70,8 +66,11 @@ export default function SalesStages() {
     mutationFn: async (data: SalesStageFormData) => {
       return apiRequest("POST", "/api/sales-stages", data);
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/sales-stages"] });
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: ["/api/sales-stages"] });
+      await queryClient.invalidateQueries({ queryKey: ["/api/pipelines"] });
+      await queryClient.refetchQueries({ queryKey: ["/api/sales-stages"] });
+      await queryClient.refetchQueries({ queryKey: ["/api/pipelines"] });
       setIsModalOpen(false);
       form.reset();
       toast({
@@ -92,8 +91,11 @@ export default function SalesStages() {
     mutationFn: async (data: SalesStageFormData & { id: number }) => {
       return apiRequest("PATCH", `/api/sales-stages/${data.id}`, data);
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/sales-stages"] });
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: ["/api/sales-stages"] });
+      await queryClient.invalidateQueries({ queryKey: ["/api/pipelines"] });
+      await queryClient.refetchQueries({ queryKey: ["/api/sales-stages"] });
+      await queryClient.refetchQueries({ queryKey: ["/api/pipelines"] });
       setIsModalOpen(false);
       setEditingStage(null);
       form.reset();
@@ -115,8 +117,11 @@ export default function SalesStages() {
     mutationFn: async (id: number) => {
       return apiRequest("DELETE", `/api/sales-stages/${id}`);
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/sales-stages"] });
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: ["/api/sales-stages"] });
+      await queryClient.invalidateQueries({ queryKey: ["/api/pipelines"] });
+      await queryClient.refetchQueries({ queryKey: ["/api/sales-stages"] });
+      await queryClient.refetchQueries({ queryKey: ["/api/pipelines"] });
       toast({
         title: "Success",
         description: "Sales stage deleted successfully",
@@ -137,20 +142,16 @@ export default function SalesStages() {
       form.reset({
         salePipelineId: stage.salePipelineId,
         title: stage.title,
-        position: stage.position,
-        color: stage.color,
-        probability: stage.probability,
-        tenantId: stage.tenantId,
+        description: stage.description || "",
+        order: stage.order,
       });
     } else {
       setEditingStage(null);
       form.reset({
         salePipelineId: pipelines[0]?.id || 0,
         title: "",
-        position: 0,
-        color: "#3b82f6",
-        probability: 50,
-        tenantId: 1,
+        description: "",
+        order: (salesStages.length + 1),
       });
     }
     setIsModalOpen(true);
@@ -213,16 +214,15 @@ export default function SalesStages() {
             <TableRow>
               <TableHead>Stage Title</TableHead>
               <TableHead>Pipeline</TableHead>
-              <TableHead>Position</TableHead>
-              <TableHead>Probability</TableHead>
-              <TableHead>Color</TableHead>
+              <TableHead>Description</TableHead>
+              <TableHead>Order</TableHead>
               <TableHead className="text-right">Actions</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {isLoading ? (
               <TableRow>
-                <TableCell colSpan={6} className="text-center py-8">
+                <TableCell colSpan={5} className="text-center py-8">
                   <div className="flex items-center justify-center">
                     <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600" />
                   </div>
@@ -230,7 +230,7 @@ export default function SalesStages() {
               </TableRow>
             ) : filteredStages.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={6} className="text-center py-8 text-slate-500">
+                <TableCell colSpan={5} className="text-center py-8 text-slate-500">
                   No sales stages found
                 </TableCell>
               </TableRow>
@@ -246,18 +246,9 @@ export default function SalesStages() {
                   <TableCell>
                     <Badge variant="outline">{getPipelineName(stage.salePipelineId)}</Badge>
                   </TableCell>
+                  <TableCell className="text-slate-600">{stage.description || "-"}</TableCell>
                   <TableCell>
-                    <Badge variant="secondary">{stage.position}</Badge>
-                  </TableCell>
-                  <TableCell>{stage.probability}%</TableCell>
-                  <TableCell>
-                    <div className="flex items-center gap-2">
-                      <div
-                        className="w-6 h-6 rounded-full border border-slate-200"
-                        style={{ backgroundColor: stage.color }}
-                      />
-                      <span className="text-xs text-slate-600">{stage.color}</span>
-                    </div>
+                    <Badge variant="secondary">{stage.order}</Badge>
                   </TableCell>
                   <TableCell className="text-right">
                     <div className="flex items-center justify-end gap-2">
@@ -345,16 +336,15 @@ export default function SalesStages() {
 
               <FormField
                 control={form.control}
-                name="position"
+                name="description"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Position (Order)</FormLabel>
+                    <FormLabel>Description (Optional)</FormLabel>
                     <FormControl>
                       <Input
-                        type="number"
+                        placeholder="e.g., Qualifying the lead"
                         {...field}
-                        onChange={(e) => field.onChange(parseInt(e.target.value))}
-                        data-testid="input-stage-position"
+                        data-testid="input-stage-description"
                       />
                     </FormControl>
                     <FormMessage />
@@ -364,36 +354,17 @@ export default function SalesStages() {
 
               <FormField
                 control={form.control}
-                name="probability"
+                name="order"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Win Probability (%)</FormLabel>
+                    <FormLabel>Order</FormLabel>
                     <FormControl>
                       <Input
                         type="number"
-                        min="0"
-                        max="100"
+                        min="1"
                         {...field}
                         onChange={(e) => field.onChange(parseInt(e.target.value))}
-                        data-testid="input-stage-probability"
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="color"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Color</FormLabel>
-                    <FormControl>
-                      <Input
-                        type="color"
-                        {...field}
-                        data-testid="input-stage-color"
+                        data-testid="input-stage-order"
                       />
                     </FormControl>
                     <FormMessage />

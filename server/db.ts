@@ -1,10 +1,14 @@
+import "dotenv/config";
 import { Pool, neonConfig } from '@neondatabase/serverless';
 import { drizzle } from 'drizzle-orm/neon-serverless';
-import ws from "ws";
 import * as schema from "@shared/schema";
 
-// Configure WebSocket for Neon database
-neonConfig.webSocketConstructor = ws;
+// Only configure WebSocket for Neon in production or serverless environments
+// In development with Node.js, native WebSocket support is available
+if (process.env.NODE_ENV === 'production' || !globalThis.WebSocket) {
+  const ws = await import("ws");
+  neonConfig.webSocketConstructor = ws.default;
+}
 
 if (!process.env.DATABASE_URL) {
   throw new Error(

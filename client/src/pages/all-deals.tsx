@@ -1,6 +1,8 @@
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Plus, Search, Filter, MoreHorizontal, Edit, Trash2 } from "lucide-react";
+import { NewContactModal } from "@/components/modals/new-contact-modal";
+import { ProductSetupModal } from "@/components/modals/product-setup-modal";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -35,6 +37,8 @@ export default function AllDeals() {
   const [interestLevelFilter, setInterestLevelFilter] = useState<string>("all");
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [editingDeal, setEditingDeal] = useState<Deal | null>(null);
+  const [showContactModal, setShowContactModal] = useState(false);
+  const [showProductModal, setShowProductModal] = useState(false);
   const [currentWorkspace, setCurrentWorkspace] = useState('sales-operations');
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -56,7 +60,7 @@ export default function AllDeals() {
   });
 
   const { data: stages = [] } = useQuery({
-    queryKey: ["/api/deal-stages"],
+    queryKey: ["/api/sales-stages"],
   });
 
   const { data: interestLevels = [] } = useQuery({
@@ -90,11 +94,13 @@ export default function AllDeals() {
     mutationFn: async (data: { id: number } & Partial<DealFormData>) => {
       const { id, ...updateData } = data;
       const payload = { ...updateData, tenantId: 1 };
-      return apiRequest("PUT", `/api/deals/${id}`, payload);
+      const response = await apiRequest("PUT", `/api/deals/${id}`, payload);
+      return response.json();
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/deals"] });
       setEditingDeal(null);
+      setIsCreateDialogOpen(false);
       toast({
         title: "Success",
         description: "Deal updated successfully",
@@ -104,6 +110,27 @@ export default function AllDeals() {
       toast({
         title: "Error",
         description: "Failed to update deal",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: async (id: number) => {
+      const response = await apiRequest("DELETE", `/api/deals/${id}`);
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/deals"] });
+      toast({
+        title: "Success",
+        description: "Deal deleted successfully",
+      });
+    },
+    onError: () => {
+      toast({
+        title: "Error",
+        description: "Failed to delete deal",
         variant: "destructive",
       });
     },
@@ -128,6 +155,8 @@ export default function AllDeals() {
   });
 
   const onSubmit = (data: DealFormData) => {
+    console.log("Form submitted:", data);
+    console.log("Editing deal:", editingDeal);
     if (editingDeal) {
       updateMutation.mutate({ id: editingDeal.id, ...data });
     } else {
@@ -207,16 +236,41 @@ export default function AllDeals() {
                 Manage and track all sales opportunities
               </p>
             </div>
-            <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
+            <Dialog open={isCreateDialogOpen} onOpenChange={(open) => {
+              setIsCreateDialogOpen(open);
+              if (!open) {
+                setEditingDeal(null);
+                form.reset({
+                  title: "",
+                  value: "",
+                  probability: 50,
+                  stageId: undefined,
+                  contactId: undefined,
+                  productId: undefined,
+                  interestLevelId: undefined,
+                });
+              }
+            }}>
               <DialogTrigger asChild>
-                <Button>
+                <Button onClick={() => {
+                  setEditingDeal(null);
+                  form.reset({
+                    title: "",
+                    value: "",
+                    probability: 50,
+                    stageId: undefined,
+                    contactId: undefined,
+                    productId: undefined,
+                    interestLevelId: undefined,
+                  });
+                }}>
                   <Plus className="mr-2 h-4 w-4" />
                   Add Deal
                 </Button>
               </DialogTrigger>
               <DialogContent className="max-w-2xl">
                 <DialogHeader>
-                  <DialogTitle>Create New Deal</DialogTitle>
+                  <DialogTitle>{editingDeal ? "Edit Deal" : "Create New Deal"}</DialogTitle>
                 </DialogHeader>
                 <Form {...form}>
                   <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
@@ -225,7 +279,19 @@ export default function AllDeals() {
                       name="productId"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Product *</FormLabel>
+                          <div className="flex items-center justify-between">
+                            <FormLabel>Product *</FormLabel>
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="sm"
+                              className="h-6 px-2"
+                              onClick={() => setShowProductModal(true)}
+                            >
+                              <Plus className="h-3 w-3 mr-1" />
+                              Add Product
+                            </Button>
+                          </div>
                           <Select 
                             onValueChange={(value) => {
                               const productId = parseInt(value);
@@ -262,7 +328,19 @@ export default function AllDeals() {
                       name="contactId"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Contact *</FormLabel>
+                          <div className="flex items-center justify-between">
+                            <FormLabel>Contact *</FormLabel>
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="sm"
+                              className="h-6 px-2"
+                              onClick={() => setShowContactModal(true)}
+                            >
+                              <Plus className="h-3 w-3 mr-1" />
+                              Add Contact
+                            </Button>
+                          </div>
                           <Select onValueChange={(value) => field.onChange(parseInt(value))} defaultValue={field.value?.toString()}>
                             <FormControl>
                               <SelectTrigger>
@@ -288,9 +366,13 @@ export default function AllDeals() {
                         name="value"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel>Deal Value (auto-filled)</FormLabel>
+                            <FormLabel>Deal Value</FormLabel>
                             <FormControl>
-                              <Input type="number" {...field} className="bg-slate-50" readOnly />
+                              <Input 
+                                type="number" 
+                                {...field} 
+                                placeholder="Auto-filled from product"
+                              />
                             </FormControl>
                             <FormMessage />
                           </FormItem>
@@ -352,11 +434,14 @@ export default function AllDeals() {
                     />
                     
                     <div className="flex justify-end space-x-2">
-                      <Button type="button" variant="outline" onClick={() => setIsCreateDialogOpen(false)}>
+                      <Button type="button" variant="outline" onClick={() => {
+                        setIsCreateDialogOpen(false);
+                        setEditingDeal(null);
+                      }}>
                         Cancel
                       </Button>
-                      <Button type="submit" disabled={createMutation.isPending}>
-                        {createMutation.isPending ? "Creating..." : "Create Deal"}
+                      <Button type="submit" disabled={createMutation.isPending || updateMutation.isPending}>
+                        {createMutation.isPending || updateMutation.isPending ? "Saving..." : (editingDeal ? "Update Deal" : "Create Deal")}
                       </Button>
                     </div>
                   </form>
@@ -364,6 +449,25 @@ export default function AllDeals() {
               </DialogContent>
             </Dialog>
           </div>
+
+          {/* Quick Add Modals */}
+          <NewContactModal 
+            open={showContactModal} 
+            onOpenChange={setShowContactModal}
+            onContactCreated={() => {
+              queryClient.invalidateQueries({ queryKey: ["/api/contacts"] });
+              setShowContactModal(false);
+            }}
+          />
+          
+          <ProductSetupModal 
+            open={showProductModal} 
+            onOpenChange={setShowProductModal}
+            onProductCreated={() => {
+              queryClient.invalidateQueries({ queryKey: ["/api/products"] });
+              setShowProductModal(false);
+            }}
+          />
 
           <div className="bg-white rounded-xl border border-slate-200 shadow-sm">
             {/* Header */}
@@ -472,11 +576,30 @@ export default function AllDeals() {
                               </Button>
                             </DropdownMenuTrigger>
                             <DropdownMenuContent align="end">
-                              <DropdownMenuItem onClick={() => setEditingDeal(deal)}>
+                              <DropdownMenuItem onClick={() => {
+                                setEditingDeal(deal);
+                                form.reset({
+                                  title: deal.title,
+                                  value: deal.value,
+                                  stageId: deal.stageId || undefined,
+                                  contactId: deal.contactId || undefined,
+                                  productId: deal.productId || undefined,
+                                  interestLevelId: deal.interestLevelId || undefined,
+                                  probability: deal.probability || 50,
+                                });
+                                setIsCreateDialogOpen(true);
+                              }}>
                                 <Edit className="mr-2 h-4 w-4" />
                                 Edit
                               </DropdownMenuItem>
-                              <DropdownMenuItem className="text-red-600">
+                              <DropdownMenuItem 
+                                className="text-red-600"
+                                onClick={() => {
+                                  if (confirm('Are you sure you want to delete this deal?')) {
+                                    deleteMutation.mutate(deal.id);
+                                  }
+                                }}
+                              >
                                 <Trash2 className="mr-2 h-4 w-4" />
                                 Delete
                               </DropdownMenuItem>

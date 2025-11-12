@@ -116,7 +116,7 @@ export default function Deals() {
   });
 
   const { data: dealStages = [] } = useQuery<DealStage[]>({
-    queryKey: ["/api/deal-stages"],
+    queryKey: ["/api/sales-stages"],
   });
 
   const { data: interestLevels = [] } = useQuery<InterestLevel[]>({

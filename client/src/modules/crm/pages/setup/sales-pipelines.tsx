@@ -73,10 +73,16 @@ export default function SalesPipelines() {
 
   const updateMutation = useMutation({
     mutationFn: async (data: { pipeline: SalesPipelineFormData & { id: number }; stages: (SalesStageFormData | Omit<SalesStageFormData, 'salePipelineId' | 'tenantId'>)[] }) => {
-      return apiRequest("PATCH", `/api/pipelines/${data.pipeline.id}`, data);
+      console.log('Update mutation - sending data:', JSON.stringify(data, null, 2));
+      const response = await apiRequest("PATCH", `/api/pipelines/${data.pipeline.id}`, data);
+      const jsonData = await response.json();
+      console.log('Update mutation - response:', jsonData);
+      return jsonData;
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/pipelines"] });
+    onSuccess: async (data) => {
+      console.log('Update mutation - success, data:', data);
+      await queryClient.invalidateQueries({ queryKey: ["/api/pipelines"] });
+      await queryClient.refetchQueries({ queryKey: ["/api/pipelines"] });
       setIsModalOpen(false);
       setEditingPipeline(null);
       form.reset();
@@ -86,10 +92,11 @@ export default function SalesPipelines() {
         description: "Sales pipeline updated successfully",
       });
     },
-    onError: () => {
+    onError: (error: any) => {
+      console.error('Update mutation - error:', error);
       toast({
         title: "Error",
-        description: "Failed to update sales pipeline",
+        description: error?.message || "Failed to update sales pipeline",
         variant: "destructive",
       });
     },
@@ -124,6 +131,7 @@ export default function SalesPipelines() {
         isDefault: pipeline.isDefault,
       });
       setStages(pipeline.stages.map(stage => ({
+        id: stage.id,
         title: stage.title,
         description: stage.description || "",
         order: stage.order,

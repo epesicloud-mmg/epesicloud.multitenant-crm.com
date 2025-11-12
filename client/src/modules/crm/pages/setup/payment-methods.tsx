@@ -32,24 +32,22 @@ export default function PaymentMethods() {
     defaultValues: {
       methodName: "",
       description: "",
-      tenantId: 1,
     },
   });
 
   const createMutation = useMutation({
     mutationFn: async (data: PaymentMethodFormData) => {
-      return apiRequest("/api/payment-methods", {
-        method: "POST",
-        body: JSON.stringify(data),
-      });
+      const response = await apiRequest("POST", "/api/payment-methods", data);
+      return response.json();
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/payment-methods"] });
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: ["/api/payment-methods"] });
+      await queryClient.refetchQueries({ queryKey: ["/api/payment-methods"] });
       setIsModalOpen(false);
       form.reset();
       toast({
         title: "Success",
-        description: "Activity type created successfully",
+        description: "Payment method created successfully",
       });
     },
     onError: () => {
@@ -63,19 +61,18 @@ export default function PaymentMethods() {
 
   const updateMutation = useMutation({
     mutationFn: async (data: PaymentMethodFormData & { id: number }) => {
-      return apiRequest(`/api/payment-methods/${data.id}`, {
-        method: "PATCH",
-        body: JSON.stringify(data),
-      });
+      const response = await apiRequest("PATCH", `/api/payment-methods/${data.id}`, data);
+      return response.json();
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/payment-methods"] });
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: ["/api/payment-methods"] });
+      await queryClient.refetchQueries({ queryKey: ["/api/payment-methods"] });
       setIsModalOpen(false);
       setEditingType(null);
       form.reset();
       toast({
         title: "Success",
-        description: "Activity type updated successfully",
+        description: "Payment method updated successfully",
       });
     },
     onError: () => {
@@ -89,15 +86,15 @@ export default function PaymentMethods() {
 
   const deleteMutation = useMutation({
     mutationFn: async (id: number) => {
-      return apiRequest(`/api/payment-methods/${id}`, {
-        method: "DELETE",
-      });
+      const response = await apiRequest("DELETE", `/api/payment-methods/${id}`);
+      return response.json();
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/payment-methods"] });
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: ["/api/payment-methods"] });
+      await queryClient.refetchQueries({ queryKey: ["/api/payment-methods"] });
       toast({
         title: "Success",
-        description: "Activity type deleted successfully",
+        description: "Payment method deleted successfully",
       });
     },
     onError: () => {
@@ -115,7 +112,6 @@ export default function PaymentMethods() {
       form.reset({
         methodName: type.methodName,
         description: type.description || "",
-        tenantId: type.tenantId,
       });
     } else {
       setEditingType(null);
@@ -150,7 +146,7 @@ export default function PaymentMethods() {
         <div className="flex justify-between items-center mb-6">
           <div>
             <h1 className="text-2xl font-bold text-slate-900">Payment Methods</h1>
-            <p className="text-slate-600">Manage payment methods including Call, Email, Meeting, and Note</p>
+            <p className="text-slate-600">Configure available payment methods for transactions</p>
           </div>
           <Button onClick={() => openModal()} className="flex items-center space-x-2" data-testid="button-add-payment-method">
             <Plus className="w-4 h-4" />
@@ -252,9 +248,9 @@ export default function PaymentMethods() {
                 name="methodName"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Type Name</FormLabel>
+                    <FormLabel>Method Name</FormLabel>
                     <FormControl>
-                      <Input placeholder="e.g., Call, Email, Meeting" {...field} />
+                      <Input placeholder="e.g., Credit Card, Cash, Bank Transfer, PayPal" {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>

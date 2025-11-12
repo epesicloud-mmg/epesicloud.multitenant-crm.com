@@ -35,12 +35,12 @@ export default function ProductsSetup() {
 
   const deleteMutation = useMutation({
     mutationFn: async (id: number) => {
-      return apiRequest(`/api/products/${id}`, {
-        method: "DELETE",
-      });
+      const response = await apiRequest("DELETE", `/api/products/${id}`);
+      return response.json();
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/products"] });
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: ["/api/products"] });
+      await queryClient.refetchQueries({ queryKey: ["/api/products"] });
       toast({
         title: "Success",
         description: "Product deleted successfully",

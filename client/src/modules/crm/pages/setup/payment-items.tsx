@@ -32,24 +32,22 @@ export default function PaymentItems() {
     defaultValues: {
       itemName: "",
       description: "",
-      tenantId: 1,
     },
   });
 
   const createMutation = useMutation({
     mutationFn: async (data: PaymentItemFormData) => {
-      return apiRequest("/api/payment-items", {
-        method: "POST",
-        body: JSON.stringify(data),
-      });
+      const response = await apiRequest("POST", "/api/payment-items", data);
+      return response.json();
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/payment-items"] });
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: ["/api/payment-items"] });
+      await queryClient.refetchQueries({ queryKey: ["/api/payment-items"] });
       setIsModalOpen(false);
       form.reset();
       toast({
         title: "Success",
-        description: "Activity type created successfully",
+        description: "Payment item created successfully",
       });
     },
     onError: () => {
@@ -63,19 +61,18 @@ export default function PaymentItems() {
 
   const updateMutation = useMutation({
     mutationFn: async (data: PaymentItemFormData & { id: number }) => {
-      return apiRequest(`/api/payment-items/${data.id}`, {
-        method: "PATCH",
-        body: JSON.stringify(data),
-      });
+      const response = await apiRequest("PATCH", `/api/payment-items/${data.id}`, data);
+      return response.json();
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/payment-items"] });
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: ["/api/payment-items"] });
+      await queryClient.refetchQueries({ queryKey: ["/api/payment-items"] });
       setIsModalOpen(false);
       setEditingType(null);
       form.reset();
       toast({
         title: "Success",
-        description: "Activity type updated successfully",
+        description: "Payment item updated successfully",
       });
     },
     onError: () => {
@@ -89,15 +86,15 @@ export default function PaymentItems() {
 
   const deleteMutation = useMutation({
     mutationFn: async (id: number) => {
-      return apiRequest(`/api/payment-items/${id}`, {
-        method: "DELETE",
-      });
+      const response = await apiRequest("DELETE", `/api/payment-items/${id}`);
+      return response.json();
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/payment-items"] });
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: ["/api/payment-items"] });
+      await queryClient.refetchQueries({ queryKey: ["/api/payment-items"] });
       toast({
         title: "Success",
-        description: "Activity type deleted successfully",
+        description: "Payment item deleted successfully",
       });
     },
     onError: () => {
@@ -115,7 +112,6 @@ export default function PaymentItems() {
       form.reset({
         itemName: type.itemName,
         description: type.description || "",
-        tenantId: type.tenantId,
       });
     } else {
       setEditingType(null);
@@ -150,7 +146,7 @@ export default function PaymentItems() {
         <div className="flex justify-between items-center mb-6">
           <div>
             <h1 className="text-2xl font-bold text-slate-900">Payment Items</h1>
-            <p className="text-slate-600">Manage payment items including Call, Email, Meeting, and Note</p>
+            <p className="text-slate-600">Define billable items and services for invoicing</p>
           </div>
           <Button onClick={() => openModal()} className="flex items-center space-x-2" data-testid="button-add-payment-item">
             <Plus className="w-4 h-4" />
@@ -252,9 +248,9 @@ export default function PaymentItems() {
                 name="itemName"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Type Name</FormLabel>
+                    <FormLabel>Item Name</FormLabel>
                     <FormControl>
-                      <Input placeholder="e.g., Call, Email, Meeting" {...field} />
+                      <Input placeholder="e.g., Consultation Fee, Setup Fee, Monthly Subscription" {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>

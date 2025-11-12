@@ -40,6 +40,10 @@ type InterestLevel = {
 const dealFormSchema = insertDealSchema.omit({ tenantId: true }).extend({
   title: z.string().min(1, "Deal title is required"),
   value: z.string().min(1, "Deal value is required"),
+  stageId: z.number().nullable().optional(),
+  contactId: z.number().nullable().optional(),
+  productId: z.number().nullable().optional(),
+  interestLevelId: z.number().nullable().optional(),
 });
 
 type DealFormData = z.infer<typeof dealFormSchema>;
@@ -63,9 +67,14 @@ export default function Deals() {
     queryKey: ["/api/products"],
   });
 
-  const { data: dealStages = [] } = useQuery<DealStage[]>({
-    queryKey: ["/api/deal-stages"],
+  const { data: dealStages = [], isLoading: stagesLoading, error: stagesError } = useQuery<DealStage[]>({
+    queryKey: ["/api/sales-stages"],
   });
+
+  // Debug stages
+  console.log("Deal Stages:", dealStages);
+  console.log("Stages Loading:", stagesLoading);
+  console.log("Stages Error:", stagesError);
 
   const { data: interestLevels = [] } = useQuery<InterestLevel[]>({
     queryKey: ["/api/interest-levels"],
@@ -206,13 +215,11 @@ export default function Deals() {
       productId: deal.productId,
       interestLevelId: deal.interestLevelId,
       probability: deal.probability,
-      expectedCloseDate: deal.expectedCloseDate,
-      actualCloseDate: deal.actualCloseDate,
+      expectedCloseDate: deal.expectedCloseDate || undefined,
+      actualCloseDate: deal.actualCloseDate || undefined,
       notes: deal.notes || "",
       assignedToId: deal.assignedToId,
       supervisorId: deal.supervisorId,
-      workspaceId: deal.workspaceId,
-      projectId: deal.projectId,
     });
     setShowNewDealModal(true);
   };
@@ -399,18 +406,28 @@ export default function Deals() {
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Stage</FormLabel>
-                      <Select onValueChange={(value) => field.onChange(value ? parseInt(value) : null)} value={field.value?.toString() || ""}>
+                      <Select 
+                        onValueChange={(value) => field.onChange(value ? parseInt(value) : null)} 
+                        value={field.value?.toString() || ""}
+                        disabled={stagesLoading}
+                      >
                         <FormControl>
                           <SelectTrigger>
-                            <SelectValue placeholder="Select stage" />
+                            <SelectValue placeholder={stagesLoading ? "Loading stages..." : "Select stage"} />
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
-                          {dealStages.map((stage) => (
-                            <SelectItem key={stage.id} value={stage.id.toString()}>
-                              {stage.title}
+                          {dealStages.length > 0 ? (
+                            dealStages.map((stage) => (
+                              <SelectItem key={stage.id} value={stage.id.toString()}>
+                                {stage.title}
+                              </SelectItem>
+                            ))
+                          ) : (
+                            <SelectItem value="no-stages" disabled>
+                              {stagesLoading ? "Loading..." : "No stages found - Create stages in Settings → Sales Pipelines"}
                             </SelectItem>
-                          ))}
+                          )}
                         </SelectContent>
                       </Select>
                       <FormMessage />
@@ -519,8 +536,11 @@ export default function Deals() {
                 >
                   Cancel
                 </Button>
-                <Button type="submit">
-                  Save
+                <Button 
+                  type="submit"
+                  disabled={createDealMutation.isPending || updateDealMutation.isPending}
+                >
+                  {createDealMutation.isPending || updateDealMutation.isPending ? "Saving..." : (editingDeal ? "Update Deal" : "Create Deal")}
                 </Button>
               </div>
             </form>

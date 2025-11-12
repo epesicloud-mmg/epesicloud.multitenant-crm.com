@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { MainLayout } from "@/components/layout/main-layout";
+import { NewContactModal } from "@/components/modals/new-contact-modal";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -30,6 +31,8 @@ export default function Activities() {
   const [editingActivity, setEditingActivity] = useState<Activity | null>(null);
   const [selectedType, setSelectedType] = useState<string>("all");
   const [currentWorkspace, setCurrentWorkspace] = useState('sales-operations');
+  const [showContactModal, setShowContactModal] = useState(false);
+  const [showDealModal, setShowDealModal] = useState(false);
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
@@ -156,7 +159,6 @@ export default function Activities() {
   const form = useForm<ActivityFormData>({
     resolver: zodResolver(activityFormSchema),
     defaultValues: {
-      type: "call",
       subject: "",
       description: "",
       contactId: undefined,
@@ -173,11 +175,11 @@ export default function Activities() {
     console.log("Editing activity:", editingActivity);
     
     // Validate required fields
-    if (!data.type || !data.subject) {
-      console.error("Missing required fields:", { type: data.type, subject: data.subject });
+    if (!data.subject) {
+      console.error("Missing required fields:", { subject: data.subject });
       toast({
         title: "Validation Error",
-        description: "Please fill in all required fields (type and subject)",
+        description: "Please fill in all required fields (subject)",
         variant: "destructive",
       });
       return;
@@ -193,7 +195,6 @@ export default function Activities() {
   const handleEdit = (activity: Activity) => {
     setEditingActivity(activity);
     form.reset({
-      type: activity.type,
       subject: activity.subject,
       description: activity.description || "",
       contactId: activity.contactId || undefined,
@@ -256,7 +257,6 @@ export default function Activities() {
   const openNewActivityModal = () => {
     setEditingActivity(null);
     form.reset({
-      type: "call",
       subject: "",
       description: "",
       contactId: undefined,
@@ -463,60 +463,46 @@ export default function Activities() {
           </DialogHeader>
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
-                <FormField
-                  control={form.control}
-                  name="type"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Type</FormLabel>
-                      <Select onValueChange={field.onChange} value={field.value}>
-                        <FormControl>
-                          <SelectTrigger data-testid="select-activity-type-basic">
-                            <SelectValue placeholder="Select type" />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          <SelectItem value="call">Call</SelectItem>
-                          <SelectItem value="email">Email</SelectItem>
-                          <SelectItem value="meeting">Meeting</SelectItem>
-                          <SelectItem value="note">Note</SelectItem>
-                        </SelectContent>
-                      </Select>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                
-                <FormField
-                  control={form.control}
-                  name="activityTypeId"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Activity Type</FormLabel>
-                      <Select 
-                        onValueChange={(value) => field.onChange(value === "none" ? undefined : parseInt(value))} 
-                        value={field.value?.toString() || "none"}
+              <FormField
+                control={form.control}
+                name="activityTypeId"
+                render={({ field }) => (
+                  <FormItem>
+                    <div className="flex items-center justify-between">
+                      <FormLabel>Activity Type *</FormLabel>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        className="h-6 px-2"
+                        onClick={() => window.location.href = '/setup/activity-types'}
                       >
-                        <FormControl>
-                          <SelectTrigger data-testid="select-activity-type-category">
-                            <SelectValue placeholder="Select activity type" />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          <SelectItem value="none">No Activity Type</SelectItem>
-                          {activityTypes.map((activityType: ActivityType) => (
-                            <SelectItem key={activityType.id} value={activityType.id.toString()} data-testid={`activity-type-option-${activityType.id}`}>
-                              {activityType.typeName}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
+                        <Plus className="h-3 w-3 mr-1" />
+                        Add Type
+                      </Button>
+                    </div>
+                    <Select 
+                      onValueChange={(value) => field.onChange(value === "none" ? undefined : parseInt(value))} 
+                      value={field.value?.toString() || "none"}
+                    >
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select activity type" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        <SelectItem value="none">No Activity Type</SelectItem>
+                        {activityTypes.map((activityType: ActivityType) => (
+                          <SelectItem key={activityType.id} value={activityType.id.toString()} data-testid={`activity-type-option-${activityType.id}`}>
+                            {activityType.typeName}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
               
               <div className="grid grid-cols-2 gap-4">
                 <FormField
@@ -539,7 +525,7 @@ export default function Activities() {
                 name="subject"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Subject</FormLabel>
+                    <FormLabel>Subject *</FormLabel>
                     <FormControl>
                       <Input placeholder="Call to discuss proposal" {...field} />
                     </FormControl>
@@ -554,7 +540,19 @@ export default function Activities() {
                   name="contactId"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Contact</FormLabel>
+                      <div className="flex items-center justify-between">
+                        <FormLabel>Contact</FormLabel>
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          className="h-6 px-2"
+                          onClick={() => setShowContactModal(true)}
+                        >
+                          <Plus className="h-3 w-3 mr-1" />
+                          Add Contact
+                        </Button>
+                      </div>
                       <Select 
                         onValueChange={(value) => {
                           const contactId = value === "none" ? undefined : parseInt(value);
@@ -594,7 +592,19 @@ export default function Activities() {
                     
                     return (
                       <FormItem>
-                        <FormLabel>Deal</FormLabel>
+                        <div className="flex items-center justify-between">
+                          <FormLabel>Deal</FormLabel>
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="sm"
+                            className="h-6 px-2"
+                            onClick={() => window.location.href = '/deals'}
+                          >
+                            <Plus className="h-3 w-3 mr-1" />
+                            Add Deal
+                          </Button>
+                        </div>
                         <Select onValueChange={(value) => field.onChange(value === "none" ? undefined : parseInt(value))} value={field.value?.toString() || "none"}>
                           <FormControl>
                             <SelectTrigger>
@@ -670,6 +680,16 @@ export default function Activities() {
           </Form>
         </DialogContent>
       </Dialog>
+
+      {/* Quick Add Modals */}
+      <NewContactModal 
+        open={showContactModal} 
+        onOpenChange={setShowContactModal}
+        onContactCreated={() => {
+          queryClient.invalidateQueries({ queryKey: ["/api/contacts"] });
+          setShowContactModal(false);
+        }}
+      />
       </div>
     </MainLayout>
   );
