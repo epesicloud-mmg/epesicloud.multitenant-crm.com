@@ -89,10 +89,13 @@ app.use((req, res, next) => {
   }
 
   // Use environment variable for port with fallback to 5000
-  const PORT = process.env.PORT ? parseInt(process.env.PORT) : 5000;
-  
-  server.listen(PORT, "localhost", () => {
-    log(`🚀 Server running on http://localhost:${PORT}`);
-    log(`📦 Environment: ${process.env.NODE_ENV || "development"}`);
-  });
+const PORT = process.env.PORT ? parseInt(process.env.PORT) : 5000;
+
+// Railway requires binding to 0.0.0.0, not localhost
+const HOST = process.env.NODE_ENV === "production" ? "0.0.0.0" : "localhost";
+
+server.listen(PORT, HOST, () => {
+  log(`🚀 Server running on http://${HOST}:${PORT}`);
+  log(`📦 Environment: ${process.env.NODE_ENV || "development"}`);
+});
 })();
